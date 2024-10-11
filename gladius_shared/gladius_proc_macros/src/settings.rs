@@ -16,6 +16,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         let partial_settings_struct_content = transform_fields_into_partial_struct_fields(&data_struct);
         let combine_function = transform_fields_into_combine_function(&data_struct);
         let try_from_internals = transform_fields_into_try_from_internals(&data_struct);
+        let from_internals = transform_fields_into_from_internals(&data_struct);
         let names_and_types = transform_fields_into_names_and_types(&data_struct);
 
       quote! {
@@ -60,6 +61,14 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
                 #names_and_types
             }
             
+        }
+
+        impl From<#struct_name_ident> for  #partial_settings_struct_name {
+            fn from(value: #struct_name_ident) -> Self {
+                #partial_settings_struct_name {
+                    #from_internals
+                }
+            }
         }
 
 
@@ -176,6 +185,8 @@ fn transform_fields_into_try_from_internals( data_struct: &DataStruct) -> proc_m
                 .map(|named_field| {
                     let field_ident = named_field.ident.as_ref().unwrap();
                     let type_ident_original = &named_field.ty;
+
+                    let field_ident_str = named_field.ident.as_ref().unwrap().to_string();
                     
                     
                     let mut optional = false;
@@ -206,7 +217,7 @@ fn transform_fields_into_try_from_internals( data_struct: &DataStruct) -> proc_m
                             quote! { 
 
                                 #field_ident: #type_ident_original::try_from(value.#field_ident.unwrap_or_default())
-                                    .map_err(|err| PartialConvertError(  "#field_ident".to_string() + &err.0 ))?,
+                                    .map_err(|err| PartialConvertError(  #field_ident_str.to_string() + &err.0 ))?,
                             }
                         }
                         else{
@@ -216,10 +227,10 @@ fn transform_fields_into_try_from_internals( data_struct: &DataStruct) -> proc_m
                                     value
                                         .#field_ident
                                         .ok_or(
-                                            PartialConvertError(  "#field_ident".to_string())
+                                            PartialConvertError(  #field_ident_str.to_string())
                                         )?
                                     )
-                                    .map_err(|err| PartialConvertError(  "#field_ident".to_string() + &err.0 ))?,
+                                    .map_err(|err| PartialConvertError(  #field_ident_str.to_string() + &err.0 ))?,
                             }
                         }
                     }
@@ -230,9 +241,66 @@ fn transform_fields_into_try_from_internals( data_struct: &DataStruct) -> proc_m
                     }
                     else{
                         quote! { 
-                            #field_ident: value.#field_ident.ok_or(PartialConvertError("#field_ident".to_string()))?,
+                            #field_ident: value.#field_ident.ok_or(PartialConvertError(#field_ident_str.to_string()))?,
                         }
                     }
+
+
+                
+                });
+                  // Unwrap iterator into a [proc_macro2::TokenStream].
+            quote! {
+
+                 #(#props_ts_iter)*
+                
+            }
+        }
+    _ => quote! {},
+    }
+
+}
+
+fn transform_fields_into_from_internals( data_struct: &DataStruct) -> proc_macro2::TokenStream{
+
+    match data_struct.fields {
+        syn::Fields::Named(ref fields) => {
+            let props_ts_iter = fields
+                .named
+                .iter()
+                .map(|named_field| {
+                    let field_ident = named_field.ident.as_ref().unwrap();
+                    
+                    
+                    let mut optional = false;
+                    let mut recursive_type_opt = None;
+
+                    for attribute in &named_field.attrs {
+                        if attribute.path().is_ident("Optional") {
+                            optional = true;
+                        }
+                        
+                        if attribute.path().is_ident("Recursive") {
+                            recursive_type_opt = Some(attribute.parse_args::<syn::Type>().unwrap());
+                        }
+                    }
+                
+
+                    if optional {
+                        quote! { 
+                            #field_ident: value.#field_ident,
+                        }
+                        
+                    }else if let Some(recursive_type) = recursive_type_opt {
+
+                        quote! { 
+                            #field_ident : Some(#recursive_type::from(value.#field_ident)),
+                        }
+                    }else {
+                        quote! { 
+                            #field_ident: Some(value.#field_ident),
+                        }
+                    }
+                    
 
 
                 
