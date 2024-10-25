@@ -322,7 +322,7 @@ fn convert_instructions(
 
 fn parse_macro(expression: &str,
     current_z_height: f64,
-    layer_count: usize,
+    layer_count: u32,
     previous_object: Option<usize>,
     current_object: Option<usize>,
     settings: &Settings) -> Result<String,SlicerErrors>{

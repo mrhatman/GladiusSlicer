@@ -159,7 +159,7 @@ fn main() {
             cv.plastic_volume / 1000.0
         );
         info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
-        info!("Total Filament Length: {:.3} grams", cv.plastic_length);
+        info!("Total Filament Length: {:.3} mm", cv.plastic_length);
         info!(
             "Total Filament Cost: {:.2} $",
             (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
@@ -189,7 +189,7 @@ fn main() {
     } else if send_messages {
         // Output as message
         let mut gcode: Vec<u8> = Vec::new();
-        handle_err_or_return(convert(&moves, &settings, &mut gcode),send_messages);
+        handle_err_or_return(convert(&moves, &settings, &mut gcode), send_messages);
         let message = Message::GCode(
             String::from_utf8(gcode).expect("All write occur from write macro so should be utf8"),
         );
@@ -200,7 +200,7 @@ fn main() {
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();
         debug!("Converting {} Moves", moves.len());
-        handle_err_or_return(convert(&moves, &settings, &mut stdio_lock),send_messages);
+        handle_err_or_return(convert(&moves, &settings, &mut stdio_lock), send_messages);
     };
 }
 

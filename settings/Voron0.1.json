@@ -3,6 +3,7 @@
     "layers": 3,
     "distance": 2.0
   },
+
   "nozzle_diameter":0.4,
   "retract_length":1.0,
   "retract_lift_z":0.2,
@@ -55,13 +56,12 @@
   },
 
   "number_of_perimeters": 2,
-
+  "max_extruder_temp": 300.0,
   "minimum_retract_distance": 3,
   "infill_perimeter_overlap_percentage": 0.20,
   "inner_perimeters_first" : true,
   "partial_infill_type" : "Cubic",
   "solid_infill_type" : "Rectilinear",
-
 
 
   "max_acceleration_x": 9000.0,
