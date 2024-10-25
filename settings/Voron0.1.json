@@ -1,0 +1,116 @@
+{
+  "skirt":{
+    "layers": 3,
+    "distance": 2.0
+  },
+  "nozzle_diameter":0.4,
+  "retract_length":1.0,
+  "retract_lift_z":0.2,
+  "retract_speed":30.0,
+
+  "infill_percentage":0.2,
+
+  "print_x": 120,
+  "print_y": 120,
+  "print_z": 120,
+
+  "extrusion_width" : {
+    "interior_inner_perimeter":0.40,
+    "interior_surface_perimeter":0.40,
+    "exterior_inner_perimeter":0.40,
+    "exterior_surface_perimeter":0.40,
+    "infill":0.40,
+    "solid_infill":0.40,
+    "solid_top_infill":0.4,
+    "travel": 0.0,
+    "bridge": 0.40,
+    "support": 0.40
+  },
+
+
+  "speed" : {
+    "interior_inner_perimeter": 50.0,
+    "interior_surface_perimeter": 30.0,
+    "exterior_inner_perimeter": 50.0,
+    "exterior_surface_perimeter": 30.0,
+    "infill":100.0,
+    "solid_infill":60.0,
+    "solid_top_infill":30.0,
+
+    "travel": 300.0,
+    "bridge": 30.0,
+    "support": 50.0
+  },
+  "acceleration" : {
+    "interior_inner_perimeter":2000.0,
+    "interior_surface_perimeter":2000.0,
+    "exterior_inner_perimeter":2000.0,
+    "exterior_surface_perimeter":1000.0,
+    "infill":3000.0,
+    "solid_infill":3000.0,
+    "solid_top_infill":2000.0,
+    "travel": 3000.0,
+    "bridge": 3000.0,
+    "support": 3000.0
+  },
+
+  "number_of_perimeters": 2,
+
+  "minimum_retract_distance": 3,
+  "infill_perimeter_overlap_percentage": 0.20,
+  "inner_perimeters_first" : true,
+  "partial_infill_type" : "Cubic",
+  "solid_infill_type" : "Rectilinear",
+
+
+
+  "max_acceleration_x": 9000.0,
+  "max_acceleration_y": 9000.0,
+  "max_acceleration_z": 500.0,
+  "max_acceleration_e": 10000.0,
+  "max_acceleration_extruding": 1500.0,
+  "max_acceleration_travel": 1250.0,
+  "max_acceleration_retracting": 1250.0,
+  "max_jerk_x": 10.0,
+  "max_jerk_y": 10.0,
+  "max_jerk_z": 0.2,
+  "max_jerk_e": 2.5,
+
+  "minimum_feedrate_print": 0.0,
+  "minimum_feedrate_travel": 0.0,
+  "maximum_feedrate_x": 500.0,
+  "maximum_feedrate_y": 500.0,
+  "maximum_feedrate_z": 12.0,
+  "maximum_feedrate_e": 120.0,
+
+  "starting_instructions":"PRINT_START",
+
+  "ending_instructions":"PRINT_END",
+  
+  "before_layer_change_instructions": ";BEFORE_LAYER_CHANGE\n",
+  "after_layer_change_instructions": ";AFTER_LAYER_CHANGE\n;{z_pos} {layer_count}",
+  "object_change_instructions": "; Change from object {prev_obj} to {current_obj}",
+
+  "layer_settings" : [
+    [
+      {"SingleLayer":0},
+      {
+        "speed" : {
+          "interior_inner_perimeter":30.0,
+          "interior_surface_perimeter":30.0,
+          "exterior_inner_perimeter":30.0,
+          "exterior_surface_perimeter":30.0,
+          "infill":30.0,
+          "solid_infill":30.0,
+          "solid_top_infill":30.0,
+          "travel": 300.0,
+          "bridge": 30.0,
+          "support": 30.0
+        },
+        "width":0.4,
+        "layer_shrink_amount" : 0.2
+      }
+    ]
+
+  ]
+}

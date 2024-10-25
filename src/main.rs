@@ -183,16 +183,13 @@ fn main() {
                     }),
                     send_messages,
                 ),
-            )
-            .map_err(|_| SlicerErrors::FileWriteError {
-                filepath: file_path.to_string(),
-            }),
+            ),
             send_messages,
         );
     } else if send_messages {
         // Output as message
         let mut gcode: Vec<u8> = Vec::new();
-        convert(&moves, &settings, &mut gcode).expect("Writing to Vec shouldn't fail");
+        handle_err_or_return(convert(&moves, &settings, &mut gcode),send_messages);
         let message = Message::GCode(
             String::from_utf8(gcode).expect("All write occur from write macro so should be utf8"),
         );
@@ -203,7 +200,7 @@ fn main() {
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();
         debug!("Converting {} Moves", moves.len());
-        convert(&moves, &settings, &mut stdio_lock).expect("Writing to STDOUT shouldn't fail");
+        handle_err_or_return(convert(&moves, &settings, &mut stdio_lock),send_messages);
     };
 }
 

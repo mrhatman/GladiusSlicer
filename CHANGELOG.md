@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### New Features
 - Sub settings ( Acceleration.Bridge) can be set independently now
+- Add in support for Math expresions in the Gcode file
 
 ### Fixes
 

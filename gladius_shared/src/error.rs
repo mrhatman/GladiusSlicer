@@ -1,3 +1,5 @@
+
+
 use serde::{Deserialize, Serialize};
 
 /// Errors that can be generated during the slicing process
@@ -73,10 +75,7 @@ pub enum SlicerErrors {
     },
 
     /// Failed to write to file
-    FileWriteError {
-        /// File that was no able to write to
-        filepath: String,
-    },
+    FileWriteError,
 
     /// Error because settings less than zero
     SettingLessThanZero {
@@ -100,6 +99,12 @@ pub enum SlicerErrors {
     FileFormatNotSupported {
         /// File with invalid Format
         filepath: String,
+    },
+
+    /// There was an error parsing the macros in the settings
+    SettingMacroParseError {
+        /// Error string for macro Parse
+        sub_error: String,
     },
 
     /// Another error, here for plugins to use
@@ -164,8 +169,8 @@ impl SlicerErrors {
             SlicerErrors::FileCreateError { filepath } => {
                 (0x1010,format!("Could not create file \"{}\".",filepath))
             }
-            SlicerErrors::FileWriteError { filepath } => {
-                (0x1011,format!("Could not write to file \"{}\".",filepath))
+            SlicerErrors::FileWriteError => {
+                (0x1011,"Could not write to file.".to_string())
             }
             SlicerErrors::FileFormatNotSupported { filepath} => {
                 (0x1012,format!("The file {} has an invalid or unsupported format",filepath))
@@ -176,6 +181,10 @@ impl SlicerErrors {
             SlicerErrors::MovesOutsideBuildArea => {
                 (0x1014,"Slicer generated move outside build area.".to_string())
             }
+            SlicerErrors::SettingMacroParseError { sub_error  }=> {
+                (0x1015,format!("Prasing the Macros Failed with error: {}",sub_error))
+            }
         }
     }
 }
+
