@@ -1,5 +1,3 @@
-
-
 use serde::{Deserialize, Serialize};
 
 /// Errors that can be generated during the slicing process
@@ -187,4 +185,3 @@ impl SlicerErrors {
         }
     }
 }
-

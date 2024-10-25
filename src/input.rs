@@ -6,10 +6,7 @@ use std::str::FromStr;
 /// The output of a file and a settings file
 type FileOutput = Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>, Settings), SlicerErrors>;
 
-pub fn files_input(
-    settings_path: Option<&str>,
-    input: Option<Vec<String>>,
-) -> FileOutput {
+pub fn files_input(settings_path: Option<&str>, input: Option<Vec<String>>) -> FileOutput {
     let settings: Settings = {
         if let Some(str) = settings_path {
             load_settings(str)

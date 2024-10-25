@@ -81,8 +81,8 @@ pub fn lightning_layer(
 
     let fragments = lightning_forest.reconnect_to_polygon_and_trim(&infill_area);
 
-    let mut points: Vec<_> = ((min_x / h_spacing) as usize..= (max_x / h_spacing) as usize + 1)
-        .cartesian_product((min_y / v_spacing) as usize..= (max_y / v_spacing) as usize + 1)
+    let mut points: Vec<_> = ((min_x / h_spacing) as usize..=(max_x / h_spacing) as usize + 1)
+        .cartesian_product((min_y / v_spacing) as usize..=(max_y / v_spacing) as usize + 1)
         .map(|(x, y)| {
             if y % 2 == 0 {
                 Coord::from((x as f64 * h_spacing, y as f64 * v_spacing))

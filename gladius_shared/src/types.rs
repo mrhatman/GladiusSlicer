@@ -3,7 +3,9 @@
 use crate::error::SlicerErrors;
 use crate::settings::{LayerSettings, Settings};
 use geo::contains::Contains;
-use geo::{Coord, LineString, MultiLineString, MultiPolygon, Polygon, SimplifyVw, SimplifyVwPreserve};
+use geo::{
+    Coord, LineString, MultiLineString, MultiPolygon, Polygon, SimplifyVw, SimplifyVwPreserve,
+};
 use itertools::Itertools;
 use nalgebra::Point3;
 use serde::{Deserialize, Serialize};

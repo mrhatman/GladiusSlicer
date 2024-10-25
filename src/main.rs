@@ -6,7 +6,7 @@ use gladius_shared::loader::{Loader, STLLoader, ThreeMFLoader};
 use gladius_shared::types::*;
 
 use crate::plotter::convert_objects_into_moves;
-use crate::tower::{TriangleTower, TriangleTowerIterator, create_towers};
+use crate::tower::{create_towers, TriangleTower, TriangleTowerIterator};
 use geo::*;
 use gladius_shared::settings::{PartialSettingsFile, Settings, SettingsValidationResult};
 use std::fs::File;
@@ -48,7 +48,6 @@ mod slicing;
 mod tower;
 mod utils;
 
-
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -60,9 +59,15 @@ struct Args {
     verbose: u8,
     #[arg(short = 's', help = "Sets the settings file to use")]
     settings: Option<String>,
-    #[arg(short = 'm', help = "Use the Message System (useful for interprocess communication)")]
+    #[arg(
+        short = 'm',
+        help = "Use the Message System (useful for interprocess communication)"
+    )]
     message: bool,
-    #[arg(short = 'j', help = "Sets the number of threads to use in the thread pool (defaults to number of CPUs)")]
+    #[arg(
+        short = 'j',
+        help = "Sets the number of threads to use in the thread pool (defaults to number of CPUs)"
+    )]
     thread_count: Option<usize>,
 }
 
@@ -98,10 +103,7 @@ fn main() {
 
     display_state_update("Loading Inputs", send_messages);
     let (models, settings) = handle_err_or_return(
-        files_input(
-            args.settings.as_deref(),
-            Some(args.input)
-        ),
+        files_input(args.settings.as_deref(), Some(args.input)),
         send_messages,
     );
 
@@ -189,7 +191,7 @@ fn main() {
     } else if send_messages {
         // Output as message
         let mut gcode: Vec<u8> = Vec::new();
-        handle_err_or_return(convert(&moves, &settings, &mut gcode),send_messages);
+        handle_err_or_return(convert(&moves, &settings, &mut gcode), send_messages);
         let message = Message::GCode(
             String::from_utf8(gcode).expect("All write occur from write macro so should be utf8"),
         );
@@ -200,7 +202,7 @@ fn main() {
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();
         debug!("Converting {} Moves", moves.len());
-        handle_err_or_return(convert(&moves, &settings, &mut stdio_lock),send_messages);
+        handle_err_or_return(convert(&moves, &settings, &mut stdio_lock), send_messages);
     };
 }
 

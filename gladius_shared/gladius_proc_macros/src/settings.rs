@@ -214,8 +214,7 @@ fn transform_fields_into_try_from_internals(data_struct: &DataStruct) -> proc_ma
                         }
                     }
                     else{
-                        quote! { 
-                            #field_ident: value.#field_ident.ok_or(PartialConvertError(#field_ident_str.to_string()))?,
+                        quote! {#field_ident: value.#field_ident.ok_or(PartialConvertError(#field_ident_str.to_string()))?,
 
                         }
                     }
@@ -231,63 +230,49 @@ fn transform_fields_into_try_from_internals(data_struct: &DataStruct) -> proc_ma
     }
 }
 
-fn transform_fields_into_from_internals( data_struct: &DataStruct) -> proc_macro2::TokenStream{
-
+fn transform_fields_into_from_internals(data_struct: &DataStruct) -> proc_macro2::TokenStream {
     match data_struct.fields {
         syn::Fields::Named(ref fields) => {
-            let props_ts_iter = fields
-                .named
-                .iter()
-                .map(|named_field| {
-                    let field_ident = named_field.ident.as_ref().unwrap();
-                    
-                    
-                    let mut optional = false;
-                    let mut recursive_type_opt = None;
+            let props_ts_iter = fields.named.iter().map(|named_field| {
+                let field_ident = named_field.ident.as_ref().unwrap();
 
-                    for attribute in &named_field.attrs {
-                        if attribute.path().is_ident("Optional") {
-                            optional = true;
-                        }
-                        
-                        if attribute.path().is_ident("Recursive") {
-                            recursive_type_opt = Some(attribute.parse_args::<syn::Type>().unwrap());
-                        }
+                let mut optional = false;
+                let mut recursive_type_opt = None;
+
+                for attribute in &named_field.attrs {
+                    if attribute.path().is_ident("Optional") {
+                        optional = true;
                     }
-                
 
-                    if optional {
-                        quote! { 
-                            #field_ident: value.#field_ident,
-                        }
-                        
-                    }else if let Some(recursive_type) = recursive_type_opt {
-
-                        quote! { 
-                            #field_ident : Some(#recursive_type::from(value.#field_ident)),
-                        }
-                    }else {
-                        quote! { 
-                            #field_ident: Some(value.#field_ident),
-                        }
+                    if attribute.path().is_ident("Recursive") {
+                        recursive_type_opt = Some(attribute.parse_args::<syn::Type>().unwrap());
                     }
-                    
+                }
 
-
-                
-                });
-                  // Unwrap iterator into a [proc_macro2::TokenStream].
+                if optional {
+                    quote! {
+                        #field_ident: value.#field_ident,
+                    }
+                } else if let Some(recursive_type) = recursive_type_opt {
+                    quote! {
+                        #field_ident : Some(#recursive_type::from(value.#field_ident)),
+                    }
+                } else {
+                    quote! {
+                        #field_ident: Some(value.#field_ident),
+                    }
+                }
+            });
+            // Unwrap iterator into a [proc_macro2::TokenStream].
             quote! {
 
                  #(#props_ts_iter)*
-                
+
             }
         }
-    _ => quote! {},
+        _ => quote! {},
     }
-
 }
-
 
 fn transform_fields_into_names_and_types(data_struct: &DataStruct) -> proc_macro2::TokenStream {
     match data_struct.fields {
