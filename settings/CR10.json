@@ -3,6 +3,7 @@
     "layers": 3,
     "distance": 2.0
   },
+
   "nozzle_diameter":0.4,
   "retract_length":5,
   "retract_lift_z":0.2,
@@ -29,6 +30,7 @@
     "bridge": 20.0,
     "support": 20.0
   },
+
   "acceleration" : {
     "interior_inner_perimeter":500.0,
     "interior_surface_perimeter":500.0,
@@ -42,6 +44,8 @@
     "support": 700.0
   },
 
+  // at 250 the ptfe tube starts to off gas
+  "max_extruder_temp": 245.0,
   "number_of_perimeters": 2,
 
   "minimum_retract_distance": 1,

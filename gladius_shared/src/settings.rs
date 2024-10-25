@@ -206,6 +206,9 @@ pub struct Settings {
     /// Maximum feedrate for e dimension
     pub maximum_feedrate_e: f64,
 
+    /// The maximum tempeture that the extruder can acheve safely
+    pub max_extruder_temp: f64,
+
     #[Combine]
     #[AllowDefault]
     /// Settings for specific layers
@@ -350,6 +353,7 @@ impl Default for Settings {
             maximum_feedrate_e: 120.0,
             retraction_wipe: None,
             bed_exclude_areas: None,
+            max_extruder_temp: 260.0,
         }
     }
 }
@@ -475,11 +479,11 @@ impl Settings {
             }
         }
 
-        if self.filament.extruder_temp < 140.0 {
+        if self.filament.extruder_temp < 145.0 {
             return SettingsValidationResult::Warning(SlicerWarnings::NozzleTemperatureTooLow {
                 temp: self.filament.extruder_temp,
             });
-        } else if self.filament.extruder_temp > 260.0 {
+        } else if self.filament.extruder_temp > self.max_extruder_temp {
             return SettingsValidationResult::Warning(SlicerWarnings::NozzleTemperatureTooHigh {
                 temp: self.filament.extruder_temp,
             });
@@ -656,6 +660,7 @@ impl MovementParameter {
         }
     }
 }
+
 /// Settings for a filament
 #[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct FilamentSettings {

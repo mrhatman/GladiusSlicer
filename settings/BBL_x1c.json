@@ -61,6 +61,7 @@
     "support": 10000.0
   },
 
+  "max_extruder_temp": 300.0,
   "number_of_perimeters": 2,
   "minimum_retract_distance": 0.8,
   "infill_perimeter_overlap_percentage": 0.25,
