@@ -25,9 +25,9 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         // field : Option<Type> 
         // if labeled optional or merge use ( must be an option if optional already)
         // field : Type
-        #[derive(Serialize, Deserialize, Debug,Clone,Default)]
+        #[derive(Serialize, Deserialize, Debug, Clone, Default)]
         /// Partial Version of the struct #struct_name_ident
-        pub struct #partial_settings_struct_name{
+        pub struct #partial_settings_struct_name {
 
             #partial_settings_struct_content
 
@@ -39,7 +39,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         // if labeled merge ( merge is a trait that allows for custom merging)
         // field: self.field.merge(other.field),
 
-        impl Combine for #partial_settings_struct_name{
+        impl Combine for #partial_settings_struct_name {
             #combine_function
         }
 
@@ -54,7 +54,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         }
 
         impl  #struct_name_ident{
-            fn get_names_and_types() -> Vec<(String,String)>{
+            fn get_names_and_types() -> Vec<(String,String)> {
                 #names_and_types
             }
         }
