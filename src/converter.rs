@@ -1,9 +1,10 @@
 use crate::{Command, Settings};
-use gladius_shared::{error::SlicerErrors, types::RetractionType};
-use std::{fmt::format, io::{BufWriter, Write}};
 use evalexpr::*;
-
-
+use gladius_shared::{error::SlicerErrors, types::RetractionType};
+use std::{
+    fmt::format,
+    io::{BufWriter, Write},
+};
 
 pub fn convert(
     cmds: &[Command],
@@ -22,7 +23,7 @@ pub fn convert(
         None,
         current_object,
         settings,
-    ).map_err(|_|SlicerErrors::FileWriteError)?;
+    )?;
 
     writeln!(
         write_buf,
@@ -31,7 +32,8 @@ pub fn convert(
         settings.max_acceleration_y,
         settings.max_acceleration_z,
         settings.max_acceleration_e
-    ).map_err(|_|SlicerErrors::FileWriteError)?;
+    )
+    .map_err(|_| SlicerErrors::FileWriteError)?;
     writeln!(
         write_buf,
         "M203 X{:.1} Y{:.1} Z{:.1} E{:.1}; ; sets maximum feedrates, mm/sec",
@@ -39,26 +41,32 @@ pub fn convert(
         settings.maximum_feedrate_y,
         settings.maximum_feedrate_z,
         settings.maximum_feedrate_e
-    ).map_err(|_|SlicerErrors::FileWriteError)?;
+    )
+    .map_err(|_| SlicerErrors::FileWriteError)?;
     writeln!(write_buf, "M204 P{:.1} R{:.1} T{:.1}; sets acceleration (P, T) and retract acceleration (R), mm/sec^2", settings.max_acceleration_extruding, settings.max_acceleration_retracting, settings.max_acceleration_travel).map_err(|_|SlicerErrors::FileWriteError)?;
     writeln!(
         write_buf,
         "M205 X{:.1} Y{:.1} Z{:.1} E{:.1}; sets the jerk limits, mm/sec",
         settings.max_jerk_x, settings.max_jerk_y, settings.max_jerk_z, settings.max_jerk_e
-    ).map_err(|_|SlicerErrors::FileWriteError)?;
+    )
+    .map_err(|_| SlicerErrors::FileWriteError)?;
     writeln!(
         write_buf,
         "M205 S{:.1} T{:.1} ; sets the minimum extruding and travel feed rate, mm/sec",
         settings.minimum_feedrate_print, settings.minimum_feedrate_travel
-    ).map_err(|_|SlicerErrors::FileWriteError)?;
-    writeln!(write_buf, "{}", start).map_err(|_|SlicerErrors::FileWriteError)?;
-    writeln!(write_buf, "G21 ; set units to millimeters").map_err(|_|SlicerErrors::FileWriteError)?;
-    writeln!(write_buf, "G90 ; use absolute Coords").map_err(|_|SlicerErrors::FileWriteError)?;
-    writeln!(write_buf, "M83 ; use relative distances for extrusion").map_err(|_|SlicerErrors::FileWriteError)?;
+    )
+    .map_err(|_| SlicerErrors::FileWriteError)?;
+    writeln!(write_buf, "{}", start).map_err(|_| SlicerErrors::FileWriteError)?;
+    writeln!(write_buf, "G21 ; set units to millimeters")
+        .map_err(|_| SlicerErrors::FileWriteError)?;
+    writeln!(write_buf, "G90 ; use absolute Coords").map_err(|_| SlicerErrors::FileWriteError)?;
+    writeln!(write_buf, "M83 ; use relative distances for extrusion")
+        .map_err(|_| SlicerErrors::FileWriteError)?;
 
     for cmd in cmds {
         match cmd {
-            Command::MoveTo { end, .. } => writeln!(write_buf, "G1 X{:.5} Y{:.5}", end.x, end.y).map_err(|_|SlicerErrors::FileWriteError)?,
+            Command::MoveTo { end, .. } => writeln!(write_buf, "G1 X{:.5} Y{:.5}", end.x, end.y)
+                .map_err(|_| SlicerErrors::FileWriteError)?,
             Command::MoveAndExtrude {
                 start,
                 end,
@@ -82,25 +90,30 @@ pub fn convert(
                     / 4.0;
                 let extrude = extrusion_volume / filament_area;
 
-                writeln!(write_buf, "G1 X{:.5} Y{:.5} E{:.5}", end.x, end.y, extrude).map_err(|_|SlicerErrors::FileWriteError)?;
+                writeln!(write_buf, "G1 X{:.5} Y{:.5} E{:.5}", end.x, end.y, extrude)
+                    .map_err(|_| SlicerErrors::FileWriteError)?;
             }
             Command::SetState { new_state } => {
                 match &new_state.retract {
                     RetractionType::NoRetract => {
                         if let Some(speed) = new_state.movement_speed {
-                            writeln!(write_buf, "G1 F{:.5}", speed * 60.0).map_err(|_|SlicerErrors::FileWriteError)?;
+                            writeln!(write_buf, "G1 F{:.5}", speed * 60.0)
+                                .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
                         if let Some(accel) = new_state.acceleration {
-                            writeln!(write_buf, "M204 S{:.1}", accel).map_err(|_|SlicerErrors::FileWriteError)?;
+                            writeln!(write_buf, "M204 S{:.1}", accel)
+                                .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
                     }
                     RetractionType::Retract => {
                         //retract
                         if let Some(speed) = new_state.movement_speed {
-                            writeln!(write_buf, "G1 F{:.5}", speed * 60.0).map_err(|_|SlicerErrors::FileWriteError)?;
+                            writeln!(write_buf, "G1 F{:.5}", speed * 60.0)
+                                .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
                         if let Some(accel) = new_state.acceleration {
-                            writeln!(write_buf, "M204 S{:.1}", accel).map_err(|_|SlicerErrors::FileWriteError)?;
+                            writeln!(write_buf, "M204 S{:.1}", accel)
+                                .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
 
                         writeln!(
@@ -108,38 +121,46 @@ pub fn convert(
                             "G1 E{:.5} F{:.5}; Retract",
                             -settings.retract_length,
                             60.0 * settings.retract_speed,
-                        ).map_err(|_|SlicerErrors::FileWriteError)?;
+                        )
+                        .map_err(|_| SlicerErrors::FileWriteError)?;
 
                         writeln!(
                             write_buf,
                             "G1 Z{:.5} F{:.5}; z Lift",
                             current_z + settings.retract_lift_z,
                             60.0 * settings.speed.travel,
-                        ).map_err(|_|SlicerErrors::FileWriteError)?;
+                        )
+                        .map_err(|_| SlicerErrors::FileWriteError)?;
                     }
                     RetractionType::Unretract => {
                         //unretract
-                        writeln!(write_buf, "G1 Z{:.5}; z unlift", current_z,).map_err(|_|SlicerErrors::FileWriteError)?;
+                        writeln!(write_buf, "G1 Z{:.5}; z unlift", current_z,)
+                            .map_err(|_| SlicerErrors::FileWriteError)?;
                         writeln!(
                             write_buf,
                             "G1 E{:.5} F{:.5}; Unretract",
                             settings.retract_length,
                             60.0 * settings.retract_speed,
-                        ).map_err(|_|SlicerErrors::FileWriteError)?;
+                        )
+                        .map_err(|_| SlicerErrors::FileWriteError)?;
 
                         if let Some(speed) = new_state.movement_speed {
-                            writeln!(write_buf, "G1 F{:.5}", speed * 60.0).map_err(|_|SlicerErrors::FileWriteError)?;
+                            writeln!(write_buf, "G1 F{:.5}", speed * 60.0)
+                                .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
                         if let Some(accel) = new_state.acceleration {
-                            writeln!(write_buf, "M204 S{:.1}", accel).map_err(|_|SlicerErrors::FileWriteError)?;
+                            writeln!(write_buf, "M204 S{:.1}", accel)
+                                .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
                     }
                     RetractionType::MoveRetract(moves) => {
                         if let Some(speed) = new_state.movement_speed {
-                            writeln!(write_buf, "G1 F{:.5}", speed * 60.0).map_err(|_|SlicerErrors::FileWriteError)?;
+                            writeln!(write_buf, "G1 F{:.5}", speed * 60.0)
+                                .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
                         if let Some(accel) = new_state.acceleration {
-                            writeln!(write_buf, "M204 S{:.1}", accel).map_err(|_|SlicerErrors::FileWriteError)?;
+                            writeln!(write_buf, "M204 S{:.1}", accel)
+                                .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
 
                         for (retract_amount, end) in moves {
@@ -147,7 +168,8 @@ pub fn convert(
                                 write_buf,
                                 "G1 X{:.5} Y{:.5} E{:.5}; Retract with move",
                                 end.x, end.y, -retract_amount
-                            ).map_err(|_|SlicerErrors::FileWriteError)?;
+                            )
+                            .map_err(|_| SlicerErrors::FileWriteError)?;
                         }
 
                         writeln!(
@@ -155,22 +177,26 @@ pub fn convert(
                             "G1 Z{:.5} F{:.5}; z Lift",
                             current_z + settings.retract_lift_z,
                             60.0 * settings.speed.travel,
-                        ).map_err(|_|SlicerErrors::FileWriteError)?;
+                        )
+                        .map_err(|_| SlicerErrors::FileWriteError)?;
                     }
                 }
 
                 if let Some(ext_temp) = new_state.extruder_temp {
-                    writeln!(write_buf, "M104 S{:.1} ; set extruder temp", ext_temp).map_err(|_|SlicerErrors::FileWriteError)?;
+                    writeln!(write_buf, "M104 S{:.1} ; set extruder temp", ext_temp)
+                        .map_err(|_| SlicerErrors::FileWriteError)?;
                 }
                 if let Some(bed_temp) = new_state.bed_temp {
-                    writeln!(write_buf, "M140 S{:.1} ; set bed temp", bed_temp).map_err(|_|SlicerErrors::FileWriteError)?;
+                    writeln!(write_buf, "M140 S{:.1} ; set bed temp", bed_temp)
+                        .map_err(|_| SlicerErrors::FileWriteError)?;
                 }
                 if let Some(fan_speed) = new_state.fan_speed {
                     writeln!(
                         write_buf,
                         "M106 S{} ; set fan speed",
                         (2.550 * fan_speed).round() as usize
-                    ).map_err(|_|SlicerErrors::FileWriteError)?;
+                    )
+                    .map_err(|_| SlicerErrors::FileWriteError)?;
                 }
             }
             Command::LayerChange { z, index } => {
@@ -185,7 +211,9 @@ pub fn convert(
                         current_object,
                         settings
                     )?
-                ).map_err(|_|SlicerErrors::FileWriteError).map_err(|_|SlicerErrors::FileWriteError)?;
+                )
+                .map_err(|_| SlicerErrors::FileWriteError)
+                .map_err(|_| SlicerErrors::FileWriteError)?;
                 current_z = *z;
                 layer_count = *index as u32;
                 writeln!(write_buf, "G1 Z{:.5}", z)
@@ -203,10 +231,11 @@ pub fn convert(
                         current_object,
                         settings
                     )?
-                ).map_err(|_|SlicerErrors::FileWriteError)?;
+                )
+                .map_err(|_| SlicerErrors::FileWriteError)?;
             }
             Command::Delay { msec } => {
-                writeln!(write_buf, "G4 P{:.5}", msec).map_err(|_|SlicerErrors::FileWriteError)?;
+                writeln!(write_buf, "G4 P{:.5}", msec).map_err(|_| SlicerErrors::FileWriteError)?;
             }
             Command::Arc {
                 start,
@@ -246,7 +275,8 @@ pub fn convert(
                     center.x - start.x,
                     center.y - start.y,
                     extrude
-                ).map_err(|_|SlicerErrors::FileWriteError)?;
+                )
+                .map_err(|_| SlicerErrors::FileWriteError)?;
             }
             Command::ChangeObject { object } => {
                 let previous_object = std::mem::replace(&mut current_object, Some(*object));
@@ -261,7 +291,8 @@ pub fn convert(
                         current_object,
                         settings
                     )?
-                ).map_err(|_|SlicerErrors::FileWriteError)?;
+                )
+                .map_err(|_| SlicerErrors::FileWriteError)?;
             }
             Command::NoAction => {
                 panic!("Converter reached a No Action Command, Optimization Failure")
@@ -278,7 +309,7 @@ pub fn convert(
         settings,
     )?;
 
-    writeln!(write_buf, "{end}").map_err(|_|SlicerErrors::FileWriteError)?;
+    writeln!(write_buf, "{end}").map_err(|_| SlicerErrors::FileWriteError)?;
 
     write_buf
         .flush()
@@ -295,32 +326,39 @@ fn convert_instructions(
     current_object: Option<usize>,
     settings: &Settings,
 ) -> Result<String, SlicerErrors> {
-    
     let layer_settings = settings.get_layer_settings(layer_count, current_z_height);
 
     instructions
-        .split('{' )
+        .split('{')
         .enumerate()
-        .map(|(index,str)|{
+        .map(|(index, str)| {
             //first one will not contain a }
-            if index == 0 ||str.is_empty() {
+            if index == 0 || str.is_empty() {
                 Ok(String::from(str))
-            }
-            else{
-
+            } else {
                 let mut split = str.split('}');
-                let expression = split.next().ok_or(SlicerErrors::SettingMacroParseError { sub_error: format!("Empty string") } )?;
+                let expression = split.next().ok_or(SlicerErrors::SettingMacroParseError {
+                    sub_error: format!("Empty string"),
+                })?;
 
-                let mut response = parse_macro(expression, current_z_height, layer_count, previous_object, current_object, settings)?;
+                let mut response = parse_macro(
+                    expression,
+                    current_z_height,
+                    layer_count,
+                    previous_object,
+                    current_object,
+                    settings,
+                )?;
 
-                response += split.next().ok_or(SlicerErrors::SettingMacroParseError { sub_error: format!("Missing end brace") } )?;
+                response += split.next().ok_or(SlicerErrors::SettingMacroParseError {
+                    sub_error: format!("Missing end brace"),
+                })?;
 
                 Ok(response)
             }
         })
         .collect()
 }
-
 
 fn parse_macro(
     expression: &str,
@@ -330,7 +368,6 @@ fn parse_macro(
     current_object: Option<usize>,
     settings: &Settings,
 ) -> Result<String,SlicerErrors> {
-        
     let layer_settings = settings.get_layer_settings(layer_count, current_z_height);
 
     let context: HashMapContext<DefaultNumericTypes> = context_map! {
@@ -349,16 +386,18 @@ fn parse_macro(
         "bridge_speed" => float layer_settings.speed.bridge ,
         "travel_speed" => float layer_settings.speed.travel ,
         "support_speed" => float layer_settings.speed.support ,
+        "print_size_x" => float settings.print_x ,
+        "print_size_y" => float settings.print_y ,
+        "print_size_z" => float settings.print_z ,
 
     }.map_err(|e| SlicerErrors::SettingMacroParseError { sub_error: e.to_string() })?;
     
     eval_float_with_context(expression, &context)
-        .map_err(|e| SlicerErrors::SettingMacroParseError { sub_error: e.to_string() })
+        .map_err(|e| SlicerErrors::SettingMacroParseError {
+            sub_error: e.to_string(),
+        })
         .map(|f| f.to_string())
-
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -366,14 +405,61 @@ mod tests {
 
     #[test]
     fn parse_macro_test() {
-        assert_eq!(parse_macro("1.5+3.0", 0.0, 0, Some(1), Some(2), &Settings::default()), Ok(String::from("4.5")));
-        assert_eq!(parse_macro("curr_extruder_temp", 0.0, 0, Some(1), Some(2), &Settings::default()), Ok(String::from("210")));
+        assert_eq!(
+            parse_macro("1.5+3.0", 0.0, 0, Some(1), Some(2), &Settings::default()),
+            Ok(String::from("4.5"))
+        );
+        assert_eq!(
+            parse_macro(
+                "curr_extruder_temp",
+                0.0,
+                0,
+                Some(1),
+                Some(2),
+                &Settings::default()
+            ),
+            Ok(String::from("210"))
+        );
     }
 
     #[test]
     fn convert_instructions_test() {
-        assert_eq!(convert_instructions("{1.5+3.0}", 0.0, 0, Some(1), Some(2), &Settings::default()), Ok(String::from("4.5")));
-        assert_eq!(convert_instructions("{curr_extruder_temp+3.0}", 0.0, 0, Some(1), Some(2), &Settings::default()), Ok(String::from("213")));
-        assert_eq!(convert_instructions("// temp is {curr_extruder_temp+3.0} C", 0.0, 0, Some(1), Some(2), &Settings::default()), Ok(String::from("// temp is 213 C")));
+        assert_eq!(
+            convert_instructions("{1.5+3.0}", 0.0, 0, Some(1), Some(2), &Settings::default()),
+            Ok(String::from("4.5"))
+        );
+        assert_eq!(
+            convert_instructions(
+                "{curr_extruder_temp+3.0}",
+                0.0,
+                0,
+                Some(1),
+                Some(2),
+                &Settings::default()
+            ),
+            Ok(String::from("213"))
+        );
+        assert_eq!(
+            convert_instructions(
+                "// temp is {curr_extruder_temp+3.0} C",
+                0.0,
+                0,
+                Some(1),
+                Some(2),
+                &Settings::default()
+            ),
+            Ok(String::from("// temp is 213 C"))
+        );        
+        assert_eq!(
+            convert_instructions(
+                "// temp is {if(10>20,10.0,20.0)} C",
+                0.0,
+                0,
+                Some(1),
+                Some(2),
+                &Settings::default()
+            ),
+            Ok(String::from("// temp is 20 C"))
+        );
     }
 }
