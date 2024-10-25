@@ -520,11 +520,13 @@ pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> 
                         new_state: StateChange {
                             extruder_temp: Some(layer_settings.extruder_temp),
                             bed_temp: Some(layer_settings.bed_temp),
-                            fan_speed: Some(if (layer_num as u32) < settings.fan.disable_fan_for_layers {
-                                0.0
-                            } else {
-                                settings.fan.fan_speed
-                            }),
+                            fan_speed: Some(
+                                if (layer_num as u32) < settings.fan.disable_fan_for_layers {
+                                    0.0
+                                } else {
+                                    settings.fan.fan_speed
+                                },
+                            ),
                             movement_speed: None,
                             acceleration: None,
                             retract: RetractionType::NoRetract,

@@ -222,8 +222,7 @@ fn handle_mesh(mesh: &ThreeMFMesh) -> (Vec<Vertex>, Vec<IndexedTriangle>) {
 }
 
 fn get_transform_from_string(transform_string: &str) -> Result<Transform, SlicerErrors> {
-    let res_values: Result<Vec<f64>, _> =
-        transform_string.split(' ').map(str::parse).collect();
+    let res_values: Result<Vec<f64>, _> = transform_string.split(' ').map(str::parse).collect();
 
     let values = res_values.map_err(|_| SlicerErrors::ThreemfLoadError)?;
     if values.len() != 12 {

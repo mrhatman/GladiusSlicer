@@ -428,6 +428,7 @@ impl Settings {
         setting_less_than_or_equal_to_zero!(self, maximum_feedrate_y);
         setting_less_than_or_equal_to_zero!(self, maximum_feedrate_z);
         setting_less_than_or_equal_to_zero!(self, maximum_feedrate_e);
+        setting_less_than_or_equal_to_zero!(self, max_extruder_temp);
         setting_less_than_zero!(self, number_of_perimeters);
         setting_less_than_zero!(self, infill_percentage);
         setting_less_than_zero!(self, top_layers);
