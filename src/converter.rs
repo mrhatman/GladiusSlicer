@@ -188,7 +188,9 @@ pub fn convert(
                 ).map_err(|_|SlicerErrors::FileWriteError).map_err(|_|SlicerErrors::FileWriteError)?;
                 current_z = *z;
                 layer_count = *index as u32;
-                writeln!(write_buf, "G1 Z{:.5}", z).map_err(|_|SlicerErrors::FileWriteError).map_err(|_|SlicerErrors::FileWriteError)?;
+                writeln!(write_buf, "G1 Z{:.5}", z)
+                    .map_err(|_|SlicerErrors::FileWriteError)
+                    .map_err(|_|SlicerErrors::FileWriteError)?;
 
                 writeln!(
                     write_buf,

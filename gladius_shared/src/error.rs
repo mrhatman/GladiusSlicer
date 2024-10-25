@@ -1,4 +1,5 @@
 use geo::MultiPolygon;
+
 use serde::{Deserialize, Serialize};
 
 /// Errors that can be generated during the slicing process
