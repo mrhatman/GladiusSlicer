@@ -345,6 +345,9 @@ fn parse_macro(expression: &str,
         "bridge_speed" => float layer_settings.speed.bridge ,
         "travel_speed" => float layer_settings.speed.travel ,
         "support_speed" => float layer_settings.speed.support ,
+        "print_size_x" => float settings.print_x ,
+        "print_size_y" => float settings.print_y ,
+        "print_size_z" => float settings.print_z ,
 
     }.unwrap(); // Do proper error handling here
     
