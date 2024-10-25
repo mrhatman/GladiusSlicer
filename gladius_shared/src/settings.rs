@@ -832,7 +832,7 @@ fn check_extrusions(
     extrusion_width: &MovementParameter,
     nozzle_diameter: f64,
 ) -> SettingsValidationResult {
-    //infill
+    // infill
     if extrusion_width.infill < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.infill,
@@ -845,7 +845,7 @@ fn check_extrusions(
         });
     }
 
-    //top infill
+    // top infill
     if extrusion_width.solid_top_infill < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.solid_top_infill,
@@ -858,7 +858,7 @@ fn check_extrusions(
         });
     }
 
-    //solid infill
+    // solid infill
     if extrusion_width.solid_infill < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.solid_infill,
@@ -871,7 +871,7 @@ fn check_extrusions(
         });
     }
 
-    //bridge
+    // bridge
     if extrusion_width.bridge < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.bridge,
@@ -884,7 +884,7 @@ fn check_extrusions(
         });
     }
 
-    //support
+    // support
     if extrusion_width.support < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.support,
@@ -897,7 +897,7 @@ fn check_extrusions(
         });
     }
 
-    //interior_surface_perimeter
+    // interior_surface_perimeter
     if extrusion_width.interior_surface_perimeter < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.interior_surface_perimeter,
@@ -910,7 +910,7 @@ fn check_extrusions(
         });
     }
 
-    //interior_inner_perimeter
+    // interior_inner_perimeter
     if extrusion_width.interior_inner_perimeter < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.interior_inner_perimeter,
@@ -923,7 +923,7 @@ fn check_extrusions(
         });
     }
 
-    //exterior_inner_perimeter
+    // exterior_inner_perimeter
     if extrusion_width.exterior_inner_perimeter < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.exterior_inner_perimeter,
@@ -936,7 +936,7 @@ fn check_extrusions(
         });
     }
 
-    //exterior_surface_perimeter
+    // exterior_surface_perimeter
     if extrusion_width.exterior_surface_perimeter < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.exterior_surface_perimeter,
@@ -957,7 +957,7 @@ fn check_accelerations(
     speed: &MovementParameter,
     min_bed_dimension: f64,
 ) -> SettingsValidationResult {
-    //infill
+    // infill
     if (speed.infill * speed.infill) / (2.0 * acceleration.infill) > min_bed_dimension {
         return SettingsValidationResult::Warning(SlicerWarnings::AccelerationTooLow {
             acceleration: acceleration.infill,
@@ -966,7 +966,7 @@ fn check_accelerations(
         });
     }
 
-    //top infill
+    // top infill
     if (speed.solid_top_infill * speed.solid_top_infill) / (2.0 * acceleration.solid_top_infill)
         > min_bed_dimension
     {
@@ -977,7 +977,7 @@ fn check_accelerations(
         });
     }
 
-    //solid infill
+    // solid infill
     if (speed.solid_infill * speed.solid_infill) / (2.0 * acceleration.solid_infill)
         > min_bed_dimension
     {
@@ -988,7 +988,7 @@ fn check_accelerations(
         });
     }
 
-    //bridge
+    // bridge
     if (speed.bridge * speed.bridge) / (2.0 * acceleration.bridge) > min_bed_dimension {
         return SettingsValidationResult::Warning(SlicerWarnings::AccelerationTooLow {
             acceleration: acceleration.bridge,
@@ -997,7 +997,7 @@ fn check_accelerations(
         });
     }
 
-    //support
+    // support
     if (speed.support * speed.support) / (2.0 * acceleration.support) > min_bed_dimension {
         return SettingsValidationResult::Warning(SlicerWarnings::AccelerationTooLow {
             acceleration: acceleration.support,
@@ -1006,7 +1006,7 @@ fn check_accelerations(
         });
     }
 
-    //interior_surface_perimeter
+    // interior_surface_perimeter
     if (speed.interior_surface_perimeter * speed.interior_surface_perimeter)
         / (2.0 * acceleration.interior_surface_perimeter)
         > min_bed_dimension
@@ -1018,7 +1018,7 @@ fn check_accelerations(
         });
     }
 
-    //interior_inner_perimeter
+    // interior_inner_perimeter
     if (speed.interior_inner_perimeter * speed.interior_inner_perimeter)
         / (2.0 * acceleration.interior_inner_perimeter)
         > min_bed_dimension
@@ -1030,7 +1030,7 @@ fn check_accelerations(
         });
     }
 
-    //exterior_inner_perimeter
+    // exterior_inner_perimeter
     if (speed.exterior_inner_perimeter * speed.exterior_inner_perimeter)
         / (2.0 * acceleration.exterior_inner_perimeter)
         > min_bed_dimension
@@ -1042,7 +1042,7 @@ fn check_accelerations(
         });
     }
 
-    //exterior_surface_perimeter
+    // exterior_surface_perimeter
     if (speed.exterior_surface_perimeter * speed.exterior_surface_perimeter)
         / (2.0 * acceleration.exterior_surface_perimeter)
         > min_bed_dimension

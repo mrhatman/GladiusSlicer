@@ -10,7 +10,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
 
     // Only generate code for struct.
     if let syn::Data::Struct(data_struct) =  data {
-        //get the class name Partial{struct name}
+        // get the class name Partial{struct name}
         let partial_settings_struct_name = proc_macro2::Ident::new(&(String::from("Partial") + &struct_name_ident.to_string()), struct_name_ident.span());
 
         let partial_settings_struct_content = transform_fields_into_partial_struct_fields(&data_struct);

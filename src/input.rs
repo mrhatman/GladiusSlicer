@@ -128,7 +128,7 @@ fn load_settings(filepath: &str) -> Result<Settings, SlicerErrors> {
 
     let settings = partial_settings.get_settings()?;
 
-    //reset path
+    // reset path
     std::env::set_current_dir(current_path).expect("Path checked before");
 
     Ok(settings)

@@ -1,4 +1,3 @@
-use crate::point;
 use geo::algorithm::euclidean_length::EuclideanLength;
 use geo::euclidean_distance::EuclideanDistance;
 use geo::{Coord, Line};

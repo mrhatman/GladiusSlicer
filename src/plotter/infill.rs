@@ -7,6 +7,7 @@ use crate::PolygonOperations;
 use geo::prelude::*;
 use geo::{Coord, Point, Polygon};
 
+// ? can these traits be removed?
 pub trait SolidInfillFill {
     fn fill(&self, filepath: &str) -> Vec<MoveChain>;
 }

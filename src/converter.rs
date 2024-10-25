@@ -77,7 +77,7 @@ pub fn convert(
                 let y_diff = end.y - start.y;
                 let length = ((x_diff * x_diff) + (y_diff * y_diff)).sqrt();
 
-                //let extrusion_width = width + (thickness * (1.0 - std::f64::consts::FRAC_PI_4));
+                // let extrusion_width = width + (thickness * (1.0 - std::f64::consts::FRAC_PI_4));
 
                 let extrusion_volume = (((width - thickness) * thickness)
                     + (std::f64::consts::PI * (thickness / 2.0) * (thickness / 2.0)))
@@ -106,7 +106,7 @@ pub fn convert(
                         }
                     }
                     RetractionType::Retract => {
-                        //retract
+                        // retract
                         if let Some(speed) = new_state.movement_speed {
                             writeln!(write_buf, "G1 F{:.5}", speed * 60.0)
                                 .map_err(|_| SlicerErrors::FileWriteError)?;
@@ -133,7 +133,7 @@ pub fn convert(
                         .map_err(|_| SlicerErrors::FileWriteError)?;
                     }
                     RetractionType::Unretract => {
-                        //unretract
+                        // unretract
                         writeln!(write_buf, "G1 Z{:.5}; z unlift", current_z,)
                             .map_err(|_| SlicerErrors::FileWriteError)?;
                         writeln!(
@@ -252,16 +252,16 @@ pub fn convert(
                 let y_diff_r = end.y - center.y;
                 let radius = ((x_diff_r * x_diff_r) + (y_diff_r * y_diff_r)).sqrt();
 
-                //Divide the chord length by double the radius.
+                // Divide the chord length by double the radius.
                 let t = cord_length / (2.0 * radius);
-                //println!("{}",t);
-                //Find the inverse sine of the result (in radians).
-                //Double the result of the inverse sine to get the central angle in radians.
+                // println!("{}",t);
+                // Find the inverse sine of the result (in radians).
+                // Double the result of the inverse sine to get the central angle in radians.
                 let central = t.asin() * 2.0;
-                //Once you have the central angle in radians, multiply it by the radius to get the arc length.
+                // Once you have the central angle in radians, multiply it by the radius to get the arc length.
                 let extrusion_length = central * radius;
 
-                //println!("{}",extrusion_length);
+                // println!("{}",extrusion_length);
                 let extrude = (4.0 * thickness * width * extrusion_length)
                     / (std::f64::consts::PI
                         * settings.filament.diameter
@@ -326,13 +326,11 @@ fn convert_instructions(
     current_object: Option<usize>,
     settings: &Settings,
 ) -> Result<String, SlicerErrors> {
-    let layer_settings = settings.get_layer_settings(layer_count, current_z_height);
-
     instructions
         .split('{')
         .enumerate()
         .map(|(index, str)| {
-            //first one will not contain a }
+            // first one will not contain a }
             if index == 0 || str.is_empty() {
                 Ok(String::from(str))
             } else {

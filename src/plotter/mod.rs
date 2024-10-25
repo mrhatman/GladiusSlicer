@@ -73,16 +73,16 @@ impl Plotter for Slice {
     }
 
     fn shrink_layer(&mut self) {
-        if let Some(shrink_ammount) = self.layer_settings.layer_shrink_amount {
+        if let Some(shrink_amount) = self.layer_settings.layer_shrink_amount {
             self.support_tower = self
                 .support_tower
                 .as_ref()
-                .map(|tower| tower.offset_from(-shrink_ammount));
+                .map(|tower| tower.offset_from(-shrink_amount));
             self.support_interface = self
                 .support_interface
                 .as_ref()
-                .map(|interface| interface.offset_from(-shrink_ammount));
-            self.remaining_area = self.remaining_area.offset_from(-shrink_ammount);
+                .map(|interface| interface.offset_from(-shrink_amount));
+            self.remaining_area = self.remaining_area.offset_from(-shrink_amount);
         }
     }
 
@@ -438,7 +438,7 @@ impl Plotter for Slice {
 }
 
 fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPolygon<f64>) -> f64 {
-    let unsuported_lines: Vec<_> = unsupported_area
+    let unsupported_lines: Vec<_> = unsupported_area
         .iter()
         .flat_map(|poly| std::iter::once(poly.exterior()).chain(poly.interiors().iter()))
         .flat_map(|line_string| {
@@ -456,7 +456,7 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
         })
         .collect();
 
-    unsuported_lines
+    unsupported_lines
         .iter()
         .filter_map(|(line_start, line_end)| {
             let x_diff = line_end.x - line_start.x;
@@ -467,7 +467,7 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
 
             if per_vec_len != 0.0 {
                 Some(
-                    unsuported_lines
+                    unsupported_lines
                         .iter()
                         .map(|(inner_start, inner_end)| {
                             let x_diff = inner_end.x - inner_start.x;
@@ -497,7 +497,7 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
 }
 
 pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> Vec<Command> {
-    info!("Convert into Commnds");
+    info!("Convert into Commands");
     let mut layer_moves: Vec<(f64, Vec<Command>)> = objects
         .into_iter()
         .enumerate()

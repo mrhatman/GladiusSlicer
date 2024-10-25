@@ -180,7 +180,7 @@ impl LightningNode {
         let max_move = settings.extrusion_width.infill / 2.0;
         let mut shorten_amount = max_move;
 
-        //reverse to make removals safe
+        // reverse to make removals safe
         self.children = self
             .children
             .drain(..)
@@ -198,7 +198,7 @@ impl LightningNode {
             .collect();
 
         if self.children.is_empty() {
-            //No children so shorten directly
+            // No children so shorten directly
             let line_len = self.location.euclidean_distance(&parent_location);
 
             if line_len > shorten_amount {

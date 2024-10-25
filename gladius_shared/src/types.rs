@@ -102,7 +102,7 @@ impl Slice {
             if area > 0.0 {
                 polygons.push(Polygon::new(line.clone(), vec![]));
             } else {
-                //counter clockwise interior polygon
+                // counter clockwise interior polygon
                 let smallest_polygon = polygons
                     .iter_mut()
                     .rev()
@@ -397,7 +397,7 @@ pub enum Command {
         /// End point of the arc
         end: Coord<f64>,
 
-        ///The center point that the arc keeps equidistant from
+        /// The center point that the arc keeps equidistant from
         center: Coord<f64>,
 
         /// Whether the arc is clockwise or anticlockwise
@@ -463,7 +463,7 @@ pub struct StateChange {
     /// The speed of the fan
     pub fan_speed: Option<f64>,
 
-    /// The spped movement commands are performed at
+    /// The speed movement commands are performed at
     pub movement_speed: Option<f64>,
 
     /// The acceleration that movement commands are performed at
