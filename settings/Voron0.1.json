@@ -89,7 +89,7 @@
   
   "before_layer_change_instructions": ";BEFORE_LAYER_CHANGE\n",
   "after_layer_change_instructions": ";AFTER_LAYER_CHANGE\n;{z_pos} {layer_count}",
-  "object_change_instructions": "; Change from object {prev_obj} to {current_obj}",
+  "object_change_instructions": "; Change from object {prev_obj} to {curr_obj}",
 
   "layer_settings" : [
     [
