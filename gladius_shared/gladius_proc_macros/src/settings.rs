@@ -213,7 +213,7 @@ fn transform_fields_into_try_from_internals(data_struct: &DataStruct) -> proc_ma
                             #field_ident: value.#field_ident.unwrap_or_default(),
                         }
                     }
-                    else{
+                    else {
                         quote! {#field_ident: value.#field_ident.ok_or(PartialConvertError(#field_ident_str.to_string()))?,
 
                         }
@@ -222,7 +222,7 @@ fn transform_fields_into_try_from_internals(data_struct: &DataStruct) -> proc_ma
             // Unwrap iterator into a [proc_macro2::TokenStream].
             quote! {
 
-                 #(#props_ts_iter)*
+                #(#props_ts_iter)*
 
             }
         }

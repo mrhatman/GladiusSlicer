@@ -161,7 +161,10 @@ fn main() {
             cv.plastic_volume / 1000.0
         );
         info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
-        info!("Total Filament Length: {:.3} meters", cv.plastic_length / 1000.0);
+        info!(
+            "Total Filament Length: {:.3} meters",
+            cv.plastic_length / 1000.0
+        );
         info!(
             "Total Filament Cost: ${:.2}",
             (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)

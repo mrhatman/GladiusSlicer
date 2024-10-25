@@ -1,5 +1,5 @@
 use crate::{Command, Settings};
-use evalexpr::*;
+use evalexpr::{context_map, eval_float_with_context, DefaultNumericTypes, HashMapContext};
 use gladius_shared::{error::SlicerErrors, types::RetractionType};
 use std::{
     fmt::format,
@@ -217,8 +217,8 @@ pub fn convert(
                 current_z = *z;
                 layer_count = *index as u32;
                 writeln!(write_buf, "G1 Z{:.5}", z)
-                    .map_err(|_|SlicerErrors::FileWriteError)
-                    .map_err(|_|SlicerErrors::FileWriteError)?;
+                    .map_err(|_| SlicerErrors::FileWriteError)
+                    .map_err(|_| SlicerErrors::FileWriteError)?;
 
                 writeln!(
                     write_buf,
@@ -367,7 +367,7 @@ fn parse_macro(
     previous_object: Option<usize>,
     current_object: Option<usize>,
     settings: &Settings,
-) -> Result<String,SlicerErrors> {
+) -> Result<String, SlicerErrors> {
     let layer_settings = settings.get_layer_settings(layer_count, current_z_height);
 
     let context: HashMapContext<DefaultNumericTypes> = context_map! {
@@ -375,8 +375,8 @@ fn parse_macro(
         "bed_temp" => float layer_settings.bed_temp,
         "z_pos" => float current_z_height,
         "layer_count" => float layer_count as f64,
-        "prev_obj" => float previous_object.map(|o| o  as f64).unwrap_or(-1.),
-        "curr_obj" => float current_object.map(|o| o  as f64).unwrap_or(-1.),
+        "prev_obj" => float previous_object.map_or(-1., |o| o  as f64),
+        "curr_obj" => float current_object.map_or(-1., |o| o  as f64),
         "exterior_inner_perimeter_speed" => float layer_settings.speed.exterior_inner_perimeter ,
         "exterior_surface_perimeter_speed" => float layer_settings.speed.exterior_surface_perimeter ,
         "interior_inner_perimeter_speed" => float layer_settings.speed.interior_inner_perimeter ,
@@ -391,7 +391,7 @@ fn parse_macro(
         "print_size_z" => float settings.print_z ,
 
     }.map_err(|e| SlicerErrors::SettingMacroParseError { sub_error: e.to_string() })?;
-    
+
     eval_float_with_context(expression, &context)
         .map_err(|e| SlicerErrors::SettingMacroParseError {
             sub_error: e.to_string(),
@@ -449,7 +449,7 @@ mod tests {
                 &Settings::default()
             ),
             Ok(String::from("// temp is 213 C"))
-        );        
+        );
         assert_eq!(
             convert_instructions(
                 "// temp is {if(10>20,10.0,20.0)} C",
