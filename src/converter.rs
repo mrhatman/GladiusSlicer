@@ -23,8 +23,7 @@ pub fn convert(
         None,
         current_object,
         settings,
-    )
-    .map_err(|_| SlicerErrors::FileWriteError)?;
+    )?;
 
     writeln!(
         write_buf,
@@ -450,6 +449,17 @@ mod tests {
                 &Settings::default()
             ),
             Ok(String::from("// temp is 213 C"))
+        );        
+        assert_eq!(
+            convert_instructions(
+                "// temp is {if(10>20,10.0,20.0)} C",
+                0.0,
+                0,
+                Some(1),
+                Some(2),
+                &Settings::default()
+            ),
+            Ok(String::from("// temp is 20 C"))
         );
     }
 }
