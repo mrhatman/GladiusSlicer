@@ -288,7 +288,7 @@ pub fn convert(
 }
 
 fn convert_instructions(
-    mut instructions: &str,
+    instructions: &str,
     current_z_height: f64,
     layer_count: u32,
     previous_object: Option<usize>,
@@ -322,12 +322,14 @@ fn convert_instructions(
 }
 
 
-fn parse_macro(expression: &str,
+fn parse_macro(
+    expression: &str,
     current_z_height: f64,
     layer_count: u32,
     previous_object: Option<usize>,
     current_object: Option<usize>,
-    settings: &Settings) -> Result<String,SlicerErrors>{
+    settings: &Settings,
+) -> Result<String,SlicerErrors> {
         
     let layer_settings = settings.get_layer_settings(layer_count, current_z_height);
 
@@ -348,7 +350,7 @@ fn parse_macro(expression: &str,
         "travel_speed" => float layer_settings.speed.travel ,
         "support_speed" => float layer_settings.speed.support ,
 
-    }.unwrap(); // Do proper error handling here
+    }.map_err(|e| SlicerErrors::SettingMacroParseError { sub_error: e.to_string() })?;
     
     eval_float_with_context(expression, &context)
         .map_err(|e| SlicerErrors::SettingMacroParseError { sub_error: e.to_string() })
