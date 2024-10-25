@@ -187,7 +187,7 @@ pub fn convert(
                     )?
                 ).map_err(|_|SlicerErrors::FileWriteError).map_err(|_|SlicerErrors::FileWriteError)?;
                 current_z = *z;
-                layer_count = *index;
+                layer_count = *index as u32;
                 writeln!(write_buf, "G1 Z{:.5}", z).map_err(|_|SlicerErrors::FileWriteError).map_err(|_|SlicerErrors::FileWriteError)?;
 
                 writeln!(
@@ -288,7 +288,7 @@ pub fn convert(
 fn convert_instructions(
     mut instructions: &str,
     current_z_height: f64,
-    layer_count: usize,
+    layer_count: u32,
     previous_object: Option<usize>,
     current_object: Option<usize>,
     settings: &Settings,
