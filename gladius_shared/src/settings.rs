@@ -211,7 +211,8 @@ pub struct Settings {
     /// Settings for specific layers
     pub layer_settings: Vec<(LayerRange, PartialLayerSettings)>,
 
-    #[Optional]
+    #[Combine]
+    #[AllowDefault]
     /// Areas of the bed that can't have parts on it
     pub bed_exclude_areas: Option<MultiPolygon>,
 }
@@ -1065,6 +1066,12 @@ impl<T> Combine for Option<T> {
         if self.is_none() {
             *self = other;
         }
+    }
+}
+
+impl Combine for MultiPolygon {
+    fn combine(&mut self, other: Self) {
+        self.0.combine(other.0);
     }
 }
 
