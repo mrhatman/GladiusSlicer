@@ -26,9 +26,9 @@ impl Loader for STLLoader {
             .vertices()
             .iter()
             .map(|vert| Vertex {
-                x: vert[0] as f64,
-                y: vert[1] as f64,
-                z: vert[2] as f64,
+                x: f64::from(vert[0]),
+                y: f64::from(vert[1]),
+                z: f64::from(vert[2]),
             })
             .collect::<Vec<Vertex>>();
 

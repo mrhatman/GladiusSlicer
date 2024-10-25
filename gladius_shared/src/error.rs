@@ -107,7 +107,7 @@ pub enum SlicerErrors {
     UnspecifiedError(String),
 
     /// If a model is in an area of the bed that is rserved, contains the area that it intersected
-    InExcludeArea(MultiPolygon)
+    InExcludeArea(MultiPolygon),
 }
 
 impl SlicerErrors {
