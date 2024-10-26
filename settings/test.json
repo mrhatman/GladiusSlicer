@@ -1,7 +1,7 @@
 {
-  "retract_lift_z":0.0,
+  "retract_lift_z": 0.0,
 
-  "other_files" : [
+  "other_files": [
     "BBL_PLA_Filament.json",
     "BBL_x1c.json",
     "0.2_layer_height.json"
