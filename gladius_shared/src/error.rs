@@ -130,7 +130,7 @@ impl SlicerErrors {
                 (0x1002, "There was a issue loading the STL file.".to_string())
             }
             SlicerErrors::ThreemfLoadError => {
-                (0x1003, "There was a issue loading the 3MF file. This file format is still in development. Please report this issue to github.".to_string())
+                (0x1003, "There was a issue loading the 3MF file. Support for this file format is still in development. Please report this issue to github.".to_string())
             }
             SlicerErrors::ThreemfUnsupportedType => {
                 (0x1004, "There was a issue loading the 3MF file. This file is unsupported by our zip reader dependency. Work is going towards upgrading support for these files.".to_string())

@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-zip = "2.2.0"
+zip = { version = "2.2.0", features = ["bzip2", "deflate", "deflate64", "lzma", "time", "xz", "zstd"], default-features = false }
 
 nom_stl = "0.2.2"
 serde = { version = "1.0", features = ["derive"] }
