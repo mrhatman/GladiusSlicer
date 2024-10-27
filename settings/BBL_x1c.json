@@ -96,7 +96,7 @@
   // slow down first layer
   "layer_settings": [
       [
-        {"LayerCountRange": {"start": 0, "end": 1}},
+        {"LayerCountRange": {"start": 0, "end": 2}},
         {
           "speed" : {
             "interior_inner_perimeter": 20.0,
