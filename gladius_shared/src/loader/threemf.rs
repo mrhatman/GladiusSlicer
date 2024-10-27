@@ -85,7 +85,7 @@ struct ThreeMFTriangles {
 }
 
 /// Loader for 3MF files
-pub struct ThreeMFLoader {}
+pub struct ThreeMFLoader;
 
 impl Loader for ThreeMFLoader {
     fn load(

@@ -5,6 +5,7 @@
   },
 
   "nozzle_diameter": 0.4,
+  "has_aux_fan": false,
   "retract_length": 0.8,
   "retract_lift_z": 0.2,
   "retract_speed": 35.0,

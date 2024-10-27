@@ -77,6 +77,11 @@ pub struct Settings {
     /// The fan settings
     pub fan: FanSettings,
 
+    #[Optional]
+    #[Recursive(PartialFanSettings)]
+    /// The auxilerary fan settings, if None or printer does not have one the fan will not be used
+    pub aux_fan: Option<FanSettings>,
+
     /// The skirt settings, if None no skirt will be generated
     #[Optional]
     pub skirt: Option<SkirtSettings>,
@@ -218,6 +223,9 @@ pub struct Settings {
     #[AllowDefault]
     /// Areas of the bed that can't have parts on it
     pub bed_exclude_areas: Option<MultiPolygon>,
+
+    /// Tells the slicer if it can use an aux fan
+    pub has_aux_fan: bool,
 }
 
 impl Default for Settings {
@@ -241,6 +249,7 @@ impl Default for Settings {
             },
             filament: FilamentSettings::default(),
             fan: FanSettings::default(),
+            aux_fan: None,
             skirt: None,
             nozzle_diameter: 0.4,
             retract_length: 0.8,
@@ -354,6 +363,7 @@ impl Default for Settings {
             retraction_wipe: None,
             bed_exclude_areas: None,
             max_extruder_temp: 260.0,
+            has_aux_fan: false,
         }
     }
 }

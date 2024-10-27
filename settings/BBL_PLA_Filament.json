@@ -7,6 +7,14 @@
       "min_print_speed": 15.0
     },
 
+    "aux_fan": {
+      "fan_speed": 60.0,
+      // fix if disable_fan_for_layers is not the same as fan it will not work
+      "disable_fan_for_layers": 1,
+      "slow_down_threshold": 4,
+      "min_print_speed": 10.0
+    },
+
     "filament": {
       "diameter": 1.75,
       "density": 1.26,

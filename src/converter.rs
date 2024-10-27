@@ -198,6 +198,16 @@ pub fn convert(
                     )
                     .map_err(|_| SlicerErrors::FileWriteError)?;
                 }
+                if settings.has_aux_fan {
+                    if let Some(aux_fan_speed) = new_state.aux_fan_speed {
+                            writeln!(
+                                write_buf,
+                                "M106 P2 S{} ; set aux fan speed",
+                                (2.550 * aux_fan_speed).round() as usize
+                            )
+                            .map_err(|_| SlicerErrors::FileWriteError)?;
+                    }
+                }
             }
             Command::LayerChange { z, index } => {
                 writeln!(
@@ -370,23 +380,25 @@ fn parse_macro(
 
     let context: HashMapContext<DefaultNumericTypes> = context_map! {
         "curr_extruder_temp" => float layer_settings.extruder_temp,
+        "current_extruder_temp" => float layer_settings.extruder_temp,
         "bed_temp" => float layer_settings.bed_temp,
         "z_pos" => float current_z_height,
         "layer_count" => float layer_count as f64,
         "prev_obj" => float previous_object.map_or(-1., |o| o  as f64),
         "curr_obj" => float current_object.map_or(-1., |o| o  as f64),
-        "exterior_inner_perimeter_speed" => float layer_settings.speed.exterior_inner_perimeter ,
-        "exterior_surface_perimeter_speed" => float layer_settings.speed.exterior_surface_perimeter ,
-        "interior_inner_perimeter_speed" => float layer_settings.speed.interior_inner_perimeter ,
-        "interior_surface_perimeter_speed" => float layer_settings.speed.interior_surface_perimeter ,
-        "infill_speed" => float layer_settings.speed.infill ,
-        "solid_infill_speed" => float layer_settings.speed.solid_infill ,
-        "bridge_speed" => float layer_settings.speed.bridge ,
-        "travel_speed" => float layer_settings.speed.travel ,
-        "support_speed" => float layer_settings.speed.support ,
-        "print_size_x" => float settings.print_x ,
-        "print_size_y" => float settings.print_y ,
-        "print_size_z" => float settings.print_z ,
+        "current_obj" => float current_object.map_or(-1., |o| o  as f64),
+        "exterior_inner_perimeter_speed" => float layer_settings.speed.exterior_inner_perimeter,
+        "exterior_surface_perimeter_speed" => float layer_settings.speed.exterior_surface_perimeter,
+        "interior_inner_perimeter_speed" => float layer_settings.speed.interior_inner_perimeter,
+        "interior_surface_perimeter_speed" => float layer_settings.speed.interior_surface_perimeter,
+        "infill_speed" => float layer_settings.speed.infill,
+        "solid_infill_speed" => float layer_settings.speed.solid_infill,
+        "bridge_speed" => float layer_settings.speed.bridge,
+        "travel_speed" => float layer_settings.speed.travel,
+        "support_speed" => float layer_settings.speed.support,
+        "print_size_x" => float settings.print_x,
+        "print_size_y" => float settings.print_y,
+        "print_size_z" => float settings.print_z,
 
     }.map_err(|e| SlicerErrors::SettingMacroParseError { sub_error: e.to_string() })?;
 

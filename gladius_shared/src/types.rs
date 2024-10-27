@@ -463,6 +463,9 @@ pub struct StateChange {
     /// The speed of the fan
     pub fan_speed: Option<f64>,
 
+    /// The speed of the fan
+    pub aux_fan_speed: Option<f64>,
+
     /// The speed movement commands are performed at
     pub movement_speed: Option<f64>,
 
@@ -500,6 +503,14 @@ impl StateChange {
                 } else {
                     self.fan_speed = new_state.fan_speed.or(self.fan_speed);
                     new_state.fan_speed
+                }
+            },
+            aux_fan_speed: {
+                if self.aux_fan_speed == new_state.aux_fan_speed {
+                    None
+                } else {
+                    self.aux_fan_speed = new_state.aux_fan_speed.or(self.aux_fan_speed);
+                    new_state.aux_fan_speed
                 }
             },
             movement_speed: {
@@ -543,6 +554,7 @@ impl StateChange {
             extruder_temp: { new_state.extruder_temp.or(self.extruder_temp) },
             bed_temp: { new_state.bed_temp.or(self.bed_temp) },
             fan_speed: { new_state.fan_speed.or(self.fan_speed) },
+            aux_fan_speed: { new_state.fan_speed.or(self.aux_fan_speed) },
             movement_speed: { new_state.movement_speed.or(self.movement_speed) },
             acceleration: { new_state.acceleration.or(self.acceleration) },
             retract: { new_state.retract.clone().or(self.retract.clone()) },
@@ -566,6 +578,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.solid_top_infill),
                                 acceleration: Some(settings.acceleration.solid_top_infill),
                                 retract: RetractionType::Unretract,
@@ -578,6 +591,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.solid_infill),
                                 acceleration: Some(settings.acceleration.solid_infill),
                                 retract: RetractionType::Unretract,
@@ -590,6 +604,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.infill),
                                 acceleration: Some(settings.acceleration.infill),
                                 retract: RetractionType::Unretract,
@@ -601,7 +616,8 @@ impl MoveChain {
                             new_state: StateChange {
                                 bed_temp: None,
                                 extruder_temp: None,
-                                fan_speed: None,
+                                fan_speed: Some(100.0),
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.bridge),
                                 acceleration: Some(settings.acceleration.bridge),
                                 retract: RetractionType::Unretract,
@@ -614,6 +630,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.exterior_surface_perimeter),
                                 acceleration: Some(
                                     settings.acceleration.exterior_surface_perimeter,
@@ -628,6 +645,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.exterior_inner_perimeter),
                                 acceleration: Some(settings.acceleration.exterior_inner_perimeter),
                                 retract: RetractionType::Unretract,
@@ -640,6 +658,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.interior_surface_perimeter),
                                 acceleration: Some(
                                     settings.acceleration.interior_surface_perimeter,
@@ -654,6 +673,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.interior_inner_perimeter),
                                 acceleration: Some(settings.acceleration.interior_inner_perimeter),
                                 retract: RetractionType::Unretract,
@@ -666,6 +686,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.support),
                                 acceleration: Some(settings.acceleration.support),
                                 retract: RetractionType::Unretract,
@@ -678,6 +699,7 @@ impl MoveChain {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(settings.speed.travel),
                                 acceleration: Some(settings.acceleration.travel),
                                 retract: RetractionType::Retract,

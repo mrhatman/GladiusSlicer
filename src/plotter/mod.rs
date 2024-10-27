@@ -317,6 +317,7 @@ impl Plotter for Slice {
                     extruder_temp: None,
                     bed_temp: None,
                     fan_speed: None,
+                    aux_fan_speed: None,
                     movement_speed: None,
                     acceleration: None,
                     retract: RetractionType::Retract,
@@ -408,6 +409,7 @@ impl Plotter for Slice {
                                 extruder_temp: None,
                                 bed_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(retraction_wipe.speed),
                                 acceleration: Some(retraction_wipe.acceleration),
                                 retract: RetractionType::MoveRetract(wipe_moves),
@@ -419,6 +421,7 @@ impl Plotter for Slice {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(self.layer_settings.speed.travel),
                                 acceleration: Some(self.layer_settings.acceleration.travel),
                                 retract: RetractionType::Retract,
@@ -527,6 +530,18 @@ pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> 
                                     settings.fan.fan_speed
                                 },
                             ),
+                            aux_fan_speed: if settings.has_aux_fan {
+                                match &settings.aux_fan {
+                                    Some(aux_fan) => {
+                                        if (layer_num as u32) < aux_fan.disable_fan_for_layers {
+                                            Some(0.0)
+                                        } else {
+                                            Some(aux_fan.fan_speed)
+                                        }
+                                    },
+                                    None => None,
+                                }
+                            } else { None },
                             movement_speed: None,
                             acceleration: None,
                             retract: RetractionType::NoRetract,

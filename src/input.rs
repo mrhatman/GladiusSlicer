@@ -34,8 +34,8 @@ pub fn files_input(settings_path: Option<&str>, input: Option<Vec<String>>) -> F
 
             let loader: Result<&dyn Loader, SlicerErrors> = match extension.to_lowercase().as_str()
             {
-                "stl" => Ok(&STLLoader {}),
-                "3mf" => Ok(&ThreeMFLoader {}),
+                "stl" => Ok(&STLLoader),
+                "3mf" => Ok(&ThreeMFLoader),
                 _ => Err(SlicerErrors::FileFormatNotSupported {
                     filepath: model_path.to_string_lossy().to_string(),
                 }),
