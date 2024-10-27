@@ -200,12 +200,12 @@ pub fn convert(
                 }
                 if settings.has_aux_fan {
                     if let Some(aux_fan_speed) = new_state.aux_fan_speed {
-                            writeln!(
-                                write_buf,
-                                "M106 P2 S{} ; set aux fan speed",
-                                (2.550 * aux_fan_speed).round() as usize
-                            )
-                            .map_err(|_| SlicerErrors::FileWriteError)?;
+                        writeln!(
+                            write_buf,
+                            "M106 P2 S{} ; set aux fan speed",
+                            (2.550 * aux_fan_speed).round() as usize
+                        )
+                        .map_err(|_| SlicerErrors::FileWriteError)?;
                     }
                 }
             }
@@ -400,7 +400,10 @@ fn parse_macro(
         "print_size_y" => float settings.print_y,
         "print_size_z" => float settings.print_z,
 
-    }.map_err(|e| SlicerErrors::SettingMacroParseError { sub_error: e.to_string() })?;
+    }
+    .map_err(|e| SlicerErrors::SettingMacroParseError {
+        sub_error: e.to_string(),
+    })?;
 
     eval_float_with_context(expression, &context)
         .map_err(|e| SlicerErrors::SettingMacroParseError {

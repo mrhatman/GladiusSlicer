@@ -538,10 +538,12 @@ pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> 
                                         } else {
                                             Some(aux_fan.fan_speed)
                                         }
-                                    },
+                                    }
                                     None => None,
                                 }
-                            } else { None },
+                            } else {
+                                None
+                            },
                             movement_speed: None,
                             acceleration: None,
                             retract: RetractionType::NoRetract,
