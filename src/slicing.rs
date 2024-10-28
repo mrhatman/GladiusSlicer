@@ -1,4 +1,5 @@
-use crate::{Coord, IndexedParallelIterator, IntoParallelRefIterator, Object, ParallelIterator, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator, Vertex};
+use crate::{Coord, Object, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator, Vertex};
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object>, SlicerErrors> {
     towers
@@ -7,8 +8,6 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
             let mut tower_iter = TriangleTowerIterator::new(tower);
 
             let mut layer = 0.0;
-
-            let mut first_layer = true;
 
             let res_points: Result<Vec<(f64, f64, Vec<Vec<Vertex>>)>, SlicerErrors> =
                 std::iter::repeat(())
@@ -28,8 +27,6 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
                         layer += layer_height / 2.0;
 
                         let top_height = layer;
-
-                        first_layer = false;
 
                         // Get the ordered lists of points
                         Ok((bottom_height, top_height, tower_iter.get_points()))
@@ -62,9 +59,7 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
                             .collect(),
                         *bot,
                         *top,
-                        count
-                            .try_into()
-                            .expect("I doute your layer_count will go past 4,294,967,295"),
+                        count as u32, // I doute your layer_count will go past 4,294,967,295,
                         settings,
                     );
                     slice

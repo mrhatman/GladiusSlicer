@@ -1,4 +1,5 @@
 #![deny(clippy::unwrap_used)]
+#![warn(clippy::all, clippy::perf, clippy::missing_const_for_fn)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use clap::Parser;

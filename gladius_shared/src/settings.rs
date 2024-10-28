@@ -656,7 +656,7 @@ pub struct MovementParameter {
 
 impl MovementParameter {
     /// Returns the associated value to the move type provided
-    pub fn get_value_for_movement_type(&self, move_type: &MoveType) -> f64 {
+    pub const fn get_value_for_movement_type(&self, move_type: &MoveType) -> f64 {
         match move_type {
             MoveType::TopSolidInfill => self.solid_top_infill,
             MoveType::SolidInfill => self.solid_infill,

@@ -180,7 +180,7 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    fn new(x: f64, y: f64, z: f64) -> Self {
+    const fn new(x: f64, y: f64, z: f64) -> Self {
         Vertex { x, y, z }
     }
 }
@@ -217,7 +217,7 @@ impl std::ops::Mul<Vertex> for &Transform {
 
 impl Transform {
     /// create a new transform for translation
-    pub fn new_translation_transform(x: f64, y: f64, z: f64) -> Self {
+    pub const fn new_translation_transform(x: f64, y: f64, z: f64) -> Self {
         Transform([
             [1., 0., 0., x],
             [0., 1., 0., y],

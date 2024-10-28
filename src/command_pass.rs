@@ -165,17 +165,13 @@ impl CommandPass for SlowDownLayerPass {
                             let (top_speed, _) =
                                 sorted.last().unwrap_or(&(OrderedFloat(0.000_001), 0.0));
 
-                            if min_time - total_time
-                                < (len / top_speed.into_inner()) - (len / speed.into_inner())
-                            {
+                            if min_time - total_time < (len / top_speed.into_inner()) - (len / speed.into_inner()) {
                                 let second = min_time - total_time;
                                 max_speed = (len * speed.into_inner())
                                     / (len + (second * speed.into_inner()));
                                 break;
                             } else {
-                                total_time +=
-                                    (len / top_speed.into_inner()) - (len / speed.into_inner());
-                                // println!("tt: {:.5}", total_time);
+                                total_time += (len / top_speed.into_inner()) - (len / speed.into_inner());
                             }
                         }
                         Some((max_speed, start, end))
