@@ -13,11 +13,6 @@ use std::hash::{Hash, Hasher};
 
     progress up tower
 
-
-
-
-
-
 */
 
 /// Calculate the vertex the Line from `v_start` to `v_end` where
@@ -125,6 +120,7 @@ struct TowerVertex {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
 }
+
 #[derive(Clone, Debug, PartialEq)]
 struct TowerRing {
     elements: Vec<TowerRingElement>,
@@ -134,12 +130,6 @@ impl TowerRing {
     #[inline]
     fn is_complete_ring(&self) -> bool {
         self.elements.first() == self.elements.last() && self.elements.len() > 3
-    }
-
-    fn join_rings(mut first: TowerRing, second: TowerRing) -> Self {
-        TowerRing::join_rings_in_place(&mut first, second);
-
-        first
     }
 
     fn join_rings_in_place(first: &mut TowerRing, second: TowerRing) {
@@ -177,7 +167,6 @@ impl TowerRing {
         }
 
         // remove all fragments that are single sized and faces. They ends with that vertex
-
         frags.retain(|frag| frag.elements.len() > 1);
 
         frags
@@ -408,8 +397,6 @@ impl<'s> TriangleTowerIterator<'s> {
     }
 
     pub fn advance_to_height(&mut self, z: f64) -> Result<(), SlicerErrors> {
-        // println!("Advance to height {} {} {}", self.tower.get_height_of_vertex(self.tower_vert_index), z, self.tower.tower_vertices[self.tower_vert_index].start_index);
-
         while self.tower.get_height_of_vertex(self.tower_vert_index) < z
             && self.tower.tower_vertices.len() + 1 != self.tower_vert_index
         {
@@ -425,26 +412,11 @@ impl<'s> TriangleTowerIterator<'s> {
                         .into_iter()
                 })
                 .collect();
-            /*
-            trace!("split edge: {:?}", pop_tower_vert.start_index );
-            trace!("split frags:");
-            for f in &frags{
-                trace!("\t{}",f);
-            }*/
-
-            // Add the new fragments
 
             self.active_rings.extend(pop_tower_vert.next_ring_fragments);
-            // trace!("all frags:");
-            // for f in &frags{
-            //     trace!("\t{}",f);
-            // }
 
             join_fragments(&mut self.active_rings);
-            // trace!("join frags:");
-            // for f in &frags{
-            //     trace!("\t{}",f);
-            // }
+
             self.tower_vert_index += 1;
 
             for ring in &self.active_rings {
@@ -467,12 +439,7 @@ impl<'s> TriangleTowerIterator<'s> {
                     .elements
                     .iter()
                     .filter_map(|e| {
-                        if let TowerRingElement::Edge {
-                            start_index,
-                            end_index,
-                            ..
-                        } = e
-                        {
+                        if let TowerRingElement::Edge {start_index, end_index, ..} = e {
                             Some(line_z_intersection(
                                 self.z_height,
                                 self.tower.vertices[*start_index],
@@ -493,9 +460,7 @@ impl<'s> TriangleTowerIterator<'s> {
     }
 }
 
-pub fn create_towers(
-    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)],
-) -> Result<Vec<TriangleTower>, SlicerErrors> {
+pub fn create_towers(models: &[(Vec<Vertex>, Vec<IndexedTriangle>)]) -> Result<Vec<TriangleTower>, SlicerErrors> {
     models
         .iter()
         .map(|(vertices, triangles)| {
@@ -507,6 +472,12 @@ pub fn create_towers(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn join_rings(mut first: TowerRing, second: TowerRing) -> TowerRing {
+        TowerRing::join_rings_in_place(&mut first, second);
+
+        first
+    }
 
     #[test]
     fn join_rings_test() {
@@ -557,7 +528,7 @@ mod tests {
             ],
         };
 
-        ring_sliding_equality_assert(&TowerRing::join_rings(r1, r2), &r3);
+        ring_sliding_equality_assert(&join_rings(r1, r2), &r3);
     }
 
     #[test]

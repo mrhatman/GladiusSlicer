@@ -8,7 +8,10 @@ use gladius_shared::types::*;
 
 use crate::plotter::convert_objects_into_moves;
 use crate::tower::{create_towers, TriangleTower, TriangleTowerIterator};
-use geo::{Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, Line, MultiPolygon, Point, coordinate_position};
+use geo::{
+    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat,
+    Line, MultiPolygon, Point,
+};
 use gladius_shared::settings::{PartialSettingsFile, Settings, SettingsValidationResult};
 use std::fs::File;
 

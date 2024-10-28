@@ -1,4 +1,10 @@
-use crate::{Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, IntoParallelRefMutIterator, Itertools, Line, Move, MoveChain, MoveType, MultiPolygon, ParallelIterator, Point, PolygonOperations, Slice, coordinate_position};
+use crate::{
+    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition,
+    GeoFloat, Itertools, Line, Move, MoveChain, MoveType, MultiPolygon,
+    Point, PolygonOperations, Slice,
+};
+use rayon::prelude::{ParallelIterator, IntoParallelRefMutIterator};
+
 use coordinate_position::CoordPos;
 use geo::euclidean_distance::EuclideanDistance;
 use geo::line_intersection::{line_intersection, LineIntersection};

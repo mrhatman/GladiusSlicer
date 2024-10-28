@@ -1,5 +1,8 @@
 use crate::utils::show_error_message;
-use crate::{IndexedTriangle, InputObject, Loader, OsStr, PartialSettingsFile, Path, STLLoader, Settings, SlicerErrors, ThreeMFLoader, Transform, Vertex, debug, info};
+use crate::{
+    debug, info, IndexedTriangle, InputObject, Loader, OsStr, PartialSettingsFile, Path, STLLoader,
+    Settings, SlicerErrors, ThreeMFLoader, Transform, Vertex,
+};
 use std::path::PathBuf;
 use std::str::FromStr;
 
