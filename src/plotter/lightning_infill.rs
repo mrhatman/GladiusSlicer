@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, IntoParallelRefMutIterator, Itertools, Line, Move, MoveChain, MoveType, MultiPolygon, ParallelIterator, Point, PolygonOperations, Slice, coordinate_position};
 use coordinate_position::CoordPos;
 use geo::euclidean_distance::EuclideanDistance;
 use geo::line_intersection::{line_intersection, LineIntersection};
@@ -469,7 +469,7 @@ fn get_closest_intersection_point_on_polygon(
         .flat_map(|poly| {
             std::iter::once(poly.exterior())
                 .chain(poly.interiors())
-                .flat_map(|chain| chain.lines())
+                .flat_map(geo::LineString::lines)
         })
         .filter_map(|poly_line| {
             line_intersection(poly_line, line).map(|intersection| match intersection {

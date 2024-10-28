@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{Coord, IndexedParallelIterator, IntoParallelRefIterator, Object, ParallelIterator, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator, Vertex};
 
 pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object>, SlicerErrors> {
     towers

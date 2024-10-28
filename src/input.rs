@@ -1,5 +1,5 @@
 use crate::utils::show_error_message;
-use crate::*;
+use crate::{IndexedTriangle, InputObject, Loader, OsStr, PartialSettingsFile, Path, STLLoader, Settings, SlicerErrors, ThreeMFLoader, Transform, Vertex, debug, info};
 use std::path::PathBuf;
 use std::str::FromStr;
 

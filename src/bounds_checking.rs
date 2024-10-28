@@ -6,7 +6,7 @@ use itertools::Itertools;
 
 /// Check if the point is in an excluded
 fn check_excluded(v_point: Point, bed_exclude_areas: &Option<MultiPolygon>) -> Result<(), SlicerErrors> {
-    for polygon in bed_exclude_areas.as_ref().into_iter() {
+    for polygon in bed_exclude_areas.as_ref() {
         if polygon.contains(&v_point) {
             return Err(SlicerErrors::InExcludeArea(polygon.to_owned()));
         }

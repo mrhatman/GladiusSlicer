@@ -1,5 +1,5 @@
 use crate::optimizer::{binary_optimizer, state_optomizer, unary_optimizer};
-use crate::*;
+use crate::{Command, Coord, HashMap, Itertools, OrderedFloat, RetractionType, Settings};
 
 pub trait CommandPass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings);

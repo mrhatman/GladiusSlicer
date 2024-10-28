@@ -358,7 +358,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
         let mut second_pos = first_pos + 1;
         while second_pos < fragments.len() {
             let swap;
-            if {
+            let res = {
                 let first = fragments
                     .get(first_pos)
                     .expect("Index is validated by loop");
@@ -368,7 +368,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
 
                 swap = second.elements.last() == first.elements.first();
                 first.elements.last() == second.elements.first() || swap
-            } {
+            }; if res {
                 if swap {
                     fragments.swap(second_pos, first_pos);
                 }

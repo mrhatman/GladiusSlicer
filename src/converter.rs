@@ -1,10 +1,7 @@
 use crate::{Command, Settings};
 use evalexpr::{context_map, eval_float_with_context, DefaultNumericTypes, HashMapContext};
 use gladius_shared::{error::SlicerErrors, types::RetractionType};
-use std::{
-    fmt::format,
-    io::{BufWriter, Write},
-};
+use std::io::{BufWriter, Write};
 
 pub fn convert(
     cmds: &[Command],
@@ -346,7 +343,7 @@ fn convert_instructions(
             } else {
                 let mut split = str.split('}');
                 let expression = split.next().ok_or(SlicerErrors::SettingMacroParseError {
-                    sub_error: format!("Empty string"),
+                    sub_error: "Empty string".to_string(),
                 })?;
 
                 let mut response = parse_macro(
@@ -359,7 +356,7 @@ fn convert_instructions(
                 )?;
 
                 response += split.next().ok_or(SlicerErrors::SettingMacroParseError {
-                    sub_error: format!("Missing end brace"),
+                    sub_error: "Missing end brace".to_string(),
                 })?;
 
                 Ok(response)
@@ -383,7 +380,7 @@ fn parse_macro(
         "current_extruder_temp" => float layer_settings.extruder_temp,
         "bed_temp" => float layer_settings.bed_temp,
         "z_pos" => float current_z_height,
-        "layer_count" => float layer_count as f64,
+        "layer_count" => float f64::from(layer_count),
         "prev_obj" => float previous_object.map_or(-1., |o| o  as f64),
         "curr_obj" => float current_object.map_or(-1., |o| o  as f64),
         "current_obj" => float current_object.map_or(-1., |o| o  as f64),

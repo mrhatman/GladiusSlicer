@@ -211,7 +211,7 @@ impl SlicePass for TopAndBottomLayersPass {
                 };
                 let above = if top_layers != 0 {
                     Some(
-                        slices[q + 1..q + top_layers + 1]
+                        slices[(q + 1)..=(q + top_layers)]
                             .iter()
                             .map(|m| m.main_polygon.clone())
                             .fold(

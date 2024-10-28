@@ -556,7 +556,7 @@ pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> 
                 })
                 .collect::<Vec<(f64, Vec<Command>)>>()
         })
-        .flat_map(|a| a.into_iter())
+        .flat_map(std::iter::IntoIterator::into_iter)
         .collect();
 
     layer_moves
