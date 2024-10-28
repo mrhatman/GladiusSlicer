@@ -71,6 +71,8 @@ struct Args {
         help = "Use the Message System (useful for interprocess communication)"
     )]
     message: bool,
+    #[arg( long="print_settings",help = "Print the final combined settings out to Stdout and Terminate. Verbose level 4 will print but continue.")]
+    print_settings: bool,
     #[arg(
         short = 'j',
         help = "Sets the number of threads to use in the thread pool (defaults to number of CPUs)"
@@ -127,6 +129,18 @@ fn main() {
         ),
         send_messages,
     );
+
+    if args.print_settings{
+        for line in gladius_shared::settings::SettingsPrint::to_strings(&settings){
+            println!("{}",line);
+        }
+        std::process::exit(0);        
+    }
+    else if log::log_enabled!(log::Level::Trace){
+        for line in gladius_shared::settings::SettingsPrint::to_strings(&settings){
+            log::trace!("{}",line);
+        }
+    }
 
     handle_err_or_return(check_model_bounds(&models, &settings), send_messages);
 

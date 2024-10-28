@@ -1,6 +1,6 @@
 use crate::{Command, Settings};
 use evalexpr::*;
-use gladius_shared::{error::SlicerErrors, types::RetractionType};
+use gladius_shared::{error::SlicerErrors, settings::SettingsPrint, types::RetractionType};
 use std::{
     fmt::format,
     io::{BufWriter, Write},
@@ -15,6 +15,18 @@ pub fn convert(
     let mut layer_count = 0;
     let mut current_object = None;
     let mut write_buf = BufWriter::new(write);
+
+    //output the settings to the gcode file
+
+    for line in settings.to_strings(){
+        writeln!(
+            //lending ; to make comment
+            write_buf,
+            "; {}",
+            line
+        )
+        .map_err(|_| SlicerErrors::FileWriteError)?;
+    }
 
     let start = convert_instructions(
         &settings.starting_instructions,
@@ -449,7 +461,7 @@ mod tests {
                 &Settings::default()
             ),
             Ok(String::from("// temp is 213 C"))
-        );        
+        );
         assert_eq!(
             convert_instructions(
                 "// temp is {if(10>20,10.0,20.0)} C",

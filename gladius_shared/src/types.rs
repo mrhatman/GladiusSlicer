@@ -10,6 +10,7 @@ use itertools::Itertools;
 use nalgebra::Point3;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
+use std::fmt::{write, Display};
 
 /// A single slice of an object containing it's current plotting status.
 pub struct Slice {
@@ -144,6 +145,15 @@ pub enum SolidInfillTypes {
     /// Back and forth lines to fill polygons, rotating custom degrees each layer
     RectilinearCustom(f64),
 }
+impl Display for SolidInfillTypes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self{
+            SolidInfillTypes::Rectilinear => write!(f,"Rectilinear")?,
+            SolidInfillTypes::RectilinearCustom(a) => write!(f,"Rectilinear({})",a)?,
+        }
+        Ok(())
+    }
+}
 
 /// Types of partial infill
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -162,6 +172,19 @@ pub enum PartialInfillTypes {
 
     /// Creates lightning shaped infill that retracts into the print walls
     Lightning,
+}
+
+impl Display for PartialInfillTypes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self{
+            PartialInfillTypes::Linear => write!(f,"Linear")?,
+            PartialInfillTypes::Rectilinear => write!(f,"Rectilinear")?,
+            PartialInfillTypes::Triangle => write!(f,"Triangle")?,
+            PartialInfillTypes::Cubic => write!(f,"Cubic")?,
+            PartialInfillTypes::Lightning => write!(f,"Lightning")?,
+        }
+        Ok(())
+    }
 }
 
 /// A single 3D vertex
