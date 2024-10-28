@@ -4,6 +4,7 @@
 ### New Features
 - Sub settings ( Acceleration.Bridge) can be set independently now
 - Add in support for Math expresions in the Gcode file
+- Json can be passed into the command line using the -S command
 
 ### Fixes
 

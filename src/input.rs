@@ -3,17 +3,15 @@ use crate::*;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-/// The output of a file and a settings file
-type FileOutput = Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>, Settings), SlicerErrors>;
+/// The raw triangles and vertices of a model
+type ModelRawData = (Vec<Vertex>, Vec<IndexedTriangle>);
 
-pub fn files_input(settings_path: Option<&str>, input: Option<Vec<String>>) -> FileOutput {
-    let settings: Settings = {
-        if let Some(str) = settings_path {
-            load_settings(str)
-        } else {
-            Ok(Settings::default())
-        }
-    }?;
+pub fn files_input(
+    settings_path: Option<&str>,
+    settings_json: &str,
+    input: Option<Vec<String>>,
+) -> Result<(Vec<ModelRawData>, Settings), SlicerErrors> {
+    let settings: Settings = { load_settings(settings_path, settings_json) }?;
 
     info!("Loading Input");
 
@@ -104,24 +102,31 @@ pub fn files_input(settings_path: Option<&str>, input: Option<Vec<String>>) -> F
     Ok((converted_inputs, settings))
 }
 
-fn load_settings(filepath: &str) -> Result<Settings, SlicerErrors> {
-    let settings_data =
+pub fn load_settings_json(filepath: &str) -> Result<String, SlicerErrors> {
+    Ok(
         std::fs::read_to_string(filepath).map_err(|_| SlicerErrors::SettingsFileNotFound {
             filepath: filepath.to_string(),
-        })?;
+        })?,
+    )
+}
+
+fn load_settings(filepath: Option<&str>, settings_data: &str) -> Result<Settings, SlicerErrors> {
     let partial_settings: PartialSettingsFile =
         deser_hjson::from_str(&settings_data).map_err(|_| SlicerErrors::SettingsFileMisformat {
-            filepath: filepath.to_string(),
+            filepath: filepath.unwrap_or("Command Line Argument").to_string(),
         })?;
     let current_path = std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
-    let mut path = PathBuf::from_str(filepath).map_err(|_| SlicerErrors::SettingsFileNotFound {
-        filepath: filepath.to_string(),
-    })?;
 
-    path.pop();
+    //set the directory on when loading from file no command line
+    if let Some(fp) = filepath {
+        let mut path = PathBuf::from_str(&fp).map_err(|_| SlicerErrors::SettingsFileNotFound {
+            filepath: fp.to_string(),
+        })?;
 
-    std::env::set_current_dir(&path).expect("Path checked before");
+        path.pop();
 
+        std::env::set_current_dir(&path).expect("Path checked before");
+    }
     let settings = partial_settings.get_settings()?;
 
     //reset path

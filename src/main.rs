@@ -50,6 +50,11 @@ mod utils;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
+#[clap(group(
+    clap::ArgGroup::new("settings-group")
+        .required(true)
+        .args(&["settings_file_path", "settings_json"]),
+))]
 struct Args {
     #[arg(required = true)]
     input: Vec<String>,
@@ -58,7 +63,9 @@ struct Args {
     #[arg(short = 'v', action = clap::ArgAction::Count, conflicts_with = "message", help = "Sets the level of verbosity")]
     verbose: u8,
     #[arg(short = 's', help = "Sets the settings file to use")]
-    settings: Option<String>,
+    settings_file_path: Option<String>,
+    #[arg(short = 'S', help = "The contents of a json settings file.")]
+    settings_json: Option<String>,
     #[arg(
         short = 'm',
         help = "Use the Message System (useful for interprocess communication)"
@@ -102,8 +109,22 @@ fn main() {
     }
 
     display_state_update("Loading Inputs", send_messages);
+
+    let settings_json = args.settings_json.unwrap_or(handle_err_or_return(
+        input::load_settings_json(
+            args.settings_file_path
+                .as_deref()
+                .expect("CLAP should handle requring a settings option to be Some"),
+        ),
+        send_messages,
+    ));
+
     let (models, settings) = handle_err_or_return(
-        files_input(args.settings.as_deref(), Some(args.input)),
+        files_input(
+            args.settings_file_path.as_deref(),
+            &settings_json,
+            Some(args.input),
+        ),
         send_messages,
     );
 
