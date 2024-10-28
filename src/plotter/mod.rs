@@ -87,7 +87,7 @@ impl Plotter for Slice {
     }
 
     fn fill_remaining_area(&mut self, solid: bool, layer_count: usize) {
-        //For each region still available fill wih infill
+        // For each region still available fill wih infill
         for poly in &self.remaining_area {
             if solid {
                 let new_moves = solid_infill_polygon(
@@ -120,7 +120,7 @@ impl Plotter for Slice {
     }
 
     fn fill_solid_subtracted_area(&mut self, other: &MultiPolygon<f64>, layer_count: usize) {
-        //For each area not in this slice that is in the other polygon, fill solid
+        // For each area not in this slice that is in the other polygon, fill solid
 
         let solid_area = self
             .remaining_area
@@ -140,7 +140,7 @@ impl Plotter for Slice {
     }
 
     fn fill_solid_bridge_area(&mut self, layer_below: &MultiPolygon<f64>) {
-        //For each area not in this slice that is in the other polygon, fill solid
+        // For each area not in this slice that is in the other polygon, fill solid
 
         let solid_area = self
             .remaining_area
@@ -165,7 +165,7 @@ impl Plotter for Slice {
     }
 
     fn fill_solid_top_layer(&mut self, layer_above: &MultiPolygon<f64>, layer_count: usize) {
-        //For each area not in this slice that is in the other polygon, fill solid
+        // For each area not in this slice that is in the other polygon, fill solid
 
         let solid_area = self
             .remaining_area
@@ -277,7 +277,7 @@ impl Plotter for Slice {
     }
 
     fn order_chains(&mut self) {
-        //Order Chains for fastest print
+        // Order Chains for fastest print
         let ordered_chains = if !self.chains.is_empty() {
             let mut ordered_chains = vec![self.chains.swap_remove(0)];
 
@@ -329,7 +329,7 @@ impl Plotter for Slice {
                 let retract_command =
                     if let Some(retraction_wipe) = self.layer_settings.retraction_wipe.as_ref() {
                         let ordered: Vec<Coord<f64>> = if chain.is_loop {
-                            //fixme this is bad
+                            // fixme this is bad
                             chain
                                 .moves
                                 .iter()
@@ -379,8 +379,8 @@ impl Plotter for Slice {
                         if chain.is_loop && chain.moves.len() > 3{
                             if let [m2,m1,..] = ordered[ordered.len()-3..ordered.len()]{
                                 if let Some(m0) = ordered.first() {
-                                    //let m1 = chain.start_point ;
-                                    //inset the first move
+                                    // let m1 = chain.start_point ;
+                                    // inset the first move
                                     let bisector = directional_unit_bisector_left(&m0, &m1, &m2);
 
                                     let scaled_bisector = bisector.scale(self.layer_settings.extrusion_width.exterior_surface_perimeter);
@@ -451,10 +451,10 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
                 .circular_tuple_windows::<(&Coord<f64>, &Coord<f64>)>()
         })
         .filter(|(&s, &f)| {
-            //test the midpoint if it supported
+            // test the midpoint if it supported
             let mid_point = (s + f) / 2.0;
             let supported = fill_area.coordinate_position(&mid_point) == CoordPos::Inside;
-            //if midpoint is in the fill area, then it is supported
+            // if midpoint is in the fill area, then it is supported
             !supported
         })
         .collect();
@@ -476,7 +476,7 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
                             let x_diff = inner_end.x - inner_start.x;
                             let y_diff = inner_end.y - inner_start.y;
 
-                            //println!("vec ({},{})", x_diff, y_diff);
+                            // println!("vec ({},{})", x_diff, y_diff);
 
                             let inner_vec = (x_diff, y_diff);
 

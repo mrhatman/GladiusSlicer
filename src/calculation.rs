@@ -63,13 +63,13 @@ pub fn calculate_values(moves: &[Command], settings: &Settings) -> CalculatedVal
                 let y_diff_r = end.y - center.y;
                 let radius = ((x_diff_r * x_diff_r) + (y_diff_r * y_diff_r)).sqrt();
 
-                //Divide the chord length by double the radius.
+                // Divide the chord length by double the radius.
                 let t = cord_length / (2.0 * radius);
-                //println!("{}",t);
-                //Find the inverse sine of the result (in radians).
-                //Double the result of the inverse sine to get the central angle in radians.
+                // println!("{}",t);
+                // Find the inverse sine of the result (in radians).
+                // Double the result of the inverse sine to get the central angle in radians.
                 let central = t.asin() * 2.0;
-                //Once you have the central angle in radians, multiply it by the radius to get the arc length.
+                // Once you have the central angle in radians, multiply it by the radius to get the arc length.
                 let extrusion_length = central * radius;
 
                 values.total_time += extrusion_length / current_speed;

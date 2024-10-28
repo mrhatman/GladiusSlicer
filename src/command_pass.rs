@@ -12,7 +12,7 @@ impl CommandPass for OptimizePass {
         let mut size = cmds.len();
 
         while {
-            //arc_optomizer(cmds);
+            // arc_optomizer(cmds);
             state_optomizer(cmds);
             unary_optimizer(cmds);
             binary_optimizer(cmds, settings);
@@ -29,7 +29,7 @@ pub struct SlowDownLayerPass {}
 impl CommandPass for SlowDownLayerPass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings) {
         let mut layer_height = 0.0;
-        //Slow down on small layers
+        // Slow down on small layers
         let mut current_speed = 0.0;
         let mut current_pos = Coord { x: 0.0, y: 0.0 };
 
@@ -38,7 +38,7 @@ impl CommandPass for SlowDownLayerPass {
                 .iter()
                 .enumerate()
                 .batching(|it| {
-                    //map from speed to length at that speed
+                    // map from speed to length at that speed
                     let mut map: HashMap<OrderedFloat<f64>, f64> = HashMap::new();
                     let mut non_move_time = 0.0;
 
@@ -100,13 +100,13 @@ impl CommandPass for SlowDownLayerPass {
                                     let radius =
                                         ((x_diff_r * x_diff_r) + (y_diff_r * y_diff_r)).sqrt();
 
-                                    //Divide the chord length by double the radius.
+                                    // Divide the chord length by double the radius.
                                     let t = cord_length / (2.0 * radius);
-                                    //println!("{}",t);
-                                    //Find the inverse sine of the result (in radians).
-                                    //Double the result of the inverse sine to get the central angle in radians.
+                                    // println!("{}",t);
+                                    // Find the inverse sine of the result (in radians).
+                                    // Double the result of the inverse sine to get the central angle in radians.
                                     let central = t.asin() * 2.0;
-                                    //Once you have the central angle in radians, multiply it by the radius to get the arc length.
+                                    // Once you have the central angle in radians, multiply it by the radius to get the arc length.
                                     let extrusion_length = central * radius;
 
                                     current_pos = *end;

@@ -378,7 +378,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
                     .expect("Index is validated by loop");
                 TowerRing::join_rings_in_place(first_r, second_r);
 
-                //dont progress as the swap makes this position valid again
+                // dont progress as the swap makes this position valid again
             } else {
                 second_pos += 1;
             }
@@ -408,14 +408,14 @@ impl<'s> TriangleTowerIterator<'s> {
     }
 
     pub fn advance_to_height(&mut self, z: f64) -> Result<(), SlicerErrors> {
-        //println!("Advance to height {} {} {}", self.tower.get_height_of_vertex(self.tower_vert_index), z, self.tower.tower_vertices[self.tower_vert_index].start_index);
+        // println!("Advance to height {} {} {}", self.tower.get_height_of_vertex(self.tower_vert_index), z, self.tower.tower_vertices[self.tower_vert_index].start_index);
 
         while self.tower.get_height_of_vertex(self.tower_vert_index) < z
             && self.tower.tower_vertices.len() + 1 != self.tower_vert_index
         {
             let pop_tower_vert = self.tower.tower_vertices[self.tower_vert_index].clone();
 
-            //Create Frags from rings by removing current edges
+            // Create Frags from rings by removing current edges
             self.active_rings = self
                 .active_rings
                 .drain(..)
@@ -432,7 +432,7 @@ impl<'s> TriangleTowerIterator<'s> {
                 trace!("\t{}",f);
             }*/
 
-            //Add the new fragments
+            // Add the new fragments
 
             self.active_rings.extend(pop_tower_vert.next_ring_fragments);
             // trace!("all frags:");
@@ -484,7 +484,7 @@ impl<'s> TriangleTowerIterator<'s> {
                     })
                     .collect();
 
-                //complete loop
+                // complete loop
                 points.push(points[0]);
 
                 points

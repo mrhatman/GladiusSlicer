@@ -19,7 +19,7 @@ impl ObjectPass for BrimPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
         if let Some(width) = &settings.brim_width {
             display_state_update("Generating Moves: Brim", send_messages);
-            //Add to first object
+            // Add to first object
 
             let first_layer_multipolygon: MultiPolygon<f64> = MultiPolygon(
                 objects
@@ -54,11 +54,11 @@ impl ObjectPass for SupportTowerPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
         if let Some(support) = &settings.support {
             display_state_update("Generating Support Towers", send_messages);
-            //Add to first object
+            // Add to first object
 
             objects.par_iter_mut().for_each(|obj| {
                 (1..obj.layers.len()).rev().for_each(|q| {
-                    //todo Fix this, it feels hacky
+                    // todo Fix this, it feels hacky
                     if let [ref mut layer, ref mut above, ..] = &mut obj.layers[q - 1..=q] {
                         layer.add_support_polygons(above, support);
                     } else {
@@ -74,7 +74,7 @@ pub struct SkirtPass {}
 
 impl ObjectPass for SkirtPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
-        //Handle Perimeters
+        // Handle Perimeters
         if let Some(skirt) = &settings.skirt {
             display_state_update("Generating Moves: Skirt", send_messages);
             let convex_hull = objects
@@ -89,7 +89,7 @@ impl ObjectPass for SkirtPass {
                 .fold(MultiPolygon(vec![]), |a, b| a.union_with(&b))
                 .convex_hull();
 
-            //Add to first object
+            // Add to first object
             objects
                 .get_mut(0)
                 .expect("Needs an object")
@@ -282,7 +282,7 @@ impl SlicePass for FillAreaPass {
     ) -> Result<(), SlicerErrors> {
         display_state_update("Generating Moves: Fill Areas", send_messages);
 
-        //Fill all remaining areas
+        // Fill all remaining areas
         slices
             .par_iter_mut()
             .enumerate()
@@ -319,7 +319,7 @@ impl SlicePass for OrderPass {
     ) -> Result<(), SlicerErrors> {
         display_state_update("Generating Moves: Order Chains", send_messages);
 
-        //Fill all remaining areas
+        // Fill all remaining areas
         slices.par_iter_mut().for_each(|slice| {
             slice.order_chains();
         });

@@ -7,15 +7,6 @@ use crate::PolygonOperations;
 use geo::prelude::*;
 use geo::{Coord, Point, Polygon};
 
-// ? can these traits be removed?
-pub trait SolidInfillFill {
-    fn fill(&self, filepath: &str) -> Vec<MoveChain>;
-}
-
-pub trait PartialInfillFill {
-    fn fill(&self, filepath: &str) -> Vec<MoveChain>;
-}
-
 pub fn linear_fill_polygon(
     poly: &Polygon<f64>,
     settings: &LayerSettings,
@@ -110,7 +101,7 @@ pub fn solid_infill_polygon(
 ) -> Vec<MoveChain> {
     match settings.solid_infill_type {
         SolidInfillTypes::Rectilinear => {
-            //120 degrees between layers
+            // 120 degrees between layers
             let angle = 45.0 + (120_f64) * layer_count as f64;
 
             linear_fill_polygon(poly, settings, fill_type, angle)
@@ -281,15 +272,15 @@ pub fn spaced_fill_polygon(
                 let left_point = point_y_lerp(&left_top, &left_bot, current_y);
                 let right_point = point_y_lerp(&right_top, &right_bot, current_y);
 
-                //add moves to connect lines together
+                // add moves to connect lines together
                 if start_point.is_some() {
-                    //Only if not first point
+                    // Only if not first point
                     let mut y = None;
 
                     for point in connect_chain {
                         moves.push(Move {
                             end: point,
-                            //don''t fill lateral y moves
+                            // don''t fill lateral y moves
                             move_type: if y == Some(point.y) {
                                 MoveType::Travel
                             } else {

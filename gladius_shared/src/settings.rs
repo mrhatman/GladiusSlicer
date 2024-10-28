@@ -790,7 +790,7 @@ impl PartialSettingsFile {
         let files: Vec<String> = self
             .other_files
             .as_mut()
-            .map(|of| of.drain(..).collect())
+            .map(std::mem::take)
             .unwrap_or_default();
 
         for file in &files {

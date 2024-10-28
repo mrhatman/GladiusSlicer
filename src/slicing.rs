@@ -17,9 +17,7 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
                         // Advance to the correct height
                         let layer_height = settings
                             .get_layer_settings(
-                                layer_count
-                                    .try_into()
-                                    .expect("I doute your layer_count will go past 4,294,967,295"),
+                                layer_count as u32, // I doute your layer_count will go past 4,294,967,295
                                 layer,
                             )
                             .layer_height;
