@@ -357,7 +357,8 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
 
                 swap = second.elements.last() == first.elements.first();
                 first.elements.last() == second.elements.first() || swap
-            }; if res {
+            };
+            if res {
                 if swap {
                     fragments.swap(second_pos, first_pos);
                 }
@@ -460,7 +461,9 @@ impl<'s> TriangleTowerIterator<'s> {
     }
 }
 
-pub fn create_towers(models: &[(Vec<Vertex>, Vec<IndexedTriangle>)]) -> Result<Vec<TriangleTower>, SlicerErrors> {
+pub fn create_towers(
+    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)],
+) -> Result<Vec<TriangleTower>, SlicerErrors> {
     models
         .iter()
         .map(|(vertices, triangles)| {

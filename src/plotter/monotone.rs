@@ -183,7 +183,17 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
 
             // Handle Merge Point
             PointType::Merge => {
-                let index = sweep_line_storage.iter().position(|section| *section.right_chain.last().expect("Chain must have entries") == point.pos).unwrap_or_else( || panic!("Merge point must be in the storage as the end of a chain{:?} |||| {:?}", point, sweep_line_storage));
+                let index = sweep_line_storage
+                    .iter()
+                    .position(|section| {
+                        *section.right_chain.last().expect("Chain must have entries") == point.pos
+                    })
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "Merge point must be in the storage as the end of a chain{:?} |||| {:?}",
+                            point, sweep_line_storage
+                        )
+                    });
 
                 let mut right_section = sweep_line_storage.remove(index + 1);
                 let left_section = &mut sweep_line_storage[index];

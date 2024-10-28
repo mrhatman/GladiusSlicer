@@ -63,10 +63,7 @@ struct Args {
     verbose: u8,
     #[arg(short = 's', help = "Sets the settings file to use")]
     settings: Option<String>,
-    #[arg(
-        short = 'm',
-        help = "Use the Message System (useful for interprocess communication)"
-    )]
+    #[arg(short = 'm', help = "Use the Message System (useful for interprocess communication)")]
     message: bool,
     #[arg(
         short = 'j',

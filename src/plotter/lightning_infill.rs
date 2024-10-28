@@ -1,9 +1,8 @@
 use crate::{
-    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition,
-    GeoFloat, Itertools, Line, Move, MoveChain, MoveType, MultiPolygon,
-    Point, PolygonOperations, Slice,
+    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat,
+    Itertools, Line, Move, MoveChain, MoveType, MultiPolygon, Point, PolygonOperations, Slice,
 };
-use rayon::prelude::{ParallelIterator, IntoParallelRefMutIterator};
+use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 
 use coordinate_position::CoordPos;
 use geo::euclidean_distance::EuclideanDistance;

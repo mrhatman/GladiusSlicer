@@ -5,7 +5,10 @@ use gladius_shared::types::{Command, IndexedTriangle, Vertex};
 use itertools::Itertools;
 
 /// Check if the point is in an excluded
-fn check_excluded(v_point: Point, bed_exclude_areas: &Option<MultiPolygon>) -> Result<(), SlicerErrors> {
+fn check_excluded(
+    v_point: Point,
+    bed_exclude_areas: &Option<MultiPolygon>,
+) -> Result<(), SlicerErrors> {
     for polygon in bed_exclude_areas.as_ref() {
         if polygon.contains(&v_point) {
             return Err(SlicerErrors::InExcludeArea(polygon.to_owned()));

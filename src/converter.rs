@@ -40,7 +40,14 @@ pub fn convert(
         settings.maximum_feedrate_e
     )
     .map_err(|_| SlicerErrors::FileWriteError)?;
-    writeln!(write_buf, "M204 P{:.1} R{:.1} T{:.1}; sets acceleration (P, T) and retract acceleration (R), mm/sec^2", settings.max_acceleration_extruding, settings.max_acceleration_retracting, settings.max_acceleration_travel).map_err(|_|SlicerErrors::FileWriteError)?;
+    writeln!(
+        write_buf,
+        "M204 P{:.1} R{:.1} T{:.1}; sets acceleration (P, T) and retract acceleration (R), mm/sec^2",
+        settings.max_acceleration_extruding,
+        settings.max_acceleration_retracting,
+        settings.max_acceleration_travel
+    )
+    .map_err(|_| SlicerErrors::FileWriteError)?;
     writeln!(
         write_buf,
         "M205 X{:.1} Y{:.1} Z{:.1} E{:.1}; sets the jerk limits, mm/sec",
