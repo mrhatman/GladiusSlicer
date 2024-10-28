@@ -47,6 +47,7 @@ mod slice_pass;
 mod slicing;
 mod tower;
 mod utils;
+mod test;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

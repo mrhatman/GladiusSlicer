@@ -11,6 +11,9 @@ members = [
     "gladius_shared"
 ]
 
+[lints.clippy]
+allow-unwrap-in-tests = "allow"
+
 [dependencies]
 clap = { version = "4", features = ["derive"]}
 simple_logger = "5.0.0"
