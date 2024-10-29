@@ -100,7 +100,7 @@ impl Slice {
 
         for (line, area) in lines_and_area {
             if area > 0.0 {
-                polygons.push(Polygon::new(line.clone(), vec![]));
+                polygons.push(Polygon::new(line, vec![]));
             } else {
                 // counter clockwise interior polygon
                 let smallest_polygon = polygons
@@ -118,12 +118,12 @@ impl Slice {
             settings.get_layer_settings(layer_count, (bottom_height + top_height) / 2.0);
 
         Ok(Slice {
-            main_polygon: multi_polygon.clone(),
             remaining_area: multi_polygon.simplify_vw(&0.0001),
+            main_polygon: multi_polygon,
             support_interface: None,
             support_tower: None,
-            chains: vec![],
-            fixed_chains: vec![],
+            chains: Vec::new(),
+            fixed_chains: Vec::new(),
             bottom_height,
             top_height,
             layer_settings,
@@ -137,7 +137,7 @@ impl Slice {
 }
 
 /// Types of solid infill
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum SolidInfillTypes {
     /// Back and forth lines to fill polygons, Rotating 120 degree each layer
     Rectilinear,
@@ -147,7 +147,7 @@ pub enum SolidInfillTypes {
 }
 
 /// Types of partial infill
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum PartialInfillTypes {
     /// Back and forth spaced lines to fill polygons
     Linear,
@@ -166,7 +166,7 @@ pub enum PartialInfillTypes {
 }
 
 /// A single 3D vertex
-#[derive(Default, Clone, Copy, Debug, PartialEq, Deserialize)]
+#[derive(Default, Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename = "vertex")]
 pub struct Vertex {
     /// X Coord
@@ -180,8 +180,11 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    const fn new(x: f64, y: f64, z: f64) -> Self {
-        Vertex { x, y, z }
+    /// mul with transform in place
+    pub fn mul_transform(&mut self, transform: &Transform) {
+        self.x = transform.0[0][0] * self.x + transform.0[0][1] * self.y + transform.0[0][2] * self.z + transform.0[0][3];
+        self.y = transform.0[1][0] * self.x + transform.0[1][1] * self.y + transform.0[1][2] * self.z + transform.0[1][3];
+        self.z = transform.0[2][0] * self.x + transform.0[2][1] * self.y + transform.0[2][2] * self.z + transform.0[2][3];
     }
 }
 
@@ -203,18 +206,6 @@ impl PartialOrd for Vertex {
     }
 }
 
-impl std::ops::Mul<Vertex> for &Transform {
-    type Output = Vertex;
-
-    fn mul(self, rhs: Vertex) -> Self::Output {
-        Vertex {
-            x: self.0[0][0] * rhs.x + self.0[0][1] * rhs.y + self.0[0][2] * rhs.z + self.0[0][3],
-            y: self.0[1][0] * rhs.x + self.0[1][1] * rhs.y + self.0[1][2] * rhs.z + self.0[1][3],
-            z: self.0[2][0] * rhs.x + self.0[2][1] * rhs.y + self.0[2][2] * rhs.z + self.0[2][3],
-        }
-    }
-}
-
 impl Transform {
     /// create a new transform for translation
     pub const fn new_translation_transform(x: f64, y: f64, z: f64) -> Self {
@@ -226,19 +217,6 @@ impl Transform {
         ])
     }
 }
-
-/*
-impl std::ops::Mul<Transform> for Transform {
-    type Output = Transform;
-
-    fn mul(self, rhs: Transform) -> Self::Output {
-        let arrays = [[0.0 ; 4];4];
-        for 0..4
-
-        Transform(arrays)
-    }
-}
-*/
 
 /// A object is the collection of slices for a particular model.
 pub struct Object {
@@ -274,21 +252,21 @@ impl InputObject {
 pub struct Transform(pub [[f64; 4]; 4]);
 
 /// A triangle that contains indices to it's 3 points. Used with a Vector of Vertices.
-#[derive(Default, Clone, Copy, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct IndexedTriangle {
     /// Array of the 3 Vertices
     pub verts: [usize; 3],
 }
 
 /// A line that contains indices to it's 2 points. Used with a Vector of Vertices.
-#[derive(Default, Clone, Copy, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct IndexedLine {
     /// Array of the 2 Vertices
     pub verts: [usize; 2],
 }
 
 /// A move of the plotter
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Move {
     /// The end Coord of the Move. The start of the move is the previous moves end point.
     pub end: Coord<f64>,
@@ -311,7 +289,7 @@ pub struct MoveChain {
 }
 
 /// Types of Moves
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum MoveType {
     /// The top later of infill
     TopSolidInfill,
@@ -566,11 +544,11 @@ impl MoveChain {
     /// Convert a move chain into a list of commands
     pub fn create_commands(self, settings: &LayerSettings, thickness: f64) -> Vec<Command> {
         let mut cmds = vec![];
-        let mut current_type = None;
+        let mut current_type: Option<MoveType> = None;
         let mut current_loc = self.start_point;
 
         for m in self.moves {
-            if Some(m.move_type) != current_type {
+            if Some(&m.move_type) != current_type.as_ref() {
                 match m.move_type {
                     MoveType::TopSolidInfill => {
                         cmds.push(Command::SetState {
@@ -710,7 +688,7 @@ impl MoveChain {
                 current_type = Some(m.move_type);
             }
 
-            if m.move_type == MoveType::Travel {
+            if current_type == Some(MoveType::Travel) {
                 cmds.push(Command::MoveTo { end: m.end });
                 current_loc = m.end;
             } else {
@@ -747,7 +725,7 @@ impl MoveChain {
 }
 
 /// Calculated values about an entire print
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CalculatedValues {
     /// Total plastic used by the print in mm^3
     pub plastic_volume: f64,

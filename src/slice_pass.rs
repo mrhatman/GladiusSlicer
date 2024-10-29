@@ -195,15 +195,14 @@ impl SlicePass for TopAndBottomLayersPass {
                 let below = if bottom_layers != 0 {
                     Some(
                         slices[(q - bottom_layers + 1)..q]
-                            .iter()
-                            .map(|m| m.main_polygon.clone())
+                            .into_iter()
                             .fold(
                                 slices
                                     .get(q - bottom_layers)
                                     .expect("Bounds Checked above")
                                     .main_polygon
                                     .clone(),
-                                |a, b| a.intersection_with(&b),
+                                |a, b| a.intersection_with(&b.main_polygon),
                             ),
                     )
                 } else {

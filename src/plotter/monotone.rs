@@ -44,7 +44,7 @@ impl PartialOrd for MonotonePoint {
 
 impl Eq for MonotonePoint {}
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 enum PointType {
     Start,
     End,

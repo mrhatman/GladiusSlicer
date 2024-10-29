@@ -13,7 +13,7 @@ pub fn inset_polygon_recursive(
     outer_perimeter: bool,
     layer_left: usize,
 ) -> Option<MoveChain> {
-    let mut move_chains = vec![];
+    let mut move_chains = Vec::new();
     let inset_poly = poly.offset_from(
         if outer_perimeter {
             settings.extrusion_width.interior_surface_perimeter
@@ -39,10 +39,10 @@ pub fn inset_polygon_recursive(
                 };
                 Move {
                     end,
-                    move_type,
                     width: settings
                         .extrusion_width
                         .get_value_for_movement_type(&move_type),
+                    move_type,
                 }
             })
             .collect();
@@ -63,10 +63,10 @@ pub fn inset_polygon_recursive(
                 };
                 moves.push(Move {
                     end,
-                    move_type,
                     width: settings
                         .extrusion_width
                         .get_value_for_movement_type(&move_type),
+                    move_type,
                 });
             }
             outer_chains.push(MoveChain {

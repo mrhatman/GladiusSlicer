@@ -70,10 +70,10 @@ impl Supporter for Slice {
     }
 
     fn get_support_polygon(&self) -> MultiPolygon<f64> {
-        match (self.support_tower.clone(), self.support_interface.clone()) {
-            (None, None) => MultiPolygon(vec![]),
-            (Some(tower), None) => tower,
-            (None, Some(interface)) => interface,
+        match (&self.support_tower, &self.support_interface) {
+            (None, None) => MultiPolygon(Vec::new()),
+            (Some(tower), None) => tower.clone(),
+            (None, Some(interface)) => interface.clone(),
             (Some(tower), Some(interface)) => tower.union_with(&interface),
         }
     }

@@ -100,7 +100,7 @@ pub fn files_input(settings_path: Option<&str>, input: Option<Vec<String>>) -> F
 
             vec.extend(models.into_iter().map(move |(mut v, t)| {
                 for vert in &mut v {
-                    *vert = &transform * *vert;
+                    vert.mul_transform(&transform);
                 }
 
                 (v, t)

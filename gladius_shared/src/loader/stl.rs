@@ -52,9 +52,9 @@ impl Loader for STLLoader {
                             std::mem::swap(&mut v0, &mut v1);
                         }
             */
-            let v0 = vertices[converted_tri.verts[0]];
-            let v1 = vertices[converted_tri.verts[1]];
-            let v2 = vertices[converted_tri.verts[2]];
+            let v0 = &vertices[converted_tri.verts[0]];
+            let v1 = &vertices[converted_tri.verts[1]];
+            let v2 = &vertices[converted_tri.verts[2]];
 
             if v0 < v1 && v0 < v2 {
                 triangles.push(converted_tri);

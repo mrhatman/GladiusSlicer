@@ -2,7 +2,7 @@ use geo::MultiPolygon;
 use serde::{Deserialize, Serialize};
 
 /// Errors that can be generated during the slicing process
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum SlicerErrors {
     /// Thefile for the object/Model can not be found in the file system
     ObjectFileNotFound {

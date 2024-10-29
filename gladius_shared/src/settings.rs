@@ -395,10 +395,10 @@ impl Settings {
             extrusion_width: changes
                 .extrusion_width
                 .unwrap_or_else(|| self.extrusion_width.clone()),
-            solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type),
+            solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type.clone()),
             partial_infill_type: changes
                 .partial_infill_type
-                .unwrap_or(self.partial_infill_type),
+                .unwrap_or(self.partial_infill_type.clone()),
             infill_percentage: changes.infill_percentage.unwrap_or(self.infill_percentage),
             infill_perimeter_overlap_percentage: changes
                 .infill_perimeter_overlap_percentage
@@ -562,7 +562,7 @@ impl Settings {
 }
 
 /// Possible results of validation the settings
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum SettingsValidationResult {
     /// No Issue
     NoIssue,

@@ -190,8 +190,8 @@ impl LightningNode {
             .children
             .drain(..)
             .filter_map(|mut child| {
-                let reponse = child.shorten_and_straighten(l, settings);
-                match reponse {
+                let response = child.shorten_and_straighten(l, settings);
+                match response {
                     StraightenResponse::Remove { remaining_len } => {
                         shorten_amount = remaining_len;
                         None

@@ -25,7 +25,7 @@ use std::hash::{Hash, Hasher};
 /// * `v_start` - Starting point of the line
 /// * `v_end` - Ending point of the line
 #[inline]
-fn line_z_intersection(z: f64, v_start: Vertex, v_end: Vertex) -> Vertex {
+fn line_z_intersection(z: f64, v_start: &Vertex, v_end: &Vertex) -> Vertex {
     let z_normal = (z - v_start.z) / (v_end.z - v_start.z);
     let y = lerp(v_start.y, v_end.y, z_normal);
     let x = lerp(v_start.x, v_end.x, z_normal);
@@ -115,7 +115,7 @@ impl TriangleTower {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 struct TowerVertex {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
@@ -251,7 +251,7 @@ impl Hash for TowerRingElement {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum TriangleEvent {
     MiddleVertex {
         leading_edge: usize,
@@ -401,7 +401,7 @@ impl<'s> TriangleTowerIterator<'s> {
         while self.tower.get_height_of_vertex(self.tower_vert_index) < z
             && self.tower.tower_vertices.len() + 1 != self.tower_vert_index
         {
-            let pop_tower_vert = self.tower.tower_vertices[self.tower_vert_index].clone();
+            let pop_tower_vert = &self.tower.tower_vertices[self.tower_vert_index];
 
             // Create Frags from rings by removing current edges
             self.active_rings = self
@@ -414,7 +414,7 @@ impl<'s> TriangleTowerIterator<'s> {
                 })
                 .collect();
 
-            self.active_rings.extend(pop_tower_vert.next_ring_fragments);
+            self.active_rings.extend(pop_tower_vert.next_ring_fragments.clone());
 
             join_fragments(&mut self.active_rings);
 
@@ -443,8 +443,8 @@ impl<'s> TriangleTowerIterator<'s> {
                         if let TowerRingElement::Edge {start_index, end_index, ..} = e {
                             Some(line_z_intersection(
                                 self.z_height,
-                                self.tower.vertices[*start_index],
-                                self.tower.vertices[*end_index],
+                                &self.tower.vertices[*start_index],
+                                &self.tower.vertices[*end_index],
                             ))
                         } else {
                             None
@@ -453,7 +453,7 @@ impl<'s> TriangleTowerIterator<'s> {
                     .collect();
 
                 // complete loop
-                points.push(points[0]);
+                points.push(points[0].clone());
 
                 points
             })

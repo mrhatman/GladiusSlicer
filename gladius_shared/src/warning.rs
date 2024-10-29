@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Warnings that can be generated during the slicing process
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum SlicerWarnings {
     /// Layer size too low for the nozzle size
     LayerSizeTooLow {
