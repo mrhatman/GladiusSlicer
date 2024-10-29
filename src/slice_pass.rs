@@ -195,7 +195,7 @@ impl SlicePass for TopAndBottomLayersPass {
                 let below = if bottom_layers != 0 {
                     Some(
                         slices[(q - bottom_layers + 1)..q]
-                            .into_iter()
+                            .iter()
                             .fold(
                                 slices
                                     .get(q - bottom_layers)

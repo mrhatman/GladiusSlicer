@@ -288,7 +288,7 @@ pub fn spaced_fill_polygon(
                             },
                             width: settings
                                 .extrusion_width
-                                .get_value_for_movement_type(&fill_type),
+                                .get_value_for_movement_type(fill_type),
                         });
 
                         y = Some(point.y);
@@ -309,7 +309,7 @@ pub fn spaced_fill_polygon(
                         move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
-                            .get_value_for_movement_type(&fill_type),
+                            .get_value_for_movement_type(fill_type),
                     });
 
                     moves.push(Move {
@@ -320,7 +320,7 @@ pub fn spaced_fill_polygon(
                         move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
-                            .get_value_for_movement_type(&fill_type),
+                            .get_value_for_movement_type(fill_type),
                     });
                 } else {
                     moves.push(Move {
@@ -331,7 +331,7 @@ pub fn spaced_fill_polygon(
                         move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
-                            .get_value_for_movement_type(&fill_type),
+                            .get_value_for_movement_type(fill_type),
                     });
 
                     moves.push(Move {
@@ -342,7 +342,7 @@ pub fn spaced_fill_polygon(
                         move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
-                            .get_value_for_movement_type(&fill_type),
+                            .get_value_for_movement_type(fill_type),
                     });
                 }
 
