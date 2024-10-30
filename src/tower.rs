@@ -13,23 +13,27 @@ use rayon::prelude::*;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
-/// Calculate the vertex the Line from `v_start` to `v_end` where
+/// Calculate the **vertex**, the Line from `v_start` to `v_end` where
 /// it intersects with the plane z
 ///
 /// <div class="warning">If v_start.z == v_end.z then divide by 0</div>
 ///
-/// # Arguments
+/// ## Arguments
 /// * `z` - z height of the resulting point
 /// * `v_start` - Starting point of the line
 /// * `v_end` - Ending point of the line
 #[inline]
 fn line_z_intersection(z: f64, v_start: &Vertex, v_end: &Vertex) -> Vertex {
     let z_normal = (z - v_start.z) / (v_end.z - v_start.z);
+    debug_assert!(z_normal <= 1.0);
+
     let y = lerp(v_start.y, v_end.y, z_normal);
     let x = lerp(v_start.x, v_end.x, z_normal);
     Vertex { x, y, z }
 }
 
+/// ## Linear Interpolate
+/// Compute values between **a** and **b**, with **f** as the interpolated point from 0.0 to 1.0
 #[inline]
 fn lerp(a: f64, b: f64, f: f64) -> f64 {
     a + f * (b - a)
@@ -42,6 +46,7 @@ pub struct TriangleTower {
 }
 
 impl TriangleTower {
+    /// Create a `TriangleTower` from **vertices** as leading or trailing edges and **triangles**
     pub fn from_triangles_and_vertices(
         triangles: &[IndexedTriangle],
         vertices: Vec<Vertex>,
@@ -113,12 +118,15 @@ impl TriangleTower {
     }
 }
 
+/// A vecter of `TowerRing`s with a start index, made of triangles
 #[derive(Debug, PartialEq)]
 struct TowerVertex {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
 }
 
+/// A list of **faces** and **edges**\
+/// When complete it will have at least 3 `TowerRingElement`s and equal first and last elements
 #[derive(Clone, Debug, PartialEq)]
 struct TowerRing {
     elements: Vec<TowerRingElement>,
@@ -181,6 +189,7 @@ impl Display for TowerRing {
     }
 }
 
+/// Face or Edge of a `TowerRing`
 #[derive(Clone, Debug, Eq)]
 enum TowerRingElement {
     Face {

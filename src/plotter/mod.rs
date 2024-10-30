@@ -87,7 +87,7 @@ impl Plotter for Slice {
     }
 
     fn fill_remaining_area(&mut self, solid: bool, layer_count: usize) {
-        // For each region still available fill wih infill
+        // For each region still available fill with infill
         for poly in &self.remaining_area {
             if solid {
                 let new_moves = solid_infill_polygon(
