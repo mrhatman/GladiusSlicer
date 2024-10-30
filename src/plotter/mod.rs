@@ -476,8 +476,6 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
                             let x_diff = inner_end.x - inner_start.x;
                             let y_diff = inner_end.y - inner_start.y;
 
-                            // println!("vec ({},{})", x_diff, y_diff);
-
                             let inner_vec = (x_diff, y_diff);
 
                             let dot = (inner_vec.0 * per_vec.0) + (inner_vec.1 * per_vec.1);

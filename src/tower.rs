@@ -1,19 +1,17 @@
-use crate::SlicerErrors;
-use gladius_shared::types::{IndexedTriangle, Vertex};
-use rayon::prelude::*;
-use std::fmt::{Display, Formatter};
-use std::hash::{Hash, Hasher};
-
-/*
-
+/*!
     Rough algoritim
 
     build tower
         For each point store all edges and face connected to but above it
 
     progress up tower
+!*/
 
-*/
+use crate::SlicerErrors;
+use gladius_shared::types::{IndexedTriangle, Vertex};
+use rayon::prelude::*;
+use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 
 /// Calculate the vertex the Line from `v_start` to `v_end` where
 /// it intersects with the plane z

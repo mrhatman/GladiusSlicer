@@ -157,14 +157,10 @@ pub fn state_optomizer(cmds: &mut Vec<Command>) {
 pub fn arc_optomizer(cmds: &mut [Command]) {
     let mut ranges = vec![];
 
-    // println!("{}",cmds.len());
-
     for (wt, group) in &cmds.iter().enumerate().chunk_by(|cmd| {
-        // println!("{}",cmd.0);
         if let Command::MoveAndExtrude {
             thickness, width, ..
-        } = cmd.1
-        {
+        } = cmd.1 {
             Some((thickness, width))
         } else {
             None
@@ -194,7 +190,6 @@ pub fn arc_optomizer(cmds: &mut [Command]) {
                     (usize, (&Coord<f64>, &Coord<f64>)),
                 )>()
                 .map(|((pos, l1), (_, l2))| {
-                    // println!("({},{}) ({},{}) ", l1.0.x,l1.0.y,l1.1.x,l1.1.y );
                     (pos, line_bisector(l1.0, l1.1, l2.1))
                 })
                 // bisector -> center, radius
@@ -203,15 +198,12 @@ pub fn arc_optomizer(cmds: &mut [Command]) {
                     (usize, (Coord<f64>, Coord<f64>)),
                 )>()
                 .filter_map(|((pos, (p1, n1)), (_, (p2, n2)))| {
-                    // println!("({:?},{:?}) ",p1,n1 );
-
                     ray_ray_intersection(&p1, &n1, &p2, &n2)
                         .map(|center| (pos, center.x_y(), center.euclidean_distance(&p1)))
                 })
             {
                 last_pos = pos;
 
-                // println!("{} ({},{}) ", radius,center.0,center.1);
                 if (radius - current_radius).abs() < 1.1
                     && (center.0 - current_center.0).abs() < 1.1
                     && (center.1 - current_center.1).abs() < 1.1
@@ -222,8 +214,6 @@ pub fn arc_optomizer(cmds: &mut [Command]) {
 
                 if current_chain > 5 {
                     ranges.push((center, (start_pos..=pos), *thickness, *width));
-
-                    // println!("arc found {}..{}", start_pos , pos);
                 }
 
                 current_center = center;
@@ -233,15 +223,12 @@ pub fn arc_optomizer(cmds: &mut [Command]) {
             }
 
             if current_chain > 5 {
-                // println!("{}..{}",start_pos,last_pos+2);
                 ranges.push((
                     current_center,
                     (start_pos..=last_pos + 2),
                     *thickness,
                     *width,
                 ));
-
-                // println!("arc found {}..{}", last_pos- current_chain , last_pos);
             }
         }
     }
@@ -299,7 +286,6 @@ fn ray_ray_intersection(
     let u = (dy * d1.x - dx * d1.y) / det;
     let v = (dy * d0.x - dx * d0.y) / det;
     if (u > 0.0) && (v > 0.0) {
-        // println!("({},{}) ", p1.x,p1.y, );
         let p1_end = *s0 + *d0; // another point in line p1->n1
         let p2_end = *s1 + *d1; // another point in line p2->n2
 
