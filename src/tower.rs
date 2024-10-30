@@ -6,17 +6,12 @@ use std::hash::{Hash, Hasher};
 
 /*
 
-    Rough algortim
+    Rough algoritim
 
     build tower
         For each point store all edges and face connected to but above it
 
     progress up tower
-
-
-
-
-
 
 */
 
@@ -30,7 +25,7 @@ use std::hash::{Hash, Hasher};
 /// * `v_start` - Starting point of the line
 /// * `v_end` - Ending point of the line
 #[inline]
-fn line_z_intersection(z: f64, v_start: Vertex, v_end: Vertex) -> Vertex {
+fn line_z_intersection(z: f64, v_start: &Vertex, v_end: &Vertex) -> Vertex {
     let z_normal = (z - v_start.z) / (v_end.z - v_start.z);
     let y = lerp(v_start.y, v_end.y, z_normal);
     let x = lerp(v_start.x, v_end.x, z_normal);
@@ -42,6 +37,7 @@ fn lerp(a: f64, b: f64, f: f64) -> f64 {
     a + f * (b - a)
 }
 
+/// A set of triangles and their associated vertices
 pub struct TriangleTower {
     vertices: Vec<Vertex>,
     tower_vertices: Vec<TowerVertex>,
@@ -55,10 +51,10 @@ impl TriangleTower {
         let mut future_tower_vert: Vec<Vec<TriangleEvent>> =
             (0..vertices.len()).map(|_| vec![]).collect();
 
-        //for each triangle add it to the tower
+        // for each triangle add it to the tower
 
         for (triangle_index, index_tri) in triangles.iter().enumerate() {
-            //index 0 is always lowest
+            // index 0 is always lowest
             future_tower_vert[index_tri.verts[0]].push(TriangleEvent::MiddleVertex {
                 trailing_edge: index_tri.verts[1],
                 leading_edge: index_tri.verts[2],
@@ -79,8 +75,8 @@ impl TriangleTower {
             }
         }
 
-        //for each triangle event, add it to the lowest vertex and
-        //create a list of all vertices and there above edges
+        // for each triangle event, add it to the lowest vertex and
+        // create a list of all vertices and there above edges
 
         let res_tower_vertices: Vec<TowerVertex> = future_tower_vert
             .into_par_iter()
@@ -94,10 +90,10 @@ impl TriangleTower {
             })
             .collect();
 
-        //propagate errors
+        // propagate errors
         let mut tower_vertices = res_tower_vertices;
 
-        //sort lowest to highest
+        // sort lowest to highest
         tower_vertices.sort_by(|a, b| {
             vertices[a.start_index]
                 .partial_cmp(&vertices[b.start_index])
@@ -119,11 +115,12 @@ impl TriangleTower {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 struct TowerVertex {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
 }
+
 #[derive(Clone, Debug, PartialEq)]
 struct TowerRing {
     elements: Vec<TowerRingElement>,
@@ -133,12 +130,6 @@ impl TowerRing {
     #[inline]
     fn is_complete_ring(&self) -> bool {
         self.elements.first() == self.elements.last() && self.elements.len() > 3
-    }
-
-    fn join_rings(mut first: TowerRing, second: TowerRing) -> Self {
-        TowerRing::join_rings_in_place(&mut first, second);
-
-        first
     }
 
     fn join_rings_in_place(first: &mut TowerRing, second: TowerRing) {
@@ -163,10 +154,10 @@ impl TowerRing {
         }
 
         if frags.is_empty() {
-            //add in the fragment
+            // add in the fragment
             frags.push(TowerRing { elements: new_ring });
         } else {
-            //append to the begining to prevent ophaned segments
+            // append to the beginning to prevent ophaned segments
             if frags[0].elements.is_empty() {
                 frags[0].elements = new_ring;
             } else {
@@ -175,8 +166,7 @@ impl TowerRing {
             }
         }
 
-        //remove all fragments that are single sized and faces. They ends with that vertex
-
+        // remove all fragments that are single sized and faces. They ends with that vertex
         frags.retain(|frag| frag.elements.len() > 1);
 
         frags
@@ -261,7 +251,7 @@ impl Hash for TowerRingElement {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum TriangleEvent {
     MiddleVertex {
         leading_edge: usize,
@@ -357,7 +347,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
         let mut second_pos = first_pos + 1;
         while second_pos < fragments.len() {
             let swap;
-            if {
+            let res = {
                 let first = fragments
                     .get(first_pos)
                     .expect("Index is validated by loop");
@@ -367,7 +357,8 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
 
                 swap = second.elements.last() == first.elements.first();
                 first.elements.last() == second.elements.first() || swap
-            } {
+            };
+            if res {
                 if swap {
                     fragments.swap(second_pos, first_pos);
                 }
@@ -377,7 +368,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
                     .expect("Index is validated by loop");
                 TowerRing::join_rings_in_place(first_r, second_r);
 
-                //dont progress as the swap makes this position valid again
+                // dont progress as the swap makes this position valid again
             } else {
                 second_pos += 1;
             }
@@ -407,14 +398,12 @@ impl<'s> TriangleTowerIterator<'s> {
     }
 
     pub fn advance_to_height(&mut self, z: f64) -> Result<(), SlicerErrors> {
-        //println!("Advance to height {} {} {}", self.tower.get_height_of_vertex(self.tower_vert_index), z, self.tower.tower_vertices[self.tower_vert_index].start_index);
-
         while self.tower.get_height_of_vertex(self.tower_vert_index) < z
             && self.tower.tower_vertices.len() + 1 != self.tower_vert_index
         {
-            let pop_tower_vert = self.tower.tower_vertices[self.tower_vert_index].clone();
+            let pop_tower_vert = &self.tower.tower_vertices[self.tower_vert_index];
 
-            //Create Frags from rings by removing current edges
+            // Create Frags from rings by removing current edges
             self.active_rings = self
                 .active_rings
                 .drain(..)
@@ -424,26 +413,11 @@ impl<'s> TriangleTowerIterator<'s> {
                         .into_iter()
                 })
                 .collect();
-            /*
-            trace!("split edge: {:?}", pop_tower_vert.start_index );
-            trace!("split frags:");
-            for f in &frags{
-                trace!("\t{}",f);
-            }*/
 
-            //Add the new fragments
-
-            self.active_rings.extend(pop_tower_vert.next_ring_fragments);
-            // trace!("all frags:");
-            // for f in &frags{
-            //     trace!("\t{}",f);
-            // }
+            self.active_rings.extend(pop_tower_vert.next_ring_fragments.clone());
 
             join_fragments(&mut self.active_rings);
-            // trace!("join frags:");
-            // for f in &frags{
-            //     trace!("\t{}",f);
-            // }
+
             self.tower_vert_index += 1;
 
             for ring in &self.active_rings {
@@ -466,16 +440,11 @@ impl<'s> TriangleTowerIterator<'s> {
                     .elements
                     .iter()
                     .filter_map(|e| {
-                        if let TowerRingElement::Edge {
-                            start_index,
-                            end_index,
-                            ..
-                        } = e
-                        {
+                        if let TowerRingElement::Edge {start_index, end_index, ..} = e {
                             Some(line_z_intersection(
                                 self.z_height,
-                                self.tower.vertices[*start_index],
-                                self.tower.vertices[*end_index],
+                                &self.tower.vertices[*start_index],
+                                &self.tower.vertices[*end_index],
                             ))
                         } else {
                             None
@@ -483,8 +452,8 @@ impl<'s> TriangleTowerIterator<'s> {
                     })
                     .collect();
 
-                //complete loop
-                points.push(points[0]);
+                // complete loop
+                points.push(points[0].clone());
 
                 points
             })
@@ -506,6 +475,12 @@ pub fn create_towers(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn join_rings(mut first: TowerRing, second: TowerRing) -> TowerRing {
+        TowerRing::join_rings_in_place(&mut first, second);
+
+        first
+    }
 
     #[test]
     fn join_rings_test() {
@@ -556,7 +531,7 @@ mod tests {
             ],
         };
 
-        ring_sliding_equality_assert(&TowerRing::join_rings(r1, r2), &r3);
+        ring_sliding_equality_assert(&join_rings(r1, r2), &r3);
     }
 
     #[test]
@@ -848,7 +823,7 @@ mod tests {
             return;
         }
         if lhs.len() != rhs.len() {
-            panic!("ASSERT rings count are differnt lengths");
+            panic!("ASSERT rings count are different lengths");
         }
 
         for q in 0..lhs.len() {
@@ -861,7 +836,7 @@ mod tests {
             return;
         }
         if lhs.elements.len() != rhs.elements.len() {
-            panic!("ASSERT ring {} and {} are differnt lengths", lhs, rhs);
+            panic!("ASSERT ring {} and {} are different lengths", lhs, rhs);
         }
 
         for q in 0..lhs.elements.len() - 1 {
@@ -875,7 +850,7 @@ mod tests {
             }
 
             if lhs.elements.len() != rhs.elements.len() {
-                panic!("ASSERT ring {} and {} are differnt", lhs, rhs);
+                panic!("ASSERT ring {} and {} are different", lhs, rhs);
             }
         }
     }

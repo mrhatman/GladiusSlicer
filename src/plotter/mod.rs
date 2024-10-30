@@ -73,21 +73,21 @@ impl Plotter for Slice {
     }
 
     fn shrink_layer(&mut self) {
-        if let Some(shrink_ammount) = self.layer_settings.layer_shrink_amount {
+        if let Some(shrink_amount) = self.layer_settings.layer_shrink_amount {
             self.support_tower = self
                 .support_tower
                 .as_ref()
-                .map(|tower| tower.offset_from(-shrink_ammount));
+                .map(|tower| tower.offset_from(-shrink_amount));
             self.support_interface = self
                 .support_interface
                 .as_ref()
-                .map(|interface| interface.offset_from(-shrink_ammount));
-            self.remaining_area = self.remaining_area.offset_from(-shrink_ammount);
+                .map(|interface| interface.offset_from(-shrink_amount));
+            self.remaining_area = self.remaining_area.offset_from(-shrink_amount);
         }
     }
 
     fn fill_remaining_area(&mut self, solid: bool, layer_count: usize) {
-        //For each region still available fill wih infill
+        // For each region still available fill wih infill
         for poly in &self.remaining_area {
             if solid {
                 let new_moves = solid_infill_polygon(
@@ -120,7 +120,7 @@ impl Plotter for Slice {
     }
 
     fn fill_solid_subtracted_area(&mut self, other: &MultiPolygon<f64>, layer_count: usize) {
-        //For each area not in this slice that is in the other polygon, fill solid
+        // For each area not in this slice that is in the other polygon, fill solid
 
         let solid_area = self
             .remaining_area
@@ -140,7 +140,7 @@ impl Plotter for Slice {
     }
 
     fn fill_solid_bridge_area(&mut self, layer_below: &MultiPolygon<f64>) {
-        //For each area not in this slice that is in the other polygon, fill solid
+        // For each area not in this slice that is in the other polygon, fill solid
 
         let solid_area = self
             .remaining_area
@@ -165,7 +165,7 @@ impl Plotter for Slice {
     }
 
     fn fill_solid_top_layer(&mut self, layer_above: &MultiPolygon<f64>, layer_count: usize) {
-        //For each area not in this slice that is in the other polygon, fill solid
+        // For each area not in this slice that is in the other polygon, fill solid
 
         let solid_area = self
             .remaining_area
@@ -277,7 +277,7 @@ impl Plotter for Slice {
     }
 
     fn order_chains(&mut self) {
-        //Order Chains for fastest print
+        // Order Chains for fastest print
         let ordered_chains = if !self.chains.is_empty() {
             let mut ordered_chains = vec![self.chains.swap_remove(0)];
 
@@ -317,6 +317,7 @@ impl Plotter for Slice {
                     extruder_temp: None,
                     bed_temp: None,
                     fan_speed: None,
+                    aux_fan_speed: None,
                     movement_speed: None,
                     acceleration: None,
                     retract: RetractionType::Retract,
@@ -328,7 +329,7 @@ impl Plotter for Slice {
                 let retract_command =
                     if let Some(retraction_wipe) = self.layer_settings.retraction_wipe.as_ref() {
                         let ordered: Vec<Coord<f64>> = if chain.is_loop {
-                            //fixme this is bad
+                            // fixme this is bad
                             chain
                                 .moves
                                 .iter()
@@ -378,8 +379,8 @@ impl Plotter for Slice {
                         if chain.is_loop && chain.moves.len() > 3{
                             if let [m2,m1,..] = ordered[ordered.len()-3..ordered.len()]{
                                 if let Some(m0) = ordered.first() {
-                                    //let m1 = chain.start_point ;
-                                    //inset the first move
+                                    // let m1 = chain.start_point ;
+                                    // inset the first move
                                     let bisector = directional_unit_bisector_left(&m0, &m1, &m2);
 
                                     let scaled_bisector = bisector.scale(self.layer_settings.extrusion_width.exterior_surface_perimeter);
@@ -408,6 +409,7 @@ impl Plotter for Slice {
                                 extruder_temp: None,
                                 bed_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(retraction_wipe.speed),
                                 acceleration: Some(retraction_wipe.acceleration),
                                 retract: RetractionType::MoveRetract(wipe_moves),
@@ -419,6 +421,7 @@ impl Plotter for Slice {
                                 bed_temp: None,
                                 extruder_temp: None,
                                 fan_speed: None,
+                                aux_fan_speed: None,
                                 movement_speed: Some(self.layer_settings.speed.travel),
                                 acceleration: Some(self.layer_settings.acceleration.travel),
                                 retract: RetractionType::Retract,
@@ -438,7 +441,7 @@ impl Plotter for Slice {
 }
 
 fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPolygon<f64>) -> f64 {
-    let unsuported_lines: Vec<_> = unsupported_area
+    let unsupported_lines: Vec<_> = unsupported_area
         .iter()
         .flat_map(|poly| std::iter::once(poly.exterior()).chain(poly.interiors().iter()))
         .flat_map(|line_string| {
@@ -448,15 +451,15 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
                 .circular_tuple_windows::<(&Coord<f64>, &Coord<f64>)>()
         })
         .filter(|(&s, &f)| {
-            //test the midpoint if it supported
+            // test the midpoint if it supported
             let mid_point = (s + f) / 2.0;
             let supported = fill_area.coordinate_position(&mid_point) == CoordPos::Inside;
-            //if midpoint is in the fill area, then it is supported
+            // if midpoint is in the fill area, then it is supported
             !supported
         })
         .collect();
 
-    unsuported_lines
+    unsupported_lines
         .iter()
         .filter_map(|(line_start, line_end)| {
             let x_diff = line_end.x - line_start.x;
@@ -467,13 +470,13 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
 
             if per_vec_len != 0.0 {
                 Some(
-                    unsuported_lines
+                    unsupported_lines
                         .iter()
                         .map(|(inner_start, inner_end)| {
                             let x_diff = inner_end.x - inner_start.x;
                             let y_diff = inner_end.y - inner_start.y;
 
-                            //println!("vec ({},{})", x_diff, y_diff);
+                            // println!("vec ({},{})", x_diff, y_diff);
 
                             let inner_vec = (x_diff, y_diff);
 
@@ -497,7 +500,7 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
 }
 
 pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> Vec<Command> {
-    info!("Convert into Commnds");
+    info!("Convert into Commands");
     let mut layer_moves: Vec<(f64, Vec<Command>)> = objects
         .into_iter()
         .enumerate()
@@ -509,7 +512,7 @@ pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> 
                 .into_iter()
                 .enumerate()
                 .map(|(layer_num, mut slice)| {
-                    let layer_settings = settings.get_layer_settings(layer_num, slice.top_height);
+                    let layer_settings = settings.get_layer_settings(layer_num as u32, slice.top_height);
                     let mut moves = vec![];
                     moves.push(Command::ChangeObject { object: object_num });
                     moves.push(Command::LayerChange {
@@ -520,11 +523,27 @@ pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> 
                         new_state: StateChange {
                             extruder_temp: Some(layer_settings.extruder_temp),
                             bed_temp: Some(layer_settings.bed_temp),
-                            fan_speed: Some(if layer_num < settings.fan.disable_fan_for_layers {
-                                0.0
+                            fan_speed: Some(
+                                if (layer_num as u32) < settings.fan.disable_fan_for_layers {
+                                    0.0
+                                } else {
+                                    settings.fan.fan_speed
+                                },
+                            ),
+                            aux_fan_speed: if settings.has_aux_fan {
+                                match &settings.aux_fan {
+                                    Some(aux_fan) => {
+                                        if (layer_num as u32) < aux_fan.disable_fan_for_layers {
+                                            Some(0.0)
+                                        } else {
+                                            Some(aux_fan.fan_speed)
+                                        }
+                                    }
+                                    None => None,
+                                }
                             } else {
-                                settings.fan.fan_speed
-                            }),
+                                None
+                            },
                             movement_speed: None,
                             acceleration: None,
                             retract: RetractionType::NoRetract,
@@ -537,7 +556,7 @@ pub fn convert_objects_into_moves(objects: Vec<Object>, settings: &Settings) -> 
                 })
                 .collect::<Vec<(f64, Vec<Command>)>>()
         })
-        .flat_map(|a| a.into_iter())
+        .flat_map(std::iter::IntoIterator::into_iter)
         .collect();
 
     layer_moves

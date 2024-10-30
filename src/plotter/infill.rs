@@ -7,14 +7,6 @@ use crate::PolygonOperations;
 use geo::prelude::*;
 use geo::{Coord, Point, Polygon};
 
-pub trait SolidInfillFill {
-    fn fill(&self, filepath: &str) -> Vec<MoveChain>;
-}
-
-pub trait PartialInfillFill {
-    fn fill(&self, filepath: &str) -> Vec<MoveChain>;
-}
-
 pub fn linear_fill_polygon(
     poly: &Polygon<f64>,
     settings: &LayerSettings,
@@ -34,7 +26,7 @@ pub fn linear_fill_polygon(
             spaced_fill_polygon(
                 polygon,
                 settings,
-                fill_type,
+                &fill_type,
                 settings
                     .extrusion_width
                     .get_value_for_movement_type(&fill_type),
@@ -67,7 +59,7 @@ pub fn partial_linear_fill_polygon(
                 + (settings.extrusion_width.interior_inner_perimeter / 2.0),
         )
         .iter()
-        .flat_map(|polygon| spaced_fill_polygon(polygon, settings, fill_type, spacing, offset))
+        .flat_map(|polygon| spaced_fill_polygon(polygon, settings, &fill_type, spacing, offset))
         .collect();
 
     for chain in &mut new_moves {
@@ -90,7 +82,7 @@ pub fn support_linear_fill_polygon(
     let mut new_moves: Vec<MoveChain> = rotate_poly
         .offset_from(-settings.extrusion_width.interior_surface_perimeter / 2.0)
         .iter()
-        .flat_map(|polygon| spaced_fill_polygon(polygon, settings, fill_type, spacing, offset))
+        .flat_map(|polygon| spaced_fill_polygon(polygon, settings, &fill_type, spacing, offset))
         .collect();
 
     for chain in &mut new_moves {
@@ -109,7 +101,7 @@ pub fn solid_infill_polygon(
 ) -> Vec<MoveChain> {
     match settings.solid_infill_type {
         SolidInfillTypes::Rectilinear => {
-            //120 degrees between layers
+            // 120 degrees between layers
             let angle = 45.0 + (120_f64) * layer_count as f64;
 
             linear_fill_polygon(poly, settings, fill_type, angle)
@@ -224,12 +216,12 @@ pub fn partial_infill_polygon(
 pub fn spaced_fill_polygon(
     poly: &Polygon<f64>,
     settings: &LayerSettings,
-    fill_type: MoveType,
+    fill_type: &MoveType,
     spacing: f64,
     offset: f64,
 ) -> Vec<MoveChain> {
     get_monotone_sections(poly)
-        .iter()
+        .into_iter()
         .filter_map(|section| {
             let mut current_y = (((section.left_chain[0].y + offset) / spacing).floor()
                 - (offset / spacing))
@@ -280,19 +272,19 @@ pub fn spaced_fill_polygon(
                 let left_point = point_y_lerp(&left_top, &left_bot, current_y);
                 let right_point = point_y_lerp(&right_top, &right_bot, current_y);
 
-                //add moves to connect lines together
+                // add moves to connect lines together
                 if start_point.is_some() {
-                    //Only if not first point
+                    // Only if not first point
                     let mut y = None;
 
                     for point in connect_chain {
                         moves.push(Move {
                             end: point,
-                            //don''t fill lateral y moves
+                            // don''t fill lateral y moves
                             move_type: if y == Some(point.y) {
                                 MoveType::Travel
                             } else {
-                                fill_type
+                                fill_type.clone()
                             },
                             width: settings
                                 .extrusion_width
@@ -314,7 +306,7 @@ pub fn spaced_fill_polygon(
                             x: left_point.x,
                             y: current_y,
                         },
-                        move_type: fill_type,
+                        move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
                             .get_value_for_movement_type(&fill_type),
@@ -325,7 +317,7 @@ pub fn spaced_fill_polygon(
                             x: right_point.x,
                             y: current_y,
                         },
-                        move_type: fill_type,
+                        move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
                             .get_value_for_movement_type(&fill_type),
@@ -336,7 +328,7 @@ pub fn spaced_fill_polygon(
                             x: right_point.x,
                             y: current_y,
                         },
-                        move_type: fill_type,
+                        move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
                             .get_value_for_movement_type(&fill_type),
@@ -347,7 +339,7 @@ pub fn spaced_fill_polygon(
                             x: left_point.x,
                             y: current_y,
                         },
-                        move_type: fill_type,
+                        move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
                             .get_value_for_movement_type(&fill_type),

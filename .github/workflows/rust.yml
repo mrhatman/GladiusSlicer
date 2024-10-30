@@ -29,8 +29,12 @@ jobs:
       - name: Set LIBCLANG_PATH
         run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
         if: matrix.os == 'windows-latest'
+
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+      - name: Rust/Cargo Cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Install Rust Toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -39,3 +43,30 @@ jobs:
           default: true
       - name: Build project
         run: cargo build --release --all-features --target=${{ matrix.target }}
+
+  style:
+
+    name: Check formatting and spelling
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Remove untracked files
+        run: git clean -df
+
+      - name: Rust/Cargo Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check spelling
+        run: |
+          if ! which typos > /dev/null; then
+            cargo install typos-cli
+          fi
+          typos
+
+      - name: Run style checks
+        shell: bash
+        run: cargo fmt --check
+        continue-on-error: true

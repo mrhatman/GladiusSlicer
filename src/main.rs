@@ -1,4 +1,5 @@
 #![deny(clippy::unwrap_used)]
+#![warn(clippy::all, clippy::perf, clippy::missing_const_for_fn)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use clap::Parser;
@@ -7,7 +8,10 @@ use gladius_shared::types::*;
 
 use crate::plotter::convert_objects_into_moves;
 use crate::tower::{create_towers, TriangleTower, TriangleTowerIterator};
-use geo::*;
+use geo::{
+    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat,
+    Line, MultiPolygon, Point,
+};
 use gladius_shared::settings::{PartialSettingsFile, Settings, SettingsValidationResult};
 use std::fs::File;
 
@@ -59,10 +63,7 @@ struct Args {
     verbose: u8,
     #[arg(short = 's', help = "Sets the settings file to use")]
     settings: Option<String>,
-    #[arg(
-        short = 'm',
-        help = "Use the Message System (useful for interprocess communication)"
-    )]
+    #[arg(short = 'm', help = "Use the Message System (useful for interprocess communication)")]
     message: bool,
     #[arg(
         short = 'j',
@@ -161,9 +162,12 @@ fn main() {
             cv.plastic_volume / 1000.0
         );
         info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
-        info!("Total Filament Length: {:.3} grams", cv.plastic_length);
         info!(
-            "Total Filament Cost: {:.2} $",
+            "Total Filament Length: {:.3} meters",
+            cv.plastic_length / 1000.0
+        );
+        info!(
+            "Total Filament Cost: ${:.2}",
             (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
                 * settings.filament.cost
         );

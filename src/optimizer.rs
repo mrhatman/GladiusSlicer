@@ -1,4 +1,3 @@
-use crate::point;
 use geo::algorithm::euclidean_length::EuclideanLength;
 use geo::euclidean_distance::EuclideanDistance;
 use geo::{Coord, Line};
@@ -270,11 +269,6 @@ pub fn arc_optomizer(cmds: &mut [Command]) {
             thickness,
             width,
         };
-
-        // println!("center = ({},{})",center.0,center.1);
-        // println!("ra = [{} {}]",range.start(),range.end());
-        // println!("s{:?}",start);
-        // println!("end{:?}",start);
     }
 }
 

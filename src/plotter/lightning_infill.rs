@@ -1,4 +1,9 @@
-use crate::*;
+use crate::{
+    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat,
+    Itertools, Line, Move, MoveChain, MoveType, MultiPolygon, Point, PolygonOperations, Slice,
+};
+use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
+
 use coordinate_position::CoordPos;
 use geo::euclidean_distance::EuclideanDistance;
 use geo::line_intersection::{line_intersection, LineIntersection};
@@ -19,7 +24,7 @@ pub fn lightning_infill(slices: &mut Vec<Slice>) {
     );
 
     (1..slices.len()).rev().for_each(|q| {
-        //todo Fix this, it feels hacky
+        // todo Fix this, it feels hacky
         if let [ref mut layer, ref mut above, ..] = &mut slices[q - 1..=q] {
             lightning_layer(layer, Some(above), &mut lt);
         } else {
@@ -110,7 +115,7 @@ pub fn lightning_layer(
         .collect();
 
     if !points.is_empty() {
-        //shuffle so same distance points are random
+        // shuffle so same distance points are random
         points.shuffle(&mut thread_rng());
 
         points.sort_by(|a, b| {
@@ -180,13 +185,13 @@ impl LightningNode {
         let max_move = settings.extrusion_width.infill / 2.0;
         let mut shorten_amount = max_move;
 
-        //reverse to make removals safe
+        // reverse to make removals safe
         self.children = self
             .children
             .drain(..)
             .filter_map(|mut child| {
-                let reponse = child.shorten_and_straighten(l, settings);
-                match reponse {
+                let response = child.shorten_and_straighten(l, settings);
+                match response {
                     StraightenResponse::Remove { remaining_len } => {
                         shorten_amount = remaining_len;
                         None
@@ -198,7 +203,7 @@ impl LightningNode {
             .collect();
 
         if self.children.is_empty() {
-            //No children so shorten directly
+            // No children so shorten directly
             let line_len = self.location.euclidean_distance(&parent_location);
 
             if line_len > shorten_amount {
@@ -223,7 +228,7 @@ impl LightningNode {
             let l = self.location;
             let child_location = self.children[0].location;
             if l == parent_location {
-                //dont straighten the starts of trees
+                // dont straighten the starts of trees
                 StraightenResponse::DoNothing
             } else {
                 let pl_dist = l.euclidean_distance(&parent_location);
@@ -383,8 +388,8 @@ impl LightningForest {
         let poly_dist = node.location.euclidean_distance(closest_point_on_polygon);
 
         if poly_dist < min_distance {
-            //connect to polygon if below min distance
-            //handle minor wall movements
+            // connect to polygon if below min distance
+            // handle minor wall movements
             self.trees.push(LightningNode {
                 children: vec![node],
                 location: *closest_point_on_polygon,
@@ -427,7 +432,7 @@ impl LightningForest {
                     new_trees.push(tree);
                 }
                 CoordPos::Outside => {
-                    //new_trees.extend(tree.children.into_iter().map(|child| child.trim_for_polygon_outside_to_inside(l,polygon).into_iter()).flatten())
+                    // new_trees.extend(tree.children.into_iter().map(|child| child.trim_for_polygon_outside_to_inside(l,polygon).into_iter()).flatten())
                     new_trees.extend(tree.trim_for_polygon_outside(polygon));
                 }
                 CoordPos::Inside => {
@@ -469,7 +474,7 @@ fn get_closest_intersection_point_on_polygon(
         .flat_map(|poly| {
             std::iter::once(poly.exterior())
                 .chain(poly.interiors())
-                .flat_map(|chain| chain.lines())
+                .flat_map(geo::LineString::lines)
         })
         .filter_map(|poly_line| {
             line_intersection(poly_line, line).map(|intersection| match intersection {
@@ -493,7 +498,7 @@ fn closest_point_exterior_point(poly: &MultiPolygon, p: &Point<f64>) -> Closest<
     )
 }
 
-//Code sources from Geo lib
+// Code sources from Geo lib
 fn closest_of<C, F, I>(iter: I, p: Point<F>) -> Closest<F>
 where
     F: GeoFloat,

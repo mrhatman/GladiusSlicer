@@ -85,7 +85,7 @@ struct ThreeMFTriangles {
 }
 
 /// Loader for 3MF files
-pub struct ThreeMFLoader {}
+pub struct ThreeMFLoader;
 
 impl Loader for ThreeMFLoader {
     fn load(
@@ -110,7 +110,7 @@ impl Loader for ThreeMFLoader {
         let rel: Relationships =
             serde_xml_rs::de::from_reader(rel_file).map_err(|_| SlicerErrors::ThreemfLoadError)?;
 
-        let model_path = rel.relationship[0].target.clone();
+        let model_path = &rel.relationship[0].target;
 
         let model_file = match archive.by_name(&model_path[1..]) {
             Ok(file) => file,
@@ -133,7 +133,7 @@ impl Loader for ThreeMFLoader {
                     let transform = get_transform_from_string(t_str)?;
 
                     for vert in &mut v {
-                        *vert = &transform * *vert;
+                        vert.mul_transform(&transform);
                     }
                 }
                 Ok((v, t))
@@ -153,10 +153,10 @@ fn handle_object(
         .ok_or(SlicerErrors::ThreemfLoadError)?;
 
     if let Some(mesh) = &object.mesh {
-        Ok(handle_mesh(mesh))
+        Ok((mesh.vertices.list.clone(), handle_mesh(mesh)))
     } else if let Some(components) = &object.components {
-        let mut v = vec![];
-        let mut t = vec![];
+        let mut v = Vec::new();
+        let mut t = Vec::new();
         let mut start = 0;
         for component in &components.component {
             let (mut verts, mut triangles) = handle_object(component.objectid, comps)?;
@@ -165,7 +165,7 @@ fn handle_object(
                 let transform = get_transform_from_string(t_str)?;
 
                 for vert in &mut verts {
-                    *vert = &transform * *vert;
+                    vert.mul_transform(&transform);
                 }
             }
 
@@ -189,17 +189,16 @@ fn handle_object(
     }
 }
 
-fn handle_mesh(mesh: &ThreeMFMesh) -> (Vec<Vertex>, Vec<IndexedTriangle>) {
+fn handle_mesh(mesh: &ThreeMFMesh) -> Vec<IndexedTriangle> {
     let mut triangles = vec![];
-    let vertices = mesh.vertices.list.clone();
 
     for triangle in &mesh.triangles.list {
         let mut converted_tri = IndexedTriangle {
             verts: [triangle.v1, triangle.v2, triangle.v3],
         };
-        let v0 = vertices[converted_tri.verts[0]];
-        let v1 = vertices[converted_tri.verts[1]];
-        let v2 = vertices[converted_tri.verts[2]];
+        let v0 = &mesh.vertices.list[converted_tri.verts[0]];
+        let v1 = &mesh.vertices.list[converted_tri.verts[1]];
+        let v2 = &mesh.vertices.list[converted_tri.verts[2]];
 
         if v0 < v1 && v0 < v2 {
             triangles.push(converted_tri);
@@ -218,7 +217,7 @@ fn handle_mesh(mesh: &ThreeMFMesh) -> (Vec<Vertex>, Vec<IndexedTriangle>) {
         }
     }
 
-    (vertices, triangles)
+    triangles
 }
 
 fn get_transform_from_string(transform_string: &str) -> Result<Transform, SlicerErrors> {

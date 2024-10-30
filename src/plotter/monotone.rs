@@ -44,7 +44,7 @@ impl PartialOrd for MonotonePoint {
 
 impl Eq for MonotonePoint {}
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 enum PointType {
     Start,
     End,
@@ -107,7 +107,7 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
 
     while let Some(point) = mono_points.pop() {
         match point.point_type {
-            //Handle Start Point
+            // Handle Start Point
             PointType::Start => {
                 let new_section = MonotoneSection {
                     left_chain: vec![point.pos, point.prev],
@@ -130,7 +130,7 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                     .unwrap_or(sweep_line_storage.len());
                 sweep_line_storage.insert(index, new_section);
             }
-            //Handle End Point
+            // Handle End Point
             PointType::End => {
                 let index = sweep_line_storage
                     .iter()
@@ -144,11 +144,11 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                         )
                     });
 
-                //The section what was finished should be returned
+                // The section what was finished should be returned
                 let removed_section = sweep_line_storage.remove(index);
                 completed_sections.push(removed_section);
             }
-            //Handle Left Point
+            // Handle Left Point
             PointType::Left => {
                 let index = sweep_line_storage
                     .iter()
@@ -159,7 +159,7 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
 
                 sweep_line_storage[index].left_chain.push(point.prev);
             }
-            //Handle Right Point
+            // Handle Right Point
             PointType::Right => {
                 let index = sweep_line_storage
                     .iter()
@@ -181,9 +181,19 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                 sweep_line_storage[index].right_chain.push(point.next);
             }
 
-            //Handle Merge Point
+            // Handle Merge Point
             PointType::Merge => {
-                let index = sweep_line_storage.iter().position(|section| *section.right_chain.last().expect("Chain must have entries") == point.pos).unwrap_or_else( || panic!("Merge point must be in the storage as the end of a chain{:?} |||| {:?}", point, sweep_line_storage));
+                let index = sweep_line_storage
+                    .iter()
+                    .position(|section| {
+                        *section.right_chain.last().expect("Chain must have entries") == point.pos
+                    })
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "Merge point must be in the storage as the end of a chain{:?} |||| {:?}",
+                            point, sweep_line_storage
+                        )
+                    });
 
                 let mut right_section = sweep_line_storage.remove(index + 1);
                 let left_section = &mut sweep_line_storage[index];
@@ -199,7 +209,7 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                         .expect("Chain must have entries")
                 );
 
-                //The new point generated on the right most edge
+                // The new point generated on the right most edge
                 let break_point_low = right_section
                     .right_chain
                     .pop()
@@ -219,9 +229,9 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                 left_section.right_chain.push(break_point_low);
             }
 
-            //Handle Split Point
+            // Handle Split Point
             PointType::Split => {
-                //find the section that will be split up
+                // find the section that will be split up
                 let index = sweep_line_storage
                     .iter()
                     .position(|section| {
@@ -244,7 +254,7 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                     })
                     .unwrap_or_else(|| panic!("split error {:?} {:?}", point, sweep_line_storage));
 
-                //will become new left section
+                // will become new left section
                 let old_section = sweep_line_storage
                     .get_mut(index)
                     .expect("Chain must have entries");

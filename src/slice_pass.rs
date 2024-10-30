@@ -19,7 +19,7 @@ impl ObjectPass for BrimPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
         if let Some(width) = &settings.brim_width {
             display_state_update("Generating Moves: Brim", send_messages);
-            //Add to first object
+            // Add to first object
 
             let first_layer_multipolygon: MultiPolygon<f64> = MultiPolygon(
                 objects
@@ -54,11 +54,11 @@ impl ObjectPass for SupportTowerPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
         if let Some(support) = &settings.support {
             display_state_update("Generating Support Towers", send_messages);
-            //Add to first object
+            // Add to first object
 
             objects.par_iter_mut().for_each(|obj| {
                 (1..obj.layers.len()).rev().for_each(|q| {
-                    //todo Fix this, it feels hacky
+                    // todo Fix this, it feels hacky
                     if let [ref mut layer, ref mut above, ..] = &mut obj.layers[q - 1..=q] {
                         layer.add_support_polygons(above, support);
                     } else {
@@ -74,7 +74,7 @@ pub struct SkirtPass {}
 
 impl ObjectPass for SkirtPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
-        //Handle Perimeters
+        // Handle Perimeters
         if let Some(skirt) = &settings.skirt {
             display_state_update("Generating Moves: Skirt", send_messages);
             let convex_hull = objects
@@ -83,19 +83,19 @@ impl ObjectPass for SkirtPass {
                     object
                         .layers
                         .iter()
-                        .take(skirt.layers)
+                        .take(skirt.layers as usize)
                         .map(|m| m.main_polygon.union_with(&m.get_support_polygon()))
                 })
                 .fold(MultiPolygon(vec![]), |a, b| a.union_with(&b))
                 .convex_hull();
 
-            //Add to first object
+            // Add to first object
             objects
                 .get_mut(0)
                 .expect("Needs an object")
                 .layers
                 .iter_mut()
-                .take(skirt.layers)
+                .take(skirt.layers as usize)
                 .for_each(|slice| slice.generate_skirt(&convex_hull, skirt, settings));
         }
     }
@@ -135,7 +135,7 @@ impl SlicePass for PerimeterPass {
     ) -> Result<(), SlicerErrors> {
         display_state_update("Generating Moves: Perimeters", send_messages);
         slices.par_iter_mut().for_each(|slice| {
-            slice.slice_perimeters_into_chains(settings.number_of_perimeters);
+            slice.slice_perimeters_into_chains(settings.number_of_perimeters as usize);
         });
         Ok(())
     }
@@ -187,7 +187,7 @@ impl SlicePass for TopAndBottomLayersPass {
         let top_layers = settings.top_layers;
         let bottom_layers = settings.bottom_layers;
 
-        //Make sure at least 1 layer will not be solid
+        // Make sure at least 1 layer will not be solid
         if slices.len() > bottom_layers + top_layers {
             display_state_update("Generating Moves: Above and below support", send_messages);
 
@@ -195,15 +195,14 @@ impl SlicePass for TopAndBottomLayersPass {
                 let below = if bottom_layers != 0 {
                     Some(
                         slices[(q - bottom_layers + 1)..q]
-                            .iter()
-                            .map(|m| m.main_polygon.clone())
+                            .into_iter()
                             .fold(
                                 slices
                                     .get(q - bottom_layers)
                                     .expect("Bounds Checked above")
                                     .main_polygon
                                     .clone(),
-                                |a, b| a.intersection_with(&b),
+                                |a, b| a.intersection_with(&b.main_polygon),
                             ),
                     )
                 } else {
@@ -211,7 +210,7 @@ impl SlicePass for TopAndBottomLayersPass {
                 };
                 let above = if top_layers != 0 {
                     Some(
-                        slices[q + 1..q + top_layers + 1]
+                        slices[(q + 1)..=(q + top_layers)]
                             .iter()
                             .map(|m| m.main_polygon.clone())
                             .fold(
@@ -282,7 +281,7 @@ impl SlicePass for FillAreaPass {
     ) -> Result<(), SlicerErrors> {
         display_state_update("Generating Moves: Fill Areas", send_messages);
 
-        //Fill all remaining areas
+        // Fill all remaining areas
         slices
             .par_iter_mut()
             .enumerate()
@@ -319,7 +318,7 @@ impl SlicePass for OrderPass {
     ) -> Result<(), SlicerErrors> {
         display_state_update("Generating Moves: Order Chains", send_messages);
 
-        //Fill all remaining areas
+        // Fill all remaining areas
         slices.par_iter_mut().for_each(|slice| {
             slice.order_chains();
         });
