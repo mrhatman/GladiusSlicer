@@ -134,17 +134,20 @@ struct TowerRing {
 
 impl TowerRing {
     #[inline]
+    /// Checks that the ring's vec is circuler
     fn is_complete_ring(&self) -> bool {
         self.elements.first() == self.elements.last() && self.elements.len() > 3
     }
 
+    /// Extend the elements of **first** with all but the first element of **second**
     fn join_rings_in_place(first: &mut TowerRing, second: TowerRing) {
         first.elements.extend_from_slice(&second.elements[1..]);
     }
 
+    /// Split the `TowerRing` in to multiple at an edge
     fn split_on_edge(self, edge: usize) -> Vec<Self> {
-        let mut new_ring = vec![];
-        let mut frags = vec![];
+        let mut new_ring = Vec::new();
+        let mut frags = Vec::new();
 
         for e in self.elements {
             if let TowerRingElement::Edge { end_index, .. } = e {
@@ -641,6 +644,7 @@ mod tests {
 
         rings_sliding_equality_assert(frags, expected);
     }
+
     #[test]
     fn assemble_fragment_multiple_test() {
         let mut frags = vec![
@@ -768,6 +772,7 @@ mod tests {
 
         rings_sliding_equality_assert(frags, expected);
     }
+
     #[test]
     fn assemble_fragment_3_fragment_test() {
         let mut frags = vec![
