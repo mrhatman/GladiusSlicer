@@ -26,9 +26,33 @@
     "bed_exclude_areas": {
       "description": "Areas of the bed that can't have parts on it",
       "type": [
-        "object",
+        "array",
         "null"
-      ]
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "exterior": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "interiors": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "required": [
+          "exterior",
+          "interiors"
+        ]
+      }
     },
     "before_layer_change_instructions": {
       "description": "The instructions to append before layer changes",

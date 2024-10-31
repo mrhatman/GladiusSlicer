@@ -967,7 +967,7 @@ dependencies = [
 [[package]]
 name = "schemars"
 version = "1.0.0-alpha.15"
-source = "git+https://github.com/TimTheBig/schemars.git#f0b3fee97c6450ff48ac92a40571f0fadd3195b7"
+source = "git+https://github.com/TimTheBig/schemars.git#90a4d66cabdc8b93044f4881a4c8a97d777b4200"
 dependencies = [
  "dyn-clone",
  "geo",
@@ -980,7 +980,7 @@ dependencies = [
 [[package]]
 name = "schemars_derive"
 version = "1.0.0-alpha.15"
-source = "git+https://github.com/TimTheBig/schemars.git#f0b3fee97c6450ff48ac92a40571f0fadd3195b7"
+source = "git+https://github.com/TimTheBig/schemars.git#90a4d66cabdc8b93044f4881a4c8a97d777b4200"
 dependencies = [
  "proc-macro2",
  "quote",

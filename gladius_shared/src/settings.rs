@@ -3,9 +3,11 @@
 use crate::error::SlicerErrors;
 use crate::types::{MoveType, PartialInfillTypes, SolidInfillTypes};
 use crate::warning::SlicerWarnings;
+// for exclude area setting
 use geo::MultiPolygon;
 use gladius_proc_macros::Settings;
 #[cfg(debug_assertions)]
+/// json schema gen
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
