@@ -48,7 +48,7 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
                 .enumerate()
                 .map(|(count, (bot, top, layer_loops))| {
                     // Add this slice to the
-                    let slice = Slice::from_multiple_point_loop(
+                    Slice::from_multiple_point_loop(
                         layer_loops
                             .iter()
                             .map(|verts| {
@@ -62,8 +62,7 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
                         *top,
                         count as u32, // I doute your layer_count will go past 4,294,967,295,
                         settings,
-                    );
-                    slice
+                    )
                 })
                 .collect();
 

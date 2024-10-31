@@ -1,0 +1,823 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Settings",
+  "description": "A complete settings file for the entire slicer.",
+  "type": "object",
+  "properties": {
+    "acceleration": {
+      "description": "The acceleration for movement",
+      "$ref": "#/$defs/MovementParameter"
+    },
+    "after_layer_change_instructions": {
+      "description": "The instructions to append after layer changes",
+      "type": "string"
+    },
+    "aux_fan": {
+      "description": "The auxilerary fan settings, if None or printer does not have one the fan will not be used",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FanSettings"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "bed_exclude_areas": {
+      "description": "Areas of the bed that can't have parts on it",
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "before_layer_change_instructions": {
+      "description": "The instructions to append before layer changes",
+      "type": "string"
+    },
+    "bottom_layers": {
+      "description": "Number of solid bottom layers before infill",
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "brim_width": {
+      "description": "Width of the brim, if None no brim will be generated",
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "ending_instructions": {
+      "description": "The instructions to append to the end of the exported instructions",
+      "type": "string"
+    },
+    "extrusion_width": {
+      "description": "The extrusion width of the layers",
+      "$ref": "#/$defs/MovementParameter"
+    },
+    "fan": {
+      "description": "The fan settings",
+      "$ref": "#/$defs/FanSettings"
+    },
+    "filament": {
+      "description": "The filament Settings",
+      "$ref": "#/$defs/FilamentSettings"
+    },
+    "has_aux_fan": {
+      "description": "Tells the slicer if it can use an aux fan",
+      "type": "boolean"
+    },
+    "infill_percentage": {
+      "description": "The percentage of infill to use for partial infill",
+      "type": "number",
+      "format": "double"
+    },
+    "infill_perimeter_overlap_percentage": {
+      "description": "Overlap between infill and interior perimeters",
+      "type": "number",
+      "format": "double"
+    },
+    "inner_perimeters_first": {
+      "description": "Controls the order of perimeters",
+      "type": "boolean"
+    },
+    "layer_height": {
+      "description": "The height of the layers",
+      "type": "number",
+      "format": "double"
+    },
+    "layer_settings": {
+      "description": "Settings for specific layers",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "$ref": "#/$defs/LayerRange"
+          },
+          {
+            "$ref": "#/$defs/PartialLayerSettings"
+          }
+        ]
+      }
+    },
+    "layer_shrink_amount": {
+      "description": "Inset the layer by the provided amount, if None on inset will be performed",
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "max_acceleration_e": {
+      "description": "Maximum Acceleration in e dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "max_acceleration_extruding": {
+      "description": "Maximum Acceleration while extruding",
+      "type": "number",
+      "format": "double"
+    },
+    "max_acceleration_retracting": {
+      "description": "Maximum Acceleration while retracting",
+      "type": "number",
+      "format": "double"
+    },
+    "max_acceleration_travel": {
+      "description": "Maximum Acceleration while traveling",
+      "type": "number",
+      "format": "double"
+    },
+    "max_acceleration_x": {
+      "description": "Maximum Acceleration in x dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "max_acceleration_y": {
+      "description": "Maximum Acceleration in y dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "max_acceleration_z": {
+      "description": "Maximum Acceleration in z dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "max_extruder_temp": {
+      "description": "The maximum tempeture that the extruder can acheve safely",
+      "type": "number",
+      "format": "double"
+    },
+    "max_jerk_e": {
+      "description": "Maximum Jerk in e dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "max_jerk_x": {
+      "description": "Maximum Jerk in x dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "max_jerk_y": {
+      "description": "Maximum Jerk in y dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "max_jerk_z": {
+      "description": "Maximum Jerk in z dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "maximum_feedrate_e": {
+      "description": "Maximum feedrate for e dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "maximum_feedrate_x": {
+      "description": "Maximum feedrate for x dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "maximum_feedrate_y": {
+      "description": "Maximum feedrate for y dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "maximum_feedrate_z": {
+      "description": "Maximum feedrate for z dimension",
+      "type": "number",
+      "format": "double"
+    },
+    "minimum_feedrate_print": {
+      "description": "Minimum feedrate for extrusion moves",
+      "type": "number",
+      "format": "double"
+    },
+    "minimum_feedrate_travel": {
+      "description": "Minimum feedrate for travel moves",
+      "type": "number",
+      "format": "double"
+    },
+    "minimum_retract_distance": {
+      "description": "The minimum travel distance required to perform a retraction",
+      "type": "number",
+      "format": "double"
+    },
+    "nozzle_diameter": {
+      "description": "Diameter of the nozzle in mm",
+      "type": "number",
+      "format": "double"
+    },
+    "number_of_perimeters": {
+      "description": "Number of perimeters to use if possible",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "object_change_instructions": {
+      "description": "The instructions to append between object changes",
+      "type": "string"
+    },
+    "partial_infill_type": {
+      "description": "Partial Infill type",
+      "$ref": "#/$defs/PartialInfillTypes"
+    },
+    "print_x": {
+      "description": "Size of the printer in x dimension in mm",
+      "type": "number",
+      "format": "double"
+    },
+    "print_y": {
+      "description": "Size of the printer in y dimension in mm",
+      "type": "number",
+      "format": "double"
+    },
+    "print_z": {
+      "description": "Size of the printer in z dimension in mm",
+      "type": "number",
+      "format": "double"
+    },
+    "retract_length": {
+      "description": "length to retract in mm",
+      "type": "number",
+      "format": "double"
+    },
+    "retract_lift_z": {
+      "description": "Distance to lift the z axis during a retract",
+      "type": "number",
+      "format": "double"
+    },
+    "retract_speed": {
+      "description": "The velocity of retracts",
+      "type": "number",
+      "format": "double"
+    },
+    "retraction_wipe": {
+      "description": "Retraction Wipe",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RetractionWipeSettings"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "skirt": {
+      "description": "The skirt settings, if None no skirt will be generated",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SkirtSettings"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "solid_infill_type": {
+      "description": "Solid Infill type",
+      "$ref": "#/$defs/SolidInfillTypes"
+    },
+    "speed": {
+      "description": "The speeds used for movement",
+      "$ref": "#/$defs/MovementParameter"
+    },
+    "starting_instructions": {
+      "description": "The instructions to prepend to the exported instructions",
+      "type": "string"
+    },
+    "support": {
+      "description": "The support settings, if None no support will be generated",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SupportSettings"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "top_layers": {
+      "description": "Number of solid top layers for infill",
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "layer_height",
+    "extrusion_width",
+    "filament",
+    "fan",
+    "nozzle_diameter",
+    "retract_length",
+    "retract_lift_z",
+    "retract_speed",
+    "speed",
+    "acceleration",
+    "infill_percentage",
+    "inner_perimeters_first",
+    "number_of_perimeters",
+    "top_layers",
+    "bottom_layers",
+    "print_x",
+    "print_y",
+    "print_z",
+    "minimum_retract_distance",
+    "infill_perimeter_overlap_percentage",
+    "solid_infill_type",
+    "partial_infill_type",
+    "starting_instructions",
+    "ending_instructions",
+    "before_layer_change_instructions",
+    "after_layer_change_instructions",
+    "object_change_instructions",
+    "max_acceleration_x",
+    "max_acceleration_y",
+    "max_acceleration_z",
+    "max_acceleration_e",
+    "max_acceleration_extruding",
+    "max_acceleration_travel",
+    "max_acceleration_retracting",
+    "max_jerk_x",
+    "max_jerk_y",
+    "max_jerk_z",
+    "max_jerk_e",
+    "minimum_feedrate_print",
+    "minimum_feedrate_travel",
+    "maximum_feedrate_x",
+    "maximum_feedrate_y",
+    "maximum_feedrate_z",
+    "maximum_feedrate_e",
+    "max_extruder_temp",
+    "layer_settings",
+    "has_aux_fan"
+  ],
+  "$defs": {
+    "FanSettings": {
+      "description": "Settings for the fans",
+      "type": "object",
+      "properties": {
+        "disable_fan_for_layers": {
+          "description": "Disable the fan for layers below this value",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "fan_speed": {
+          "description": "The default fan speed",
+          "type": "number",
+          "format": "double"
+        },
+        "min_print_speed": {
+          "description": "Minimum speed to slow down to",
+          "type": "number",
+          "format": "double"
+        },
+        "slow_down_threshold": {
+          "description": "Threshold to start slowing down based on layer print time in seconds",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "fan_speed",
+        "disable_fan_for_layers",
+        "slow_down_threshold",
+        "min_print_speed"
+      ]
+    },
+    "FilamentSettings": {
+      "description": "Settings for a filament",
+      "type": "object",
+      "properties": {
+        "bed_temp": {
+          "description": "Bed temp for this filament",
+          "type": "number",
+          "format": "double"
+        },
+        "cost": {
+          "description": "Cost of this filament in $ per kg",
+          "type": "number",
+          "format": "double"
+        },
+        "density": {
+          "description": "Density of this filament in grams per cm^3",
+          "type": "number",
+          "format": "double"
+        },
+        "diameter": {
+          "description": "Diameter of this filament in mm",
+          "type": "number",
+          "format": "double"
+        },
+        "extruder_temp": {
+          "description": "Extruder temp for this filament",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "diameter",
+        "density",
+        "cost",
+        "extruder_temp",
+        "bed_temp"
+      ]
+    },
+    "LayerRange": {
+      "description": "The different types of layer ranges supported",
+      "oneOf": [
+        {
+          "description": "A single single based on the index",
+          "type": "object",
+          "properties": {
+            "SingleLayer": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "SingleLayer"
+          ]
+        },
+        {
+          "description": "A range of layers based on index inclusive",
+          "type": "object",
+          "properties": {
+            "LayerCountRange": {
+              "type": "object",
+              "properties": {
+                "end": {
+                  "description": "The end index",
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                },
+                "start": {
+                  "description": "The start index",
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "LayerCountRange"
+          ]
+        },
+        {
+          "description": "A Range of layers based on the height of the bottom on the slice",
+          "type": "object",
+          "properties": {
+            "HeightRange": {
+              "type": "object",
+              "properties": {
+                "end": {
+                  "description": "The end height",
+                  "type": "number",
+                  "format": "double"
+                },
+                "start": {
+                  "description": "The start height",
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "HeightRange"
+          ]
+        }
+      ]
+    },
+    "MovementParameter": {
+      "description": "A set of values for different movement types",
+      "type": "object",
+      "properties": {
+        "bridge": {
+          "description": "Value for bridging",
+          "type": "number",
+          "format": "double"
+        },
+        "exterior_inner_perimeter": {
+          "description": "Value for exterior perimeters that are inside the model",
+          "type": "number",
+          "format": "double"
+        },
+        "exterior_surface_perimeter": {
+          "description": "Value for exterior surface perimeter",
+          "type": "number",
+          "format": "double"
+        },
+        "infill": {
+          "description": "Value for pertial infill moves",
+          "type": "number",
+          "format": "double"
+        },
+        "interior_inner_perimeter": {
+          "description": "Value for interior (perimeters that are inside the model",
+          "type": "number",
+          "format": "double"
+        },
+        "interior_surface_perimeter": {
+          "description": "Value for interior perimeters surface perimeter",
+          "type": "number",
+          "format": "double"
+        },
+        "solid_infill": {
+          "description": "Value for solid infill moves",
+          "type": "number",
+          "format": "double"
+        },
+        "solid_top_infill": {
+          "description": "Value for solid top infill moves",
+          "type": "number",
+          "format": "double"
+        },
+        "support": {
+          "description": "Value for support structures",
+          "type": "number",
+          "format": "double"
+        },
+        "travel": {
+          "description": "Value for travel moves",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "interior_inner_perimeter",
+        "interior_surface_perimeter",
+        "exterior_inner_perimeter",
+        "exterior_surface_perimeter",
+        "solid_top_infill",
+        "solid_infill",
+        "infill",
+        "travel",
+        "bridge",
+        "support"
+      ]
+    },
+    "PartialInfillTypes": {
+      "description": "Types of partial infill",
+      "oneOf": [
+        {
+          "description": "Back and forth spaced lines to fill polygons",
+          "type": "string",
+          "const": "Linear"
+        },
+        {
+          "description": "Back and forth spaced lines to fill polygons and there perpendicular lines",
+          "type": "string",
+          "const": "Rectilinear"
+        },
+        {
+          "description": "Lines in 3 directions to form tessellating triangle pattern",
+          "type": "string",
+          "const": "Triangle"
+        },
+        {
+          "description": "Creates a 3d cube structure.",
+          "type": "string",
+          "const": "Cubic"
+        },
+        {
+          "description": "Creates lightning shaped infill that retracts into the print walls",
+          "type": "string",
+          "const": "Lightning"
+        }
+      ]
+    },
+    "PartialLayerSettings": {
+      "description": "Partial Version of the struct #struct_name_ident",
+      "type": "object",
+      "properties": {
+        "acceleration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MovementParameter"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bed_temp": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "extruder_temp": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "extrusion_width": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MovementParameter"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "infill_percentage": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "infill_perimeter_overlap_percentage": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "inner_perimeters_first": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "layer_height": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "layer_shrink_amount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "partial_infill_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialInfillTypes"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retraction_length": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "retraction_wipe": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RetractionWipeSettings"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "solid_infill_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SolidInfillTypes"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "speed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MovementParameter"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "RetractionWipeSettings": {
+      "description": "The Settings for Skirt generation",
+      "type": "object",
+      "properties": {
+        "acceleration": {
+          "description": "The acceleration the retract wipe move",
+          "type": "number",
+          "format": "double"
+        },
+        "distance": {
+          "description": "Wipe Distance in mm",
+          "type": "number",
+          "format": "double"
+        },
+        "speed": {
+          "description": "The speed the retract wipe move",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "speed",
+        "acceleration",
+        "distance"
+      ]
+    },
+    "SkirtSettings": {
+      "description": "The Settings for Skirt generation",
+      "type": "object",
+      "properties": {
+        "distance": {
+          "description": "Distance from the models to place the skirt",
+          "type": "number",
+          "format": "double"
+        },
+        "layers": {
+          "description": "the number of layer to generate the skirt",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "layers",
+        "distance"
+      ]
+    },
+    "SolidInfillTypes": {
+      "description": "Types of solid infill",
+      "oneOf": [
+        {
+          "description": "Back and forth lines to fill polygons, Rotating 120 degree each layer",
+          "type": "string",
+          "const": "Rectilinear"
+        },
+        {
+          "description": "Back and forth lines to fill polygons, rotating custom degrees each layer",
+          "type": "object",
+          "properties": {
+            "RectilinearCustom": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "RectilinearCustom"
+          ]
+        }
+      ]
+    },
+    "SupportSettings": {
+      "description": "Support settings",
+      "type": "object",
+      "properties": {
+        "max_overhang_angle": {
+          "description": "Angle to start production supports in degrees",
+          "type": "number",
+          "format": "double"
+        },
+        "support_spacing": {
+          "description": "Spacing between the ribs of support",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "max_overhang_angle",
+        "support_spacing"
+      ]
+    }
+  }
+}

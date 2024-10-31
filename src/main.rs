@@ -73,6 +73,10 @@ struct Args {
 }
 
 fn main() {
+    #[cfg(debug_assertions)]
+    // export json schema for settings
+    Settings::gen_schema(Path::new("settings/")).unwrap();
+
     // The YAML file is found relative to the current file, similar to how modules are found
     let args: Args = Args::parse();
 

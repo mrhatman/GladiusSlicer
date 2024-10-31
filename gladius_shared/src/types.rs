@@ -8,6 +8,8 @@ use geo::{
 };
 use itertools::Itertools;
 use nalgebra::Point3;
+#[cfg(debug_assertions)]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -137,6 +139,7 @@ impl Slice {
 }
 
 /// Types of solid infill
+#[cfg_attr(debug_assertions, derive(JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum SolidInfillTypes {
     /// Back and forth lines to fill polygons, Rotating 120 degree each layer
@@ -147,6 +150,7 @@ pub enum SolidInfillTypes {
 }
 
 /// Types of partial infill
+#[cfg_attr(debug_assertions, derive(JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum PartialInfillTypes {
     /// Back and forth spaced lines to fill polygons
