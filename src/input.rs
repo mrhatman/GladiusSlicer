@@ -1,5 +1,8 @@
 use crate::utils::show_error_message;
-use crate::*;
+use crate::{
+    debug, info, IndexedTriangle, InputObject, Loader, OsStr, PartialSettingsFile, Path, STLLoader,
+    Settings, SlicerErrors, ThreeMFLoader, Transform, Vertex,
+};
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -17,11 +20,9 @@ pub fn files_input(
 
     let converted_inputs: Vec<(Vec<Vertex>, Vec<IndexedTriangle>)> = input
         .ok_or(SlicerErrors::NoInputProvided)?
-        .iter()
+        .into_iter()
         .try_fold(vec![], |mut vec, value| {
-            let object: InputObject =
-                deser_hjson::from_str(value).map_err(|_| SlicerErrors::InputMisformat)?;
-            let model_path = Path::new(object.get_model_path());
+            let model_path = Path::new(&value);
 
             debug!("Using input file: {:?}", model_path);
 
@@ -33,12 +34,14 @@ pub fn files_input(
 
             let loader: Result<&dyn Loader, SlicerErrors> = match extension.to_lowercase().as_str()
             {
-                "stl" => Ok(&STLLoader {}),
-                "3mf" => Ok(&ThreeMFLoader {}),
+                "stl" => Ok(&STLLoader),
+                "3mf" => Ok(&ThreeMFLoader),
                 _ => Err(SlicerErrors::FileFormatNotSupported {
                     filepath: model_path.to_string_lossy().to_string(),
                 }),
             };
+
+            info!("Loading model from: {}", &value);
 
             let models = match loader?.load(model_path.to_str().ok_or(SlicerErrors::InputNotUTF8)?)
             {
@@ -48,6 +51,9 @@ pub fn files_input(
                     std::process::exit(-1);
                 }
             };
+
+            info!("Loading objects");
+            let object = InputObject::Auto(value);
 
             let (x, y) = match object {
                 InputObject::AutoTranslate(_, x, y) => (x, y),
@@ -91,7 +97,7 @@ pub fn files_input(
 
             vec.extend(models.into_iter().map(move |(mut v, t)| {
                 for vert in &mut v {
-                    *vert = &transform * *vert;
+                    vert.mul_transform(&transform);
                 }
 
                 (v, t)
@@ -129,7 +135,7 @@ fn load_settings(filepath: Option<&str>, settings_data: &str) -> Result<Settings
     }
     let settings = partial_settings.get_settings()?;
 
-    //reset path
+    // reset path
     std::env::set_current_dir(current_path).expect("Path checked before");
 
     Ok(settings)

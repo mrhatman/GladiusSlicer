@@ -5,6 +5,7 @@ use std::fmt::Display;
 use crate::error::SlicerErrors;
 use crate::types::{MoveType, PartialInfillTypes, SolidInfillTypes};
 use crate::warning::SlicerWarnings;
+use geo::MultiPolygon;
 use gladius_proc_macros::Settings;
 use serde::{Deserialize, Serialize};
 
@@ -78,6 +79,11 @@ pub struct Settings {
     /// The fan settings
     pub fan: FanSettings,
 
+    #[Optional]
+    #[Recursive(PartialFanSettings)]
+    /// The auxilerary fan settings, if None or printer does not have one the fan will not be used
+    pub aux_fan: Option<FanSettings>,
+
     /// The skirt settings, if None no skirt will be generated
     #[Optional]
     #[Recursive(PartialSkirtSettings)]
@@ -120,7 +126,7 @@ pub struct Settings {
     pub inner_perimeters_first: bool,
 
     /// Number of perimeters to use if possible
-    pub number_of_perimeters: usize,
+    pub number_of_perimeters: u32,
 
     /// Number of solid top layers for infill
     pub top_layers: usize,
@@ -215,11 +221,22 @@ pub struct Settings {
     /// Maximum feedrate for e dimension
     pub maximum_feedrate_e: f64,
 
+    /// The maximum tempeture that the extruder can acheve safely
+    pub max_extruder_temp: f64,
+
     #[Combine]
     #[AllowDefault]
     #[CustomPrint]
     /// Settings for specific layers
     pub layer_settings: Vec<(LayerRange, PartialLayerSettings)>,
+
+    #[Combine]
+    #[AllowDefault]
+    /// Areas of the bed that can't have parts on it
+    pub bed_exclude_areas: Option<MultiPolygon>,
+
+    /// Tells the slicer if it can use an aux fan
+    pub has_aux_fan: bool,
 }
 
 impl Default for Settings {
@@ -243,6 +260,7 @@ impl Default for Settings {
             },
             filament: FilamentSettings::default(),
             fan: FanSettings::default(),
+            aux_fan: None,
             skirt: None,
             nozzle_diameter: 0.4,
             retract_length: 0.8,
@@ -354,6 +372,9 @@ impl Default for Settings {
             maximum_feedrate_z: 12.0,
             maximum_feedrate_e: 120.0,
             retraction_wipe: None,
+            bed_exclude_areas: None,
+            max_extruder_temp: 260.0,
+            has_aux_fan: false,
         }
     }
 }
@@ -363,7 +384,7 @@ impl Default for Settings {
 
 impl Settings {
     /// Get the layer settings for a specific layer index and height
-    pub fn get_layer_settings(&self, layer: usize, height: f64) -> LayerSettings {
+    pub fn get_layer_settings(&self, layer: u32, height: f64) -> LayerSettings {
         let changes = self
             .layer_settings
             .iter()
@@ -391,12 +412,14 @@ impl Settings {
                 .unwrap_or(self.acceleration.clone()),
             extrusion_width: changes
                 .extrusion_width
+                .unwrap_or_else(|| self.extrusion_width.clone()),
+            solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type.clone()),
                 .map(|a| MovementParameter::try_from(inline_combine(a,self.extrusion_width.clone().into())).expect("self is geneteed to be complete") )
                 .unwrap_or( self.extrusion_width.clone()),
             solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type),
             partial_infill_type: changes
                 .partial_infill_type
-                .unwrap_or(self.partial_infill_type),
+                .unwrap_or(self.partial_infill_type.clone()),
             infill_percentage: changes.infill_percentage.unwrap_or(self.infill_percentage),
             infill_perimeter_overlap_percentage: changes
                 .infill_perimeter_overlap_percentage
@@ -436,6 +459,7 @@ impl Settings {
         setting_less_than_or_equal_to_zero!(self, maximum_feedrate_y);
         setting_less_than_or_equal_to_zero!(self, maximum_feedrate_z);
         setting_less_than_or_equal_to_zero!(self, maximum_feedrate_e);
+        setting_less_than_or_equal_to_zero!(self, max_extruder_temp);
         setting_less_than_zero!(self, number_of_perimeters);
         setting_less_than_zero!(self, infill_percentage);
         setting_less_than_zero!(self, top_layers);
@@ -487,11 +511,11 @@ impl Settings {
             }
         }
 
-        if self.filament.extruder_temp < 140.0 {
+        if self.filament.extruder_temp < 145.0 {
             return SettingsValidationResult::Warning(SlicerWarnings::NozzleTemperatureTooLow {
                 temp: self.filament.extruder_temp,
             });
-        } else if self.filament.extruder_temp > 260.0 {
+        } else if self.filament.extruder_temp > self.max_extruder_temp {
             return SettingsValidationResult::Warning(SlicerWarnings::NozzleTemperatureTooHigh {
                 temp: self.filament.extruder_temp,
             });
@@ -567,7 +591,7 @@ impl Settings {
 }
 
 /// Possible results of validation the settings
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum SettingsValidationResult {
     /// No Issue
     NoIssue,
@@ -665,7 +689,7 @@ pub struct MovementParameter {
 
 impl MovementParameter {
     /// Returns the associated value to the move type provided
-    pub fn get_value_for_movement_type(&self, move_type: &MoveType) -> f64 {
+    pub const fn get_value_for_movement_type(&self, move_type: &MoveType) -> f64 {
         match move_type {
             MoveType::TopSolidInfill => self.solid_top_infill,
             MoveType::SolidInfill => self.solid_infill,
@@ -680,6 +704,7 @@ impl MovementParameter {
         }
     }
 }
+
 /// Settings for a filament
 #[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct FilamentSettings {
@@ -706,7 +731,7 @@ pub struct FanSettings {
     pub fan_speed: f64,
 
     /// Disable the fan for layers below this value
-    pub disable_fan_for_layers: usize,
+    pub disable_fan_for_layers: u32,
 
     /// Threshold to start slowing down based on layer print time in seconds
     pub slow_down_threshold: f64,
@@ -752,7 +777,7 @@ pub struct SupportSettings {
 #[derive(Settings,Serialize, Deserialize, Debug, Clone)]
 pub struct SkirtSettings {
     /// the number of layer to generate the skirt
-    pub layers: usize,
+    pub layers: u32,
 
     /// Distance from the models to place the skirt
     pub distance: f64,
@@ -799,7 +824,7 @@ impl PartialSettingsFile {
         let files: Vec<String> = self
             .other_files
             .as_mut()
-            .map(|of| of.drain(..).collect())
+            .map(std::mem::take)
             .unwrap_or_default();
 
         for file in &files {
@@ -826,15 +851,15 @@ impl PartialSettingsFile {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub enum LayerRange {
     /// A single single based on the index
-    SingleLayer(usize),
+    SingleLayer(u32),
 
     /// A range of layers based on index inclusive
     LayerCountRange {
         /// The start index
-        start: usize,
+        start: u32,
 
         /// The end index
-        end: usize,
+        end: u32,
     },
 
     /// A Range of layers based on the height of the bottom on the slice
@@ -863,7 +888,7 @@ fn check_extrusions(
     extrusion_width: &MovementParameter,
     nozzle_diameter: f64,
 ) -> SettingsValidationResult {
-    //infill
+    // infill
     if extrusion_width.infill < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.infill,
@@ -876,7 +901,7 @@ fn check_extrusions(
         });
     }
 
-    //top infill
+    // top infill
     if extrusion_width.solid_top_infill < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.solid_top_infill,
@@ -889,7 +914,7 @@ fn check_extrusions(
         });
     }
 
-    //solid infill
+    // solid infill
     if extrusion_width.solid_infill < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.solid_infill,
@@ -902,7 +927,7 @@ fn check_extrusions(
         });
     }
 
-    //bridge
+    // bridge
     if extrusion_width.bridge < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.bridge,
@@ -915,7 +940,7 @@ fn check_extrusions(
         });
     }
 
-    //support
+    // support
     if extrusion_width.support < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.support,
@@ -928,7 +953,7 @@ fn check_extrusions(
         });
     }
 
-    //interior_surface_perimeter
+    // interior_surface_perimeter
     if extrusion_width.interior_surface_perimeter < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.interior_surface_perimeter,
@@ -941,7 +966,7 @@ fn check_extrusions(
         });
     }
 
-    //interior_inner_perimeter
+    // interior_inner_perimeter
     if extrusion_width.interior_inner_perimeter < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.interior_inner_perimeter,
@@ -954,7 +979,7 @@ fn check_extrusions(
         });
     }
 
-    //exterior_inner_perimeter
+    // exterior_inner_perimeter
     if extrusion_width.exterior_inner_perimeter < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.exterior_inner_perimeter,
@@ -967,7 +992,7 @@ fn check_extrusions(
         });
     }
 
-    //exterior_surface_perimeter
+    // exterior_surface_perimeter
     if extrusion_width.exterior_surface_perimeter < nozzle_diameter * 0.6 {
         return SettingsValidationResult::Warning(SlicerWarnings::ExtrusionWidthTooLow {
             extrusion_width: extrusion_width.exterior_surface_perimeter,
@@ -988,7 +1013,7 @@ fn check_accelerations(
     speed: &MovementParameter,
     min_bed_dimension: f64,
 ) -> SettingsValidationResult {
-    //infill
+    // infill
     if (speed.infill * speed.infill) / (2.0 * acceleration.infill) > min_bed_dimension {
         return SettingsValidationResult::Warning(SlicerWarnings::AccelerationTooLow {
             acceleration: acceleration.infill,
@@ -997,7 +1022,7 @@ fn check_accelerations(
         });
     }
 
-    //top infill
+    // top infill
     if (speed.solid_top_infill * speed.solid_top_infill) / (2.0 * acceleration.solid_top_infill)
         > min_bed_dimension
     {
@@ -1008,7 +1033,7 @@ fn check_accelerations(
         });
     }
 
-    //solid infill
+    // solid infill
     if (speed.solid_infill * speed.solid_infill) / (2.0 * acceleration.solid_infill)
         > min_bed_dimension
     {
@@ -1019,7 +1044,7 @@ fn check_accelerations(
         });
     }
 
-    //bridge
+    // bridge
     if (speed.bridge * speed.bridge) / (2.0 * acceleration.bridge) > min_bed_dimension {
         return SettingsValidationResult::Warning(SlicerWarnings::AccelerationTooLow {
             acceleration: acceleration.bridge,
@@ -1028,7 +1053,7 @@ fn check_accelerations(
         });
     }
 
-    //support
+    // support
     if (speed.support * speed.support) / (2.0 * acceleration.support) > min_bed_dimension {
         return SettingsValidationResult::Warning(SlicerWarnings::AccelerationTooLow {
             acceleration: acceleration.support,
@@ -1037,7 +1062,7 @@ fn check_accelerations(
         });
     }
 
-    //interior_surface_perimeter
+    // interior_surface_perimeter
     if (speed.interior_surface_perimeter * speed.interior_surface_perimeter)
         / (2.0 * acceleration.interior_surface_perimeter)
         > min_bed_dimension
@@ -1049,7 +1074,7 @@ fn check_accelerations(
         });
     }
 
-    //interior_inner_perimeter
+    // interior_inner_perimeter
     if (speed.interior_inner_perimeter * speed.interior_inner_perimeter)
         / (2.0 * acceleration.interior_inner_perimeter)
         > min_bed_dimension
@@ -1061,7 +1086,7 @@ fn check_accelerations(
         });
     }
 
-    //exterior_inner_perimeter
+    // exterior_inner_perimeter
     if (speed.exterior_inner_perimeter * speed.exterior_inner_perimeter)
         / (2.0 * acceleration.exterior_inner_perimeter)
         > min_bed_dimension
@@ -1073,7 +1098,7 @@ fn check_accelerations(
         });
     }
 
-    //exterior_surface_perimeter
+    // exterior_surface_perimeter
     if (speed.exterior_surface_perimeter * speed.exterior_surface_perimeter)
         / (2.0 * acceleration.exterior_surface_perimeter)
         > min_bed_dimension
@@ -1113,6 +1138,9 @@ impl<T> Combine for Option<T> {
     }
 }
 
+impl Combine for MultiPolygon {
+    fn combine(&mut self, other: Self) {
+        self.0.combine(other.0);
 fn inline_combine<T>( mut a: T, b: T) -> T where T: Combine{
     a.combine(b);
     a

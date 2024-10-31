@@ -4,6 +4,11 @@
 ### New Features
 - Sub settings ( Acceleration.Bridge) can be set independently now
 - Add in support for Math expresions in the Gcode file
+- Added a profile for the Voron0.1
+- Add support for aux fans
+- `max_temp` setting so printers can specifiy their max hotend temperature
+- Added a profile for the Bambu Lab x1c
+- Added a profile for Bambu Lab PLA
 - Json can be passed into the command line using the -S command
 
 ### Fixes

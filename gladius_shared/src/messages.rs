@@ -6,7 +6,7 @@ use crate::warning::SlicerWarnings;
 use serde::{Deserialize, Serialize};
 
 /// Messages for communicating between the slicer and another process
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Message {
     /// Message to share `CalculatedValues`` struct
     CalculatedValues(CalculatedValues),

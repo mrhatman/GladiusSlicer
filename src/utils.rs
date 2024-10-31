@@ -106,7 +106,7 @@ pub fn directional_unit_bisector_left(
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Orientation {
     Linear,
     Left,

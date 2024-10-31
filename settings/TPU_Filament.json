@@ -1,25 +1,33 @@
 
 {
-  "fan":{
+  "fan": {
     "fan_speed": 80.0,
     "disable_fan_for_layers": 3,
     "slow_down_threshold": 20,
     "min_print_speed": 10.0
   },
-  "filament":{
-    "diameter":1.75,
-    "density":1.15,
-    "cost":24.99,
-    "extruder_temp":220.0,
-    "bed_temp":50.0
+
+  "aux_fan": {
+    "fan_speed": 40.0,
+    "disable_fan_for_layers": 3,
+    "slow_down_threshold": 20,
+    "min_print_speed": 10.0
+  },
+
+  "filament": {
+    "diameter": 1.75,
+    "density": 1.15,
+    "cost": 24.99,
+    "extruder_temp": 220.0,
+    "bed_temp": 50.0
   },
 
     "layer_settings" : [
     [
-      {"SingleLayer":0},
+      {"SingleLayer": 0},
       {
-        "extruder_temp":215.0,
-        "bed_temp":50.0
+        "extruder_temp": 215.0,
+        "bed_temp": 50.0
       }
     ]
 

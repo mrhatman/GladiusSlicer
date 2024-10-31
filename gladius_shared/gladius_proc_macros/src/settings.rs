@@ -1,3 +1,4 @@
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, DataStruct, DeriveInput};
 
@@ -10,7 +11,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
 
     // Only generate code for struct.
     if let syn::Data::Struct(data_struct) =  data {
-        //get the class name Partial{struct name}
+        // get the class name Partial{struct name}
         let partial_settings_struct_name = proc_macro2::Ident::new(&(String::from("Partial") + &struct_name_ident.to_string()), struct_name_ident.span());
 
         let partial_settings_struct_content = transform_fields_into_partial_struct_fields(&data_struct);
@@ -28,9 +29,9 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         // field : Option<Type> 
         // if labeled optional or merge use ( must be an option if optional already)
         // field : Type
-        #[derive(Serialize, Deserialize, Debug,Clone,Default)]
+        #[derive(Serialize, Deserialize, Debug, Clone, Default)]
         /// Partial Version of the struct #struct_name_ident
-        pub struct #partial_settings_struct_name{
+        pub struct #partial_settings_struct_name {
 
             #partial_settings_struct_content
 
@@ -42,7 +43,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         // if labeled merge ( merge is a trait that allows for custom merging)
         // field: self.field.merge(other.field),
 
-        impl Combine for #partial_settings_struct_name{
+        impl Combine for #partial_settings_struct_name {
             #combine_function
         }
 
@@ -57,7 +58,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         }
 
         impl  #struct_name_ident{
-            fn get_names_and_types() -> Vec<(String,String)>{
+            fn get_names_and_types() -> Vec<(String,String)> {
                 #names_and_types
             }
         }
@@ -112,9 +113,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
 // if labeled optional or merge use ( must be an option if optional already)
 // field : Type
 
-fn transform_fields_into_partial_struct_fields(
-    data_struct: &DataStruct,
-) -> proc_macro2::TokenStream {
+fn transform_fields_into_partial_struct_fields(data_struct: &DataStruct) -> TokenStream {
     match data_struct.fields {
         syn::Fields::Named(ref fields) => {
             let props_ts_iter = fields.named.iter().map(|named_field| {
@@ -161,7 +160,7 @@ fn transform_fields_into_partial_struct_fields(
 // field: self.field.or(other.field),
 // if labeled combine ( combine is a trait that allows for custom combining)
 // field: self.field.merge(other.field),
-fn transform_fields_into_combine_function(data_struct: &DataStruct) -> proc_macro2::TokenStream {
+fn transform_fields_into_combine_function(data_struct: &DataStruct) -> TokenStream {
     match data_struct.fields {
         syn::Fields::Named(ref fields) => {
             let props_ts_iter = fields.named.iter().map(|named_field| {
@@ -182,7 +181,7 @@ fn transform_fields_into_combine_function(data_struct: &DataStruct) -> proc_macr
     }
 }
 
-fn transform_fields_into_try_from_internals(data_struct: &DataStruct) -> proc_macro2::TokenStream {
+fn transform_fields_into_try_from_internals(data_struct: &DataStruct) -> TokenStream {
     match data_struct.fields {
         syn::Fields::Named(ref fields) => {
             let props_ts_iter = fields
@@ -251,7 +250,7 @@ fn transform_fields_into_try_from_internals(data_struct: &DataStruct) -> proc_ma
             // Unwrap iterator into a [proc_macro2::TokenStream].
             quote! {
 
-                 #(#props_ts_iter)*
+                #(#props_ts_iter)*
 
             }
         }
@@ -259,7 +258,7 @@ fn transform_fields_into_try_from_internals(data_struct: &DataStruct) -> proc_ma
     }
 }
 
-fn transform_fields_into_from_internals(data_struct: &DataStruct) -> proc_macro2::TokenStream {
+fn transform_fields_into_from_internals(data_struct: &DataStruct) -> TokenStream {
     match data_struct.fields {
         syn::Fields::Named(ref fields) => {
             let props_ts_iter = fields.named.iter().map(|named_field| {
@@ -303,7 +302,7 @@ fn transform_fields_into_from_internals(data_struct: &DataStruct) -> proc_macro2
     }
 }
 
-fn transform_fields_into_names_and_types(data_struct: &DataStruct) -> proc_macro2::TokenStream {
+fn transform_fields_into_names_and_types(data_struct: &DataStruct) -> TokenStream {
     match data_struct.fields {
         syn::Fields::Named(ref fields) => {
             let props_ts_iter = fields.named.iter().map(|named_field| {

@@ -2,7 +2,7 @@ use crate::loader::{IndexedTriangle, Loader, SlicerErrors, Vertex};
 use std::io::BufReader;
 
 /// Loader for STL files
-pub struct STLLoader {}
+pub struct STLLoader;
 
 impl Loader for STLLoader {
     fn load(
@@ -26,9 +26,9 @@ impl Loader for STLLoader {
             .vertices()
             .iter()
             .map(|vert| Vertex {
-                x: vert[0] as f64,
-                y: vert[1] as f64,
-                z: vert[2] as f64,
+                x: f64::from(vert[0]),
+                y: f64::from(vert[1]),
+                z: f64::from(vert[2]),
             })
             .collect::<Vec<Vertex>>();
 
@@ -52,9 +52,9 @@ impl Loader for STLLoader {
                             std::mem::swap(&mut v0, &mut v1);
                         }
             */
-            let v0 = vertices[converted_tri.verts[0]];
-            let v1 = vertices[converted_tri.verts[1]];
-            let v2 = vertices[converted_tri.verts[2]];
+            let v0 = &vertices[converted_tri.verts[0]];
+            let v1 = &vertices[converted_tri.verts[1]];
+            let v2 = &vertices[converted_tri.verts[2]];
 
             if v0 < v1 && v0 < v2 {
                 triangles.push(converted_tri);

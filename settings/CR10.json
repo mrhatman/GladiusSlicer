@@ -1,47 +1,52 @@
 {
-  "skirt":{
+  "skirt": {
     "layers": 3,
     "distance": 2.0
   },
-  "nozzle_diameter":0.4,
-  "retract_length":5,
-  "retract_lift_z":0.2,
-  "retract_speed":45.0,
 
-  "infill_percentage":0.2,
+  "nozzle_diameter": 0.4,
+  "has_aux_fan": false,
+  "retract_length": 5,
+  "retract_lift_z": 0.2,
+  "retract_speed": 45.0,
+
+  "infill_percentage": 0.2,
 
   "print_x": 300,
   "print_y": 300,
   "print_z": 400,
 
-  "layer_width":0.45,
+  "layer_width": 0.45,
 
   "speed" : {
     "interior_inner_perimeter":   25.0,
     "interior_surface_perimeter": 20.0,
     "exterior_inner_perimeter":   25.0,
     "exterior_surface_perimeter": 20.0,
-    "infill":50.0,
-    "solid_infill":40.0,
-    "solid_top_infill":30.0,
+    "infill": 50.0,
+    "solid_infill": 40.0,
+    "solid_top_infill": 30.0,
 
     "travel": 150.0,
     "bridge": 20.0,
     "support": 20.0
   },
+
   "acceleration" : {
-    "interior_inner_perimeter":500.0,
-    "interior_surface_perimeter":500.0,
-    "exterior_inner_perimeter":500.0,
-    "exterior_surface_perimeter":500.0,
-    "infill":700.0,
-    "solid_infill":700.0,
-    "solid_top_infill":700.0,
+    "interior_inner_perimeter": 500.0,
+    "interior_surface_perimeter": 500.0,
+    "exterior_inner_perimeter": 500.0,
+    "exterior_surface_perimeter": 500.0,
+    "infill": 700.0,
+    "solid_infill": 700.0,
+    "solid_top_infill": 700.0,
     "travel": 700.0,
     "bridge": 700.0,
     "support": 700.0
   },
 
+  // at 250 the ptfe tube starts to off gas
+  "max_extruder_temp": 245.0,
   "extrusion_width" : {
     "interior_inner_perimeter":0.45,
     "interior_surface_perimeter":0.45,
@@ -98,25 +103,24 @@
 
   "layer_settings" : [
     [
-      {"SingleLayer":0},
+      {"SingleLayer": 0},
       {
         "speed" : {
-          "interior_inner_perimeter":20.0,
-          "interior_surface_perimeter":20.0,
-          "exterior_inner_perimeter":20.0,
-          "exterior_surface_perimeter":20.0,
-          "infill":15.0,
-          "solid_infill":15.0,
-          "solid_top_infill":15.0,
+          "interior_inner_perimeter": 20.0,
+          "interior_surface_perimeter": 20.0,
+          "exterior_inner_perimeter": 20.0,
+          "exterior_surface_perimeter": 20.0,
+          "infill": 15.0,
+          "solid_infill": 15.0,
+          "solid_top_infill": 15.0,
           "travel": 150.0,
           "bridge": 15.0,
           "support": 15.0,
         },
-        "width":0.4,
+        "width": 0.4,
         "layer_shrink_amount" : 0.2,
       }
     ]
 
   ]
 }
-

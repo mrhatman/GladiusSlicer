@@ -16,11 +16,12 @@ jobs:
       TARGET: x86_64-unknown-linux-gnu
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install Rust
         run: rustup update stable && rustup default stable
       - name: Install packages
         run: sudo apt install musl-tools
+
       - name: Build release
         run: |
           rustup target add ${{ env.TARGET }}
@@ -47,10 +48,12 @@ jobs:
           directory: ${{ runner.temp }}/llvm
       - name: Set LIBCLANG_PATH
         run: echo "LIBCLANG_PATH=$((gcm clang).source -replace "clang.exe")" >> $env:GITHUB_ENV
+
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install Rust
         run: rustup update stable && rustup default stable
+
       - name: Build release
         run: |
           cargo build --release --verbose

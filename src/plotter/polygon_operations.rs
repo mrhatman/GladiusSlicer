@@ -49,7 +49,7 @@ impl PolygonOperations for Polygon<f64> {
             delta,
             geo_clipper::JoinType::Square,
             geo_clipper::EndType::ClosedPolygon,
-            1000000.0,
+            1_000_000.0,
         )
     }
 

@@ -1,4 +1,7 @@
-use crate::*;
+use crate::{
+    Coord, Object, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator, Vertex,
+};
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object>, SlicerErrors> {
     towers
@@ -8,15 +11,17 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
 
             let mut layer = 0.0;
 
-            let mut first_layer = true;
-
             let res_points: Result<Vec<(f64, f64, Vec<Vec<Vertex>>)>, SlicerErrors> =
                 std::iter::repeat(())
                     .enumerate()
                     .map(|(layer_count, ())| {
-                        //Advance to the correct height
-                        let layer_height =
-                            settings.get_layer_settings(layer_count, layer).layer_height;
+                        // Advance to the correct height
+                        let layer_height = settings
+                            .get_layer_settings(
+                                layer_count as u32, // I doute your layer_count will go past 4,294,967,295
+                                layer,
+                            )
+                            .layer_height;
 
                         let bottom_height = layer;
                         layer += layer_height / 2.0;
@@ -25,9 +30,7 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
 
                         let top_height = layer;
 
-                        first_layer = false;
-
-                        //Get the ordered lists of points
+                        // Get the ordered lists of points
                         Ok((bottom_height, top_height, tower_iter.get_points()))
                     })
                     .take_while(|r| {
@@ -45,7 +48,7 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
                 .par_iter()
                 .enumerate()
                 .map(|(count, (bot, top, layer_loops))| {
-                    //Add this slice to the
+                    // Add this slice to the
                     let slice = Slice::from_multiple_point_loop(
                         layer_loops
                             .iter()
@@ -58,7 +61,7 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
                             .collect(),
                         *bot,
                         *top,
-                        count,
+                        count as u32, // I doute your layer_count will go past 4,294,967,295,
                         settings,
                     );
                     slice

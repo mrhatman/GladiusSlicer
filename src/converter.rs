@@ -1,10 +1,7 @@
 use crate::{Command, Settings};
-use evalexpr::*;
-use gladius_shared::{error::SlicerErrors, settings::SettingsPrint, types::RetractionType};
-use std::{
-    fmt::format,
-    io::{BufWriter, Write},
-};
+use evalexpr::{context_map, eval_float_with_context, DefaultNumericTypes, HashMapContext};
+use gladius_shared::{error::SlicerErrors, types::RetractionType};
+use std::io::{BufWriter, Write};
 
 pub fn convert(
     cmds: &[Command],
@@ -55,7 +52,14 @@ pub fn convert(
         settings.maximum_feedrate_e
     )
     .map_err(|_| SlicerErrors::FileWriteError)?;
-    writeln!(write_buf, "M204 P{:.1} R{:.1} T{:.1}; sets acceleration (P, T) and retract acceleration (R), mm/sec^2", settings.max_acceleration_extruding, settings.max_acceleration_retracting, settings.max_acceleration_travel).map_err(|_|SlicerErrors::FileWriteError)?;
+    writeln!(
+        write_buf,
+        "M204 P{:.1} R{:.1} T{:.1}; sets acceleration (P, T) and retract acceleration (R), mm/sec^2",
+        settings.max_acceleration_extruding,
+        settings.max_acceleration_retracting,
+        settings.max_acceleration_travel
+    )
+    .map_err(|_| SlicerErrors::FileWriteError)?;
     writeln!(
         write_buf,
         "M205 X{:.1} Y{:.1} Z{:.1} E{:.1}; sets the jerk limits, mm/sec",
@@ -89,7 +93,7 @@ pub fn convert(
                 let y_diff = end.y - start.y;
                 let length = ((x_diff * x_diff) + (y_diff * y_diff)).sqrt();
 
-                //let extrusion_width = width + (thickness * (1.0 - std::f64::consts::FRAC_PI_4));
+                // let extrusion_width = width + (thickness * (1.0 - std::f64::consts::FRAC_PI_4));
 
                 let extrusion_volume = (((width - thickness) * thickness)
                     + (std::f64::consts::PI * (thickness / 2.0) * (thickness / 2.0)))
@@ -118,7 +122,7 @@ pub fn convert(
                         }
                     }
                     RetractionType::Retract => {
-                        //retract
+                        // retract
                         if let Some(speed) = new_state.movement_speed {
                             writeln!(write_buf, "G1 F{:.5}", speed * 60.0)
                                 .map_err(|_| SlicerErrors::FileWriteError)?;
@@ -145,7 +149,7 @@ pub fn convert(
                         .map_err(|_| SlicerErrors::FileWriteError)?;
                     }
                     RetractionType::Unretract => {
-                        //unretract
+                        // unretract
                         writeln!(write_buf, "G1 Z{:.5}; z unlift", current_z,)
                             .map_err(|_| SlicerErrors::FileWriteError)?;
                         writeln!(
@@ -210,6 +214,16 @@ pub fn convert(
                     )
                     .map_err(|_| SlicerErrors::FileWriteError)?;
                 }
+                if settings.has_aux_fan {
+                    if let Some(aux_fan_speed) = new_state.aux_fan_speed {
+                        writeln!(
+                            write_buf,
+                            "M106 P2 S{} ; set aux fan speed",
+                            (2.550 * aux_fan_speed).round() as usize
+                        )
+                        .map_err(|_| SlicerErrors::FileWriteError)?;
+                    }
+                }
             }
             Command::LayerChange { z, index } => {
                 writeln!(
@@ -227,7 +241,7 @@ pub fn convert(
                 .map_err(|_| SlicerErrors::FileWriteError)
                 .map_err(|_| SlicerErrors::FileWriteError)?;
                 current_z = *z;
-                layer_count = *index;
+                layer_count = *index as u32;
                 writeln!(write_buf, "G1 Z{:.5}", z)
                     .map_err(|_| SlicerErrors::FileWriteError)
                     .map_err(|_| SlicerErrors::FileWriteError)?;
@@ -264,16 +278,16 @@ pub fn convert(
                 let y_diff_r = end.y - center.y;
                 let radius = ((x_diff_r * x_diff_r) + (y_diff_r * y_diff_r)).sqrt();
 
-                //Divide the chord length by double the radius.
+                // Divide the chord length by double the radius.
                 let t = cord_length / (2.0 * radius);
-                //println!("{}",t);
-                //Find the inverse sine of the result (in radians).
-                //Double the result of the inverse sine to get the central angle in radians.
+                // println!("{}",t);
+                // Find the inverse sine of the result (in radians).
+                // Double the result of the inverse sine to get the central angle in radians.
                 let central = t.asin() * 2.0;
-                //Once you have the central angle in radians, multiply it by the radius to get the arc length.
+                // Once you have the central angle in radians, multiply it by the radius to get the arc length.
                 let extrusion_length = central * radius;
 
-                //println!("{}",extrusion_length);
+                // println!("{}",extrusion_length);
                 let extrude = (4.0 * thickness * width * extrusion_length)
                     / (std::f64::consts::PI
                         * settings.filament.diameter
@@ -331,26 +345,24 @@ pub fn convert(
 }
 
 fn convert_instructions(
-    mut instructions: &str,
+    instructions: &str,
     current_z_height: f64,
-    layer_count: usize,
+    layer_count: u32,
     previous_object: Option<usize>,
     current_object: Option<usize>,
     settings: &Settings,
 ) -> Result<String, SlicerErrors> {
-    let layer_settings = settings.get_layer_settings(layer_count, current_z_height);
-
     instructions
         .split('{')
         .enumerate()
         .map(|(index, str)| {
-            //first one will not contain a }
+            // first one will not contain a }
             if index == 0 || str.is_empty() {
                 Ok(String::from(str))
             } else {
                 let mut split = str.split('}');
                 let expression = split.next().ok_or(SlicerErrors::SettingMacroParseError {
-                    sub_error: format!("Empty string"),
+                    sub_error: "Empty string".to_string(),
                 })?;
 
                 let mut response = parse_macro(
@@ -363,7 +375,7 @@ fn convert_instructions(
                 )?;
 
                 response += split.next().ok_or(SlicerErrors::SettingMacroParseError {
-                    sub_error: format!("Missing end brace"),
+                    sub_error: "Missing end brace".to_string(),
                 })?;
 
                 Ok(response)
@@ -375,7 +387,7 @@ fn convert_instructions(
 fn parse_macro(
     expression: &str,
     current_z_height: f64,
-    layer_count: usize,
+    layer_count: u32,
     previous_object: Option<usize>,
     current_object: Option<usize>,
     settings: &Settings,
@@ -384,25 +396,30 @@ fn parse_macro(
 
     let context: HashMapContext<DefaultNumericTypes> = context_map! {
         "curr_extruder_temp" => float layer_settings.extruder_temp,
+        "current_extruder_temp" => float layer_settings.extruder_temp,
         "bed_temp" => float layer_settings.bed_temp,
         "z_pos" => float current_z_height,
-        "layer_count" => float layer_count as f64,
-        "prev_obj" => float previous_object.map(|o| o  as f64).unwrap_or(-1.),
-        "curr_obj" => float current_object.map(|o| o  as f64).unwrap_or(-1.),
-        "exterior_inner_perimeter_speed" => float layer_settings.speed.exterior_inner_perimeter ,
-        "exterior_surface_perimeter_speed" => float layer_settings.speed.exterior_surface_perimeter ,
-        "interior_inner_perimeter_speed" => float layer_settings.speed.interior_inner_perimeter ,
-        "interior_surface_perimeter_speed" => float layer_settings.speed.interior_surface_perimeter ,
-        "infill_speed" => float layer_settings.speed.infill ,
-        "solid_infill_speed" => float layer_settings.speed.solid_infill ,
-        "bridge_speed" => float layer_settings.speed.bridge ,
-        "travel_speed" => float layer_settings.speed.travel ,
-        "support_speed" => float layer_settings.speed.support ,
-        "print_size_x" => float settings.print_x ,
-        "print_size_y" => float settings.print_y ,
-        "print_size_z" => float settings.print_z ,
+        "layer_count" => float f64::from(layer_count),
+        "prev_obj" => float previous_object.map_or(-1., |o| o  as f64),
+        "curr_obj" => float current_object.map_or(-1., |o| o  as f64),
+        "current_obj" => float current_object.map_or(-1., |o| o  as f64),
+        "exterior_inner_perimeter_speed" => float layer_settings.speed.exterior_inner_perimeter,
+        "exterior_surface_perimeter_speed" => float layer_settings.speed.exterior_surface_perimeter,
+        "interior_inner_perimeter_speed" => float layer_settings.speed.interior_inner_perimeter,
+        "interior_surface_perimeter_speed" => float layer_settings.speed.interior_surface_perimeter,
+        "infill_speed" => float layer_settings.speed.infill,
+        "solid_infill_speed" => float layer_settings.speed.solid_infill,
+        "bridge_speed" => float layer_settings.speed.bridge,
+        "travel_speed" => float layer_settings.speed.travel,
+        "support_speed" => float layer_settings.speed.support,
+        "print_size_x" => float settings.print_x,
+        "print_size_y" => float settings.print_y,
+        "print_size_z" => float settings.print_z,
 
-    }.unwrap(); // Do proper error handling here
+    }
+    .map_err(|e| SlicerErrors::SettingMacroParseError {
+        sub_error: e.to_string(),
+    })?;
 
     eval_float_with_context(expression, &context)
         .map_err(|e| SlicerErrors::SettingMacroParseError {

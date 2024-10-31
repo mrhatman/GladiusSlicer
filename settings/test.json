@@ -1,9 +1,9 @@
 {
-  "retract_lift_z":0.0,
+  "retract_lift_z": 0.0,
 
-  "other_files" : [
-    "PETG_Filament.json",
-    "PrusaMk3.json",
-    "0.3_layer_height.json"
+  "other_files": [
+    "BBL_PLA_Filament.json",
+    "BBL_x1c.json",
+    "0.2_layer_height.json"
   ]
 }
