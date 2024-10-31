@@ -105,7 +105,7 @@
       }
     },
     "layer_shrink_amount": {
-      "description": "Inset the layer by the provided amount, if None on inset will be performed",
+      "description": "Inset the layer by the provided amount, if None no inset will be performed",
       "type": [
         "number",
         "null"

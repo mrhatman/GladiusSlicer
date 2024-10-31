@@ -5,9 +5,9 @@ use crate::types::{MoveType, PartialInfillTypes, SolidInfillTypes};
 use crate::warning::SlicerWarnings;
 use geo::MultiPolygon;
 use gladius_proc_macros::Settings;
-use serde::{Deserialize, Serialize};
 #[cfg(debug_assertions)]
 use schemars::{schema_for, JsonSchema};
+use serde::{Deserialize, Serialize};
 
 macro_rules! setting_less_than_or_equal_to_zero {
     ($settings:ident,$setting:ident) => {{
@@ -146,7 +146,7 @@ pub struct Settings {
     pub brim_width: Option<f64>,
 
     #[Optional]
-    /// Inset the layer by the provided amount, if None on inset will be performed
+    /// Inset the layer by the provided amount, if None no inset will be performed
     pub layer_shrink_amount: Option<f64>,
 
     /// The minimum travel distance required to perform a retraction
@@ -412,7 +412,9 @@ impl Settings {
             extrusion_width: changes
                 .extrusion_width
                 .unwrap_or_else(|| self.extrusion_width.clone()),
-            solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type.clone()),
+            solid_infill_type: changes
+                .solid_infill_type
+                .unwrap_or(self.solid_infill_type.clone()),
             partial_infill_type: changes
                 .partial_infill_type
                 .unwrap_or(self.partial_infill_type.clone()),
@@ -785,7 +787,6 @@ pub struct RetractionWipeSettings {
     /// Wipe Distance in mm
     pub distance: f64,
 }
-
 
 /// A partial complete settings file
 #[cfg_attr(debug_assertions, derive(JsonSchema))]

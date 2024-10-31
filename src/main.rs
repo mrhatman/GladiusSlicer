@@ -57,14 +57,19 @@ mod utils;
 struct Args {
     #[arg(required = true)]
     input: Vec<String>,
+
     #[arg(short = 'o', help = "Sets the output dir")]
     output: Option<String>,
+
     #[arg(short = 'v', action = clap::ArgAction::Count, conflicts_with = "message", help = "Sets the level of verbosity")]
     verbose: u8,
+
     #[arg(short = 's', help = "Sets the settings file to use")]
     settings: Option<String>,
+
     #[arg(short = 'm', help = "Use the Message System (useful for interprocess communication)")]
     message: bool,
+
     #[arg(
         short = 'j',
         help = "Sets the number of threads to use in the thread pool (defaults to number of CPUs)"

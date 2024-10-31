@@ -187,7 +187,9 @@ impl Vertex {
     /// mul with transform in place
     pub fn mul_transform(&mut self, transform: &Transform) {
         self.x = transform.0[0][0] * self.x + transform.0[0][1] * self.y + transform.0[0][2] * self.z + transform.0[0][3];
+
         self.y = transform.0[1][0] * self.x + transform.0[1][1] * self.y + transform.0[1][2] * self.z + transform.0[1][3];
+
         self.z = transform.0[2][0] * self.x + transform.0[2][1] * self.y + transform.0[2][2] * self.z + transform.0[2][3];
     }
 }
