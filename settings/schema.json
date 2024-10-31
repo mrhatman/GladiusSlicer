@@ -30,28 +30,7 @@
         "null"
       ],
       "items": {
-        "type": "object",
-        "properties": {
-          "exterior": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "interiors": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "object"
-              }
-            }
-          }
-        },
-        "required": [
-          "exterior",
-          "interiors"
-        ]
+        "$ref": "#/$defs/Polygon"
       }
     },
     "before_layer_change_instructions": {
@@ -382,6 +361,9 @@
     "has_aux_fan"
   ],
   "$defs": {
+    "Coord": {
+      "type": "object"
+    },
     "FanSettings": {
       "description": "Settings for the fans",
       "type": "object",
@@ -532,6 +514,12 @@
           ]
         }
       ]
+    },
+    "LineString": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Coord"
+      }
     },
     "MovementParameter": {
       "description": "A set of values for different movement types",
@@ -751,6 +739,27 @@
           ]
         }
       }
+    },
+    "Polygon": {
+      "type": "object",
+      "properties": {
+        "exterior": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Coord"
+          }
+        },
+        "interiors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LineString"
+          }
+        }
+      },
+      "required": [
+        "exterior",
+        "interiors"
+      ]
     },
     "RetractionWipeSettings": {
       "description": "The Settings for Skirt generation",
