@@ -5,9 +5,11 @@ use std::fmt::Display;
 use crate::error::SlicerErrors;
 use crate::types::{MoveType, PartialInfillTypes, SolidInfillTypes};
 use crate::warning::SlicerWarnings;
-use geo::MultiPolygon;
+use geo::{Contains, LinesIter, MultiPolygon};
 use gladius_proc_macros::Settings;
+use nalgebra::Point2;
 use serde::{Deserialize, Serialize};
+use geo_validity_check::Valid;
 
 macro_rules! setting_less_than_or_equal_to_zero {
     ($settings:ident,$setting:ident) => {{
@@ -468,6 +470,15 @@ impl Settings {
         setting_less_than_zero!(self, minimum_feedrate_travel);
         setting_less_than_zero!(self, minimum_feedrate_print);
         setting_less_than_zero!(self, minimum_retract_distance);
+
+
+        if let Some(exclude_area) = self.bed_exclude_areas.as_ref(){
+            //If it fails its likely failing due to the polygon not being complete
+            //The first and last points must be the same to be complete
+            if let Some(reason)  = exclude_area.explain_invalidity(){
+                return SettingsValidationResult::Error(SlicerErrors::InvalidBedExcludeArea(format!("{}",reason)));
+            }
+        }
 
         if self.layer_height < self.nozzle_diameter * 0.2 {
             return SettingsValidationResult::Warning(SlicerWarnings::LayerSizeTooLow {

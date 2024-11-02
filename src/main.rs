@@ -61,7 +61,7 @@ mod test;
         .args(&["settings_file_path", "settings_json"]),
 ))]
 struct Args {
-    #[arg(required = true,help = "The input files and there translations.\n By default it takes a list of json strings that repersents how the models should be loaded and translated.\n See simple_input for an alterantive command. ")]
+    #[arg(required = true,help = "The input files and there translations.\nBy default it takes a list of json strings that represents how the models should be loaded and translated.\nSee simple_input for an alterantive command. ")]
     input: Vec<String>,
     #[arg(short = 'o', help = "Sets the output dir")]
     output: Option<String>,

@@ -12,7 +12,7 @@ mod tests {
         let mut settings_path =  current_path.clone();
         settings_path.push("settings");
         std::env::set_current_dir(&settings_path).unwrap();
-        let printers =  vec!["Voron.json","CR10.json","PrusaMk3.json"];
+        let printers =  vec!["Voron0.1.json","CR10.json","PrusaMk3.json"];
         let layers =  vec!["0.1_layer_height.json","0.2_layer_height.json","0.3_layer_height.json"];
         let filaments =  vec!["ABS_Filament.json","PETG_Filament.json","TPU_Filament.json","PLA_Filament.json"];
 
