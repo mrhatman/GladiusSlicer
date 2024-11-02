@@ -231,7 +231,8 @@ pub struct Settings {
     pub layer_settings: Vec<(LayerRange, PartialLayerSettings)>,
 
     #[Combine]
-    #[AllowDefault]
+    #[Optional]
+    #[CustomPrint]
     /// Areas of the bed that can't have parts on it
     pub bed_exclude_areas: Option<MultiPolygon>,
 
@@ -412,11 +413,9 @@ impl Settings {
                 .unwrap_or(self.acceleration.clone()),
             extrusion_width: changes
                 .extrusion_width
-                .unwrap_or_else(|| self.extrusion_width.clone()),
-            solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type.clone()),
                 .map(|a| MovementParameter::try_from(inline_combine(a,self.extrusion_width.clone().into())).expect("self is geneteed to be complete") )
-                .unwrap_or( self.extrusion_width.clone()),
-            solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type),
+                .unwrap_or(self.extrusion_width.clone()),
+            solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type.clone()),
             partial_infill_type: changes
                 .partial_infill_type
                 .unwrap_or(self.partial_infill_type.clone()),
@@ -1141,10 +1140,21 @@ impl<T> Combine for Option<T> {
 impl Combine for MultiPolygon {
     fn combine(&mut self, other: Self) {
         self.0.combine(other.0);
+
+    }
+}
+
 fn inline_combine<T>( mut a: T, b: T) -> T where T: Combine{
     a.combine(b);
     a
 }
+
+impl SettingsPrint for MultiPolygon {
+    fn to_strings(&self) -> Vec<String> {
+        vec![format!("{:?}",self)]
+    }
+}
+
 
 impl SettingsPrint for String {
     fn to_strings(&self) -> Vec<String> {
@@ -1160,6 +1170,13 @@ impl<T> SettingsPrint for Vec<T> where T : SettingsPrint{
             settings.append(&mut s.to_strings());
         }
         settings
+    }
+}
+
+impl<T> SettingsPrint for Option<T> where T : SettingsPrint{
+    fn to_strings(&self) -> Vec<String> {
+
+        self.iter().flat_map(|x| x.to_strings()).collect()
     }
 }
 

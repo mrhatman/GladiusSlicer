@@ -5,6 +5,7 @@
 use clap::Parser;
 use gladius_shared::loader::{Loader, STLLoader, ThreeMFLoader};
 use gladius_shared::types::*;
+use input::load_settings;
 
 use crate::plotter::convert_objects_into_moves;
 use crate::tower::{create_towers, TriangleTower, TriangleTowerIterator};
@@ -22,7 +23,6 @@ use crate::bounds_checking::{check_model_bounds, check_moves_bounds};
 use crate::calculation::calculate_values;
 use crate::command_pass::{CommandPass, OptimizePass, SlowDownLayerPass};
 use crate::converter::convert;
-use crate::input::files_input;
 use crate::plotter::polygon_operations::PolygonOperations;
 use crate::slice_pass::*;
 use crate::slicing::slice;
@@ -126,15 +126,22 @@ fn main() {
         send_messages,
     ));
 
-    let (models, settings) = handle_err_or_return(
-        files_input(
+    let settings =  handle_err_or_return(
+        load_settings(
             args.settings_file_path.as_deref(),
-            &settings_json,
-            Some(args.input),
+            &settings_json
         ),
         send_messages,
     );
 
+
+    let models = handle_err_or_return(
+        crate::input::load_models(
+            Some(args.input),
+            &settings
+        ),
+        send_messages,
+    );
     if args.print_settings{
         for line in gladius_shared::settings::SettingsPrint::to_strings(&settings){
             println!("{}",line);

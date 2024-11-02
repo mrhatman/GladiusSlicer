@@ -1,3 +1,5 @@
+use gladius_shared::settings;
+
 use crate::utils::show_error_message;
 use crate::{
     debug, info, IndexedTriangle, InputObject, Loader, OsStr, PartialSettingsFile, Path, STLLoader,
@@ -9,20 +11,20 @@ use std::str::FromStr;
 /// The raw triangles and vertices of a model
 type ModelRawData = (Vec<Vertex>, Vec<IndexedTriangle>);
 
-pub fn files_input(
-    settings_path: Option<&str>,
-    settings_json: &str,
-    input: Option<Vec<String>>,
-) -> Result<(Vec<ModelRawData>, Settings), SlicerErrors> {
-    let settings: Settings = { load_settings(settings_path, settings_json) }?;
 
+pub fn load_models(
+    input: Option<Vec<String>>,
+    settings: &Settings
+) -> Result<Vec<ModelRawData>, SlicerErrors> {
     info!("Loading Input");
 
     let converted_inputs: Vec<(Vec<Vertex>, Vec<IndexedTriangle>)> = input
         .ok_or(SlicerErrors::NoInputProvided)?
         .into_iter()
         .try_fold(vec![], |mut vec, value| {
-            let model_path = Path::new(&value);
+            let object: InputObject =
+                deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)?;
+            let model_path = Path::new(object.get_model_path());
 
             debug!("Using input file: {:?}", model_path);
 
@@ -105,7 +107,7 @@ pub fn files_input(
 
             Ok(vec)
         })?;
-    Ok((converted_inputs, settings))
+    Ok(converted_inputs)
 }
 
 pub fn load_settings_json(filepath: &str) -> Result<String, SlicerErrors> {
@@ -116,7 +118,7 @@ pub fn load_settings_json(filepath: &str) -> Result<String, SlicerErrors> {
     )
 }
 
-fn load_settings(filepath: Option<&str>, settings_data: &str) -> Result<Settings, SlicerErrors> {
+pub fn load_settings(filepath: Option<&str>, settings_data: &str) -> Result<Settings, SlicerErrors> {
     let partial_settings: PartialSettingsFile =
         deser_hjson::from_str(&settings_data).map_err(|_| SlicerErrors::SettingsFileMisformat {
             filepath: filepath.unwrap_or("Command Line Argument").to_string(),

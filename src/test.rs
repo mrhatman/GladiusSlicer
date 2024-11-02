@@ -25,7 +25,9 @@ mod tests {
 
                     let result_settings = psf.get_settings();
 
-                    result_settings.unwrap();
+                    let settings = result_settings.unwrap();
+
+                    assert_eq!(settings.validate_settings(),gladius_shared::settings::SettingsValidationResult::NoIssue);
                     
                 }
             }
