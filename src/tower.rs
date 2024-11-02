@@ -52,7 +52,7 @@ impl TriangleTower {
         vertices: Vec<Vertex>,
     ) -> Result<Self, SlicerErrors> {
         let mut future_tower_vert: Vec<Vec<TriangleEvent>> =
-            (0..vertices.len()).map(|_| vec![]).collect();
+            (0..vertices.len()).map(|_| Vec::new()).collect();
 
         // for each triangle add it to the tower
 
@@ -153,7 +153,7 @@ impl TowerRing {
             if let TowerRingElement::Edge { end_index, .. } = e {
                 if end_index == edge {
                     frags.push(TowerRing { elements: new_ring });
-                    new_ring = vec![];
+                    new_ring = Vec::new();
                 } else {
                     new_ring.push(e);
                 }
@@ -268,10 +268,12 @@ pub enum TriangleEvent {
         triangle: usize,
         trailing_edge: usize,
     },
+
     LeadingEdge {
         leading_edge: usize,
         triangle: usize,
     },
+
     TrailingEdge {
         triangle: usize,
         trailing_edge: usize,
@@ -403,7 +405,7 @@ impl<'s> TriangleTowerIterator<'s> {
             z_height,
             tower,
             tower_vert_index: 0,
-            active_rings: vec![],
+            active_rings: Vec::new(),
         }
     }
 

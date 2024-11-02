@@ -25,7 +25,7 @@
     "bed_temp": 55.0,
   },
 
-  "layer_settings" : [
+  "layer_settings": [
     [
       {"SingleLayer": 0},
       {

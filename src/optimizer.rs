@@ -5,6 +5,7 @@ use gladius_shared::settings::Settings;
 use gladius_shared::types::{Command, RetractionType, StateChange};
 use itertools::Itertools;
 
+/// Remove `Command`s that don't acheve anything
 pub fn unary_optimizer(cmds: &mut Vec<Command>) {
     cmds.retain(|cmd| match cmd {
         Command::MoveTo { .. } => true,
@@ -154,7 +155,7 @@ pub fn state_optomizer(cmds: &mut Vec<Command>) {
     }
 }
 
-pub fn arc_optomizer(cmds: &mut [Command]) {
+pub fn arc_optomizer(cmds: &mut Vec<Command>) {
     let mut ranges = vec![];
 
     for (wt, group) in &cmds.iter().enumerate().chunk_by(|cmd| {
@@ -375,26 +376,6 @@ mod tests {
             &Coord { x: 2.0, y: 3.0 },
         );
         assert_eq!(center, Some(Coord { x: 2.0, y: 1.0 }));
-
-        // let center = ray_ray_intersection(
-        //     &Coord {
-        //         x: 1112.4,
-        //         y: 35345.0,
-        //     },
-        //     &Coord {
-        //         x: -0.11124,
-        //         y: -3.53450,
-        //     },
-        //     &Coord {
-        //         x: 546456.1,
-        //         y: 544456.1,
-        //     },
-        //     &Coord {
-        //         x: -0.5464561,
-        //         y: -0.5444561,
-        //     },
-        // );
-        // assert_eq!(center, Some(Coord{x: 0.0,y:0.0}));
     }
 
     #[test]

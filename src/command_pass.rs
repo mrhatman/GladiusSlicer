@@ -1,11 +1,11 @@
-use crate::optimizer::{binary_optimizer, state_optomizer, unary_optimizer};
+use crate::optimizer::{arc_optomizer, binary_optimizer, state_optomizer, unary_optimizer};
 use crate::{Command, Coord, HashMap, Itertools, OrderedFloat, RetractionType, Settings};
 
 pub trait CommandPass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings);
 }
 
-pub struct OptimizePass {}
+pub struct OptimizePass;
 
 impl CommandPass for OptimizePass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings) {
@@ -24,7 +24,7 @@ impl CommandPass for OptimizePass {
     }
 }
 
-pub struct SlowDownLayerPass {}
+pub struct SlowDownLayerPass;
 
 impl CommandPass for SlowDownLayerPass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings) {

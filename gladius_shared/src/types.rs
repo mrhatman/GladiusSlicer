@@ -65,8 +65,8 @@ impl Slice {
             remaining_area: MultiPolygon(vec![polygon]),
             support_interface: None,
             support_tower: None,
-            fixed_chains: vec![],
-            chains: vec![],
+            fixed_chains: Vec::new(),
+            chains: Vec::new(),
             bottom_height,
             top_height,
             layer_settings,
@@ -98,11 +98,11 @@ impl Slice {
 
         lines_and_area
             .sort_by(|(_l1, a1), (_l2, a2)| a2.partial_cmp(a1).expect("Areas should not be NAN"));
-        let mut polygons = vec![];
+        let mut polygons = Vec::new();
 
         for (line, area) in lines_and_area {
             if area > 0.0 {
-                polygons.push(Polygon::new(line, vec![]));
+                polygons.push(Polygon::new(line, Vec::new()));
             } else {
                 // counter clockwise interior polygon
                 let smallest_polygon = polygons
@@ -549,7 +549,7 @@ impl StateChange {
 impl MoveChain {
     /// Convert a move chain into a list of commands
     pub fn create_commands(self, settings: &LayerSettings, thickness: f64) -> Vec<Command> {
-        let mut cmds = vec![];
+        let mut cmds = Vec::new();
         let mut current_type: Option<MoveType> = None;
         let mut current_loc = self.start_point;
 

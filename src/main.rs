@@ -80,7 +80,7 @@ struct Args {
 fn main() {
     #[cfg(debug_assertions)]
     // export json schema for settings
-    Settings::gen_schema(Path::new("settings/")).unwrap();
+    Settings::gen_schema(Path::new("settings/")).expect("The programme should exit if this fails");
 
     // The YAML file is found relative to the current file, similar to how modules are found
     let args: Args = Args::parse();
@@ -153,34 +153,8 @@ fn main() {
     }
     display_state_update("Calculate Values", send_messages);
 
-    let cv = calculate_values(&moves, &settings);
-
-    if send_messages {
-        let message = Message::CalculatedValues(cv);
-        bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
-            .expect("Write Limit should not be hit");
-    } else {
-        let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
-
-        info!(
-            "Total Time: {} hours {} minutes {:.3} seconds",
-            hour, min, sec
-        );
-        info!(
-            "Total Filament Volume: {:.3} cm^3",
-            cv.plastic_volume / 1000.0
-        );
-        info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
-        info!(
-            "Total Filament Length: {:.3} meters",
-            cv.plastic_length / 1000.0
-        );
-        info!(
-            "Total Filament Cost: ${:.2}",
-            (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
-                * settings.filament.cost
-        );
-    }
+    // Display info about the print
+    print_info_message(send_messages, &moves, &settings);
 
     display_state_update("Outputting G-code", send_messages);
 
@@ -217,6 +191,38 @@ fn main() {
         debug!("Converting {} Moves", moves.len());
         handle_err_or_return(convert(&moves, &settings, &mut stdio_lock), send_messages);
     };
+}
+
+/// Display info about the print; time and filament info
+fn print_info_message(send_messages: bool, moves: &[Command], settings: &Settings) {
+    let cv = calculate_values(moves, settings);
+
+    if send_messages {
+        let message = Message::CalculatedValues(cv);
+        bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
+            .expect("Write Limit should not be hit");
+    } else {
+        let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
+
+        info!(
+            "Total Time: {} hours {} minutes {:.3} seconds",
+            hour, min, sec
+        );
+        info!(
+            "Total Filament Volume: {:.3} cm^3",
+            cv.plastic_volume / 1000.0
+        );
+        info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
+        info!(
+            "Total Filament Length: {:.3} meters",
+            cv.plastic_length / 1000.0
+        );
+        info!(
+            "Total Filament Cost: ${:.2}",
+            (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
+                * settings.filament.cost
+        );
+    }
 }
 
 fn generate_moves(
@@ -279,7 +285,7 @@ fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, send_message: bool) -> 
             if send_message {
                 send_error_message(slicer_error);
             } else {
-                show_error_message(slicer_error);
+                show_error_message(&slicer_error);
             }
             std::process::exit(-1);
         }
@@ -294,14 +300,14 @@ fn handle_setting_validation(res: SettingsValidationResult, send_message: bool) 
             if send_message {
                 send_warning_message(slicer_warning);
             } else {
-                show_warning_message(slicer_warning);
+                show_warning_message(&slicer_warning);
             }
         }
         SettingsValidationResult::Error(slicer_error) => {
             if send_message {
                 send_error_message(slicer_error);
             } else {
-                show_error_message(slicer_error);
+                show_error_message(&slicer_error);
             }
             std::process::exit(-1);
         }
