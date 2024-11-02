@@ -14,7 +14,8 @@ type ModelRawData = (Vec<Vertex>, Vec<IndexedTriangle>);
 
 pub fn load_models(
     input: Option<Vec<String>>,
-    settings: &Settings
+    settings: &Settings,
+    simple_input :bool,
 ) -> Result<Vec<ModelRawData>, SlicerErrors> {
     info!("Loading Input");
 
@@ -23,7 +24,13 @@ pub fn load_models(
         .into_iter()
         .try_fold(vec![], |mut vec, value| {
             let object: InputObject =
-                deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)?;
+                if simple_input{
+                    deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)?
+                }
+                else{
+                    InputObject::Auto(value.clone())
+                };
+
             let model_path = Path::new(object.get_model_path());
 
             debug!("Using input file: {:?}", model_path);

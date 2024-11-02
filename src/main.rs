@@ -61,7 +61,7 @@ mod test;
         .args(&["settings_file_path", "settings_json"]),
 ))]
 struct Args {
-    #[arg(required = true)]
+    #[arg(required = true,help = "The input files and there translations.\n By default it takes a list of json strings that repersents how the models should be loaded and translated.\n See simple_input for an alterantive command. ")]
     input: Vec<String>,
     #[arg(short = 'o', help = "Sets the output dir")]
     output: Option<String>,
@@ -78,6 +78,8 @@ struct Args {
     message: bool,
     #[arg( long="print_settings",help = "Print the final combined settings out to Stdout and Terminate. Verbose level 4 will print but continue.")]
     print_settings: bool,
+    #[arg( long="simple_input",help = "The input should only be a list of files that will be auto translated to the center of the build plate.")]
+    simple_input: bool,
     #[arg(
         short = 'j',
         help = "Sets the number of threads to use in the thread pool (defaults to number of CPUs)"
@@ -138,7 +140,8 @@ fn main() {
     let models = handle_err_or_return(
         crate::input::load_models(
             Some(args.input),
-            &settings
+            &settings,
+            args.simple_input
         ),
         send_messages,
     );
