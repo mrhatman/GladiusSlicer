@@ -125,7 +125,7 @@ fn main() {
 
     display_state_update("Loading Inputs", send_messages);
 
-    let settings_json = args.settings_json.unwrap_or(handle_err_or_return(
+    let settings_json = args.settings_json.unwrap_or_else(|| handle_err_or_return(
         input::load_settings_json(
             args.settings_file_path
                 .as_deref()

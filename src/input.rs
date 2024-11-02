@@ -131,21 +131,17 @@ pub fn load_settings(
             filepath: filepath.unwrap_or("Command Line Argument").to_string(),
         })?;
     let current_path = std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
-
-    //set the directory on when loading from file no command line
-    if let Some(fp) = filepath {
+    let path= if let Some(fp) = filepath {
         let mut path = PathBuf::from_str(&fp).map_err(|_| SlicerErrors::SettingsFileNotFound {
             filepath: fp.to_string(),
         })?;
-
         path.pop();
+        path
+    }else{
+        current_path
+    };
 
-        std::env::set_current_dir(&path).expect("Path checked before");
-    }
-    let settings = partial_settings.get_settings()?;
-
-    // reset path
-    std::env::set_current_dir(current_path).expect("Path checked before");
+    let settings = partial_settings.get_settings(path)?;
 
     Ok(settings)
 }

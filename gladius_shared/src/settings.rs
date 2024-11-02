@@ -1,6 +1,7 @@
 #![deny(missing_docs)]
 
 use std::fmt::Display;
+use std::path::PathBuf;
 
 use crate::error::SlicerErrors;
 use crate::types::{MoveType, PartialInfillTypes, SolidInfillTypes};
@@ -10,6 +11,8 @@ use geo_validity_check::Valid;
 use gladius_proc_macros::Settings;
 use nalgebra::Point2;
 use serde::{Deserialize, Serialize};
+use log::info;
+use std::str::FromStr;
 
 macro_rules! setting_less_than_or_equal_to_zero {
     ($settings:ident,$setting:ident) => {{
@@ -845,14 +848,28 @@ pub struct PartialSettingsFile {
 impl PartialSettingsFile {
     /// Convert a partial settings file into a complete settings file
     /// returns an error if a settings is not present in this or any sub file
-    pub fn get_settings(mut self) -> Result<Settings, SlicerErrors> {
+    pub fn get_settings(mut self, path: PathBuf) -> Result<Settings, SlicerErrors> {
+        
+
+
+        let current_path = std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
+
+        //set the directory of the current directory
+        std::env::set_current_dir(&path).expect("Path checked before");
+        info!("Setting path to {:?}", path);
+        
         self.combine_with_other_files()?;
+
+        // reset path
+        info!("Setting path to {:?}", current_path);
+        std::env::set_current_dir(current_path).expect("Path checked before");
 
         Settings::try_from(self.partial_settings).map_err(|err| {
             SlicerErrors::SettingsFileMissingSettings {
                 missing_setting: err.0,
             }
         })
+
     }
 
     fn combine_with_other_files(&mut self) -> Result<(), SlicerErrors> {
@@ -873,7 +890,25 @@ impl PartialSettingsFile {
                     filepath: file.to_string(),
                 })?;
 
+            let mut path = PathBuf::from_str(file).map_err(|_| SlicerErrors::SettingsFileNotFound {
+                filepath: file.to_string(),
+            })?;
+            info!("Setting path to {:?}", path);
+            path.pop();
+
+            let current_path = std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
+            //set the directory of the current directory
+            if path.exists(){
+                info!("Setting path to {:?}", path);
+                std::env::set_current_dir(&path).expect("Path checked before");
+            }
+            
+
             ps.combine_with_other_files()?;
+
+            // reset path
+            info!("Setting path to {:?}", current_path);
+            std::env::set_current_dir(current_path).expect("Path checked before");
 
             self.partial_settings.combine(ps.partial_settings);
         }

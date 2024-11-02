@@ -38,7 +38,7 @@ mod tests {
                         partial_settings: PartialSettings::default(),
                     };
 
-                    let result_settings = psf.get_settings();
+                    let result_settings = psf.get_settings(std::env::current_dir().unwrap());
 
                     let settings = result_settings.unwrap();
 

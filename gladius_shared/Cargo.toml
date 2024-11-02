@@ -20,3 +20,5 @@ itertools = "0.13"
 gladius_proc_macros = { path = "./gladius_proc_macros" }
 
 geo-validity-check = "0.1.0"
+
+log = "0.4.22"
