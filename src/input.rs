@@ -25,10 +25,10 @@ pub fn load_models(
         .try_fold(vec![], |mut vec, value| {
             let object: InputObject =
                 if simple_input{
-                    deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)?
+                    InputObject::Auto(value.clone())
                 }
                 else{
-                    InputObject::Auto(value.clone())
+                    deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)?
                 };
 
             let model_path = Path::new(object.get_model_path());
