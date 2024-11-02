@@ -11,11 +11,10 @@ use std::str::FromStr;
 /// The raw triangles and vertices of a model
 type ModelRawData = (Vec<Vertex>, Vec<IndexedTriangle>);
 
-
 pub fn load_models(
     input: Option<Vec<String>>,
     settings: &Settings,
-    simple_input :bool,
+    simple_input: bool,
 ) -> Result<Vec<ModelRawData>, SlicerErrors> {
     info!("Loading Input");
 
@@ -23,13 +22,11 @@ pub fn load_models(
         .ok_or(SlicerErrors::NoInputProvided)?
         .into_iter()
         .try_fold(vec![], |mut vec, value| {
-            let object: InputObject =
-                if simple_input{
-                    InputObject::Auto(value.clone())
-                }
-                else{
-                    deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)?
-                };
+            let object: InputObject = if simple_input {
+                InputObject::Auto(value.clone())
+            } else {
+                deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)?
+            };
 
             let model_path = Path::new(object.get_model_path());
 
@@ -125,7 +122,10 @@ pub fn load_settings_json(filepath: &str) -> Result<String, SlicerErrors> {
     )
 }
 
-pub fn load_settings(filepath: Option<&str>, settings_data: &str) -> Result<Settings, SlicerErrors> {
+pub fn load_settings(
+    filepath: Option<&str>,
+    settings_data: &str,
+) -> Result<Settings, SlicerErrors> {
     let partial_settings: PartialSettingsFile =
         deser_hjson::from_str(&settings_data).map_err(|_| SlicerErrors::SettingsFileMisformat {
             filepath: filepath.unwrap_or("Command Line Argument").to_string(),

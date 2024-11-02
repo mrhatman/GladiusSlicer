@@ -6,10 +6,10 @@ use crate::error::SlicerErrors;
 use crate::types::{MoveType, PartialInfillTypes, SolidInfillTypes};
 use crate::warning::SlicerWarnings;
 use geo::{Contains, LinesIter, MultiPolygon};
+use geo_validity_check::Valid;
 use gladius_proc_macros::Settings;
 use nalgebra::Point2;
 use serde::{Deserialize, Serialize};
-use geo_validity_check::Valid;
 
 macro_rules! setting_less_than_or_equal_to_zero {
     ($settings:ident,$setting:ident) => {{
@@ -382,9 +382,6 @@ impl Default for Settings {
     }
 }
 
-
-
-
 impl Settings {
     /// Get the layer settings for a specific layer index and height
     pub fn get_layer_settings(&self, layer: u32, height: f64) -> LayerSettings {
@@ -407,17 +404,31 @@ impl Settings {
             layer_shrink_amount: changes.layer_shrink_amount.or(self.layer_shrink_amount),
             speed: changes
                 .speed
-                .map(|a| MovementParameter::try_from(inline_combine(a,self.speed.clone().into())).expect("self is geneteed to be complete") )
-                .unwrap_or( self.speed.clone()),
+                .map(|a| {
+                    MovementParameter::try_from(inline_combine(a, self.speed.clone().into()))
+                        .expect("self is geneteed to be complete")
+                })
+                .unwrap_or(self.speed.clone()),
             acceleration: changes
                 .acceleration
-                .map(|a| MovementParameter::try_from(inline_combine(a,self.acceleration.clone().into())).expect("self is geneteed to be complete") )
+                .map(|a| {
+                    MovementParameter::try_from(inline_combine(a, self.acceleration.clone().into()))
+                        .expect("self is geneteed to be complete")
+                })
                 .unwrap_or(self.acceleration.clone()),
             extrusion_width: changes
                 .extrusion_width
-                .map(|a| MovementParameter::try_from(inline_combine(a,self.extrusion_width.clone().into())).expect("self is geneteed to be complete") )
+                .map(|a| {
+                    MovementParameter::try_from(inline_combine(
+                        a,
+                        self.extrusion_width.clone().into(),
+                    ))
+                    .expect("self is geneteed to be complete")
+                })
                 .unwrap_or(self.extrusion_width.clone()),
-            solid_infill_type: changes.solid_infill_type.unwrap_or(self.solid_infill_type.clone()),
+            solid_infill_type: changes
+                .solid_infill_type
+                .unwrap_or(self.solid_infill_type.clone()),
             partial_infill_type: changes
                 .partial_infill_type
                 .unwrap_or(self.partial_infill_type.clone()),
@@ -471,12 +482,13 @@ impl Settings {
         setting_less_than_zero!(self, minimum_feedrate_print);
         setting_less_than_zero!(self, minimum_retract_distance);
 
-
-        if let Some(exclude_area) = self.bed_exclude_areas.as_ref(){
+        if let Some(exclude_area) = self.bed_exclude_areas.as_ref() {
             //If it fails its likely failing due to the polygon not being complete
             //The first and last points must be the same to be complete
-            if let Some(reason)  = exclude_area.explain_invalidity(){
-                return SettingsValidationResult::Error(SlicerErrors::InvalidBedExcludeArea(format!("{}",reason)));
+            if let Some(reason) = exclude_area.explain_invalidity() {
+                return SettingsValidationResult::Error(SlicerErrors::InvalidBedExcludeArea(
+                    format!("{}", reason),
+                ));
             }
         }
 
@@ -567,8 +579,11 @@ impl Settings {
             }
 
             let r = if let Some(extrusion_width) = pls.extrusion_width.clone() {
-                let combined_extrustion : MovementParameter = MovementParameter::try_from(inline_combine(extrusion_width,self.extrusion_width.clone().into())).expect("self is geneteed to be complete");
-                check_extrusions( &combined_extrustion, self.nozzle_diameter)
+                let combined_extrustion: MovementParameter = MovementParameter::try_from(
+                    inline_combine(extrusion_width, self.extrusion_width.clone().into()),
+                )
+                .expect("self is geneteed to be complete");
+                check_extrusions(&combined_extrustion, self.nozzle_diameter)
             } else {
                 SettingsValidationResult::NoIssue
             };
@@ -577,14 +592,24 @@ impl Settings {
                 SettingsValidationResult::NoIssue => {}
                 _ => return r,
             }
-            let combined_acceleration : MovementParameter = pls.acceleration.clone()
-                .map(|a| MovementParameter::try_from(inline_combine(a,self.acceleration.clone().into())).expect("self is geneteed to be complete"))
+            let combined_acceleration: MovementParameter = pls
+                .acceleration
+                .clone()
+                .map(|a| {
+                    MovementParameter::try_from(inline_combine(a, self.acceleration.clone().into()))
+                        .expect("self is geneteed to be complete")
+                })
                 .unwrap_or(self.acceleration.clone());
 
-            let combined_speed : MovementParameter = pls.speed.clone()
-                .map(|a| MovementParameter::try_from(inline_combine(a,self.speed.clone().into())).expect("self is geneteed to be complete"))
+            let combined_speed: MovementParameter = pls
+                .speed
+                .clone()
+                .map(|a| {
+                    MovementParameter::try_from(inline_combine(a, self.speed.clone().into()))
+                        .expect("self is geneteed to be complete")
+                })
                 .unwrap_or(self.speed.clone());
-                
+
             let r = check_accelerations(
                 &combined_acceleration,
                 &combined_speed,
@@ -774,7 +799,7 @@ impl Default for FanSettings {
 }
 
 /// Support settings
-#[derive(Settings,Serialize, Deserialize, Debug, Clone)]
+#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct SupportSettings {
     /// Angle to start production supports in degrees
     pub max_overhang_angle: f64,
@@ -784,7 +809,7 @@ pub struct SupportSettings {
 }
 
 /// The Settings for Skirt generation
-#[derive(Settings,Serialize, Deserialize, Debug, Clone)]
+#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct SkirtSettings {
     /// the number of layer to generate the skirt
     pub layers: u32,
@@ -794,7 +819,7 @@ pub struct SkirtSettings {
 }
 
 /// The Settings for Skirt generation
-#[derive(Settings,Serialize, Deserialize, Debug, Clone)]
+#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct RetractionWipeSettings {
     /// The speed the retract wipe move
     pub speed: f64,
@@ -884,15 +909,18 @@ pub enum LayerRange {
 
 impl Display for LayerRange {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self{
-            LayerRange::SingleLayer(layer) => write!(f,"SingleLayer({})",layer)?,
-            LayerRange::LayerCountRange { start, end } => write!(f,"LayerCountRange({}<=layer<={})",start,end)?,
-            LayerRange::HeightRange { start, end } => write!(f,"HeightRange({}<=height<={})",start,end)?,
+        match self {
+            LayerRange::SingleLayer(layer) => write!(f, "SingleLayer({})", layer)?,
+            LayerRange::LayerCountRange { start, end } => {
+                write!(f, "LayerCountRange({}<=layer<={})", start, end)?
+            }
+            LayerRange::HeightRange { start, end } => {
+                write!(f, "HeightRange({}<=height<={})", start, end)?
+            }
         }
         Ok(())
     }
 }
-
 
 fn check_extrusions(
     extrusion_width: &MovementParameter,
@@ -1129,7 +1157,6 @@ trait Combine {
 
 ///Controls how to convert settings into a list of strings
 pub trait SettingsPrint {
-
     ///Controls how to convert settings into a list of strings
     fn to_strings(&self) -> Vec<String>;
 }
@@ -1151,21 +1178,22 @@ impl<T> Combine for Option<T> {
 impl Combine for MultiPolygon {
     fn combine(&mut self, other: Self) {
         self.0.combine(other.0);
-
     }
 }
 
-fn inline_combine<T>( mut a: T, b: T) -> T where T: Combine{
+fn inline_combine<T>(mut a: T, b: T) -> T
+where
+    T: Combine,
+{
     a.combine(b);
     a
 }
 
 impl SettingsPrint for MultiPolygon {
     fn to_strings(&self) -> Vec<String> {
-        vec![format!("{:?}",self)]
+        vec![format!("{:?}", self)]
     }
 }
-
 
 impl SettingsPrint for String {
     fn to_strings(&self) -> Vec<String> {
@@ -1173,41 +1201,46 @@ impl SettingsPrint for String {
     }
 }
 
-impl<T> SettingsPrint for Vec<T> where T : SettingsPrint{
+impl<T> SettingsPrint for Vec<T>
+where
+    T: SettingsPrint,
+{
     fn to_strings(&self) -> Vec<String> {
-
         let mut settings = vec![];
-        for s in self{
+        for s in self {
             settings.append(&mut s.to_strings());
         }
         settings
     }
 }
 
-impl<T> SettingsPrint for Option<T> where T : SettingsPrint{
+impl<T> SettingsPrint for Option<T>
+where
+    T: SettingsPrint,
+{
     fn to_strings(&self) -> Vec<String> {
-
         self.iter().flat_map(|x| x.to_strings()).collect()
     }
 }
 
-impl<N,S> SettingsPrint for (N,S) where N: Display ,S : SettingsPrint{
+impl<N, S> SettingsPrint for (N, S)
+where
+    N: Display,
+    S: SettingsPrint,
+{
     fn to_strings(&self) -> Vec<String> {
-
         let mut settings = vec![];
-        let (n,s) = self;
+        let (n, s) = self;
 
-
-        let mut line = format!("{} : [",n);
-        for s in s.to_strings(){
-            line += &format!("{},",s);
+        let mut line = format!("{} : [", n);
+        for s in s.to_strings() {
+            line += &format!("{},", s);
         }
         //remove last comma
         line.pop();
         line += "]";
 
         settings.push(line);
-        
 
         settings
     }

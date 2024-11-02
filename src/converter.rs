@@ -15,7 +15,7 @@ pub fn convert(
 
     //output the settings to the gcode file
 
-    for line in settings.to_strings(){
+    for line in settings.to_strings() {
         writeln!(
             //lending ; to make comment
             write_buf,

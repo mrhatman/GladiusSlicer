@@ -49,9 +49,9 @@ mod optimizer;
 mod plotter;
 mod slice_pass;
 mod slicing;
+mod test;
 mod tower;
 mod utils;
-mod test;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -61,7 +61,10 @@ mod test;
         .args(&["settings_file_path", "settings_json"]),
 ))]
 struct Args {
-    #[arg(required = true,help = "The input files and there translations.\nBy default it takes a list of json strings that represents how the models should be loaded and translated.\nSee simple_input for an alterantive command. ")]
+    #[arg(
+        required = true,
+        help = "The input files and there translations.\nBy default it takes a list of json strings that represents how the models should be loaded and translated.\nSee simple_input for an alterantive command. "
+    )]
     input: Vec<String>,
     #[arg(short = 'o', help = "Sets the output dir")]
     output: Option<String>,
@@ -71,14 +74,17 @@ struct Args {
     settings_file_path: Option<String>,
     #[arg(short = 'S', help = "The contents of a json settings file.")]
     settings_json: Option<String>,
-    #[arg(
-        short = 'm',
-        help = "Use the Message System (useful for interprocess communication)"
-    )]
+    #[arg(short = 'm', help = "Use the Message System (useful for interprocess communication)")]
     message: bool,
-    #[arg( long="print_settings",help = "Print the final combined settings out to Stdout and Terminate. Verbose level 4 will print but continue.")]
+    #[arg(
+        long = "print_settings",
+        help = "Print the final combined settings out to Stdout and Terminate. Verbose level 4 will print but continue."
+    )]
     print_settings: bool,
-    #[arg( long="simple_input",help = "The input should only be a list of files that will be auto translated to the center of the build plate.")]
+    #[arg(
+        long = "simple_input",
+        help = "The input should only be a list of files that will be auto translated to the center of the build plate."
+    )]
     simple_input: bool,
     #[arg(
         short = 'j',
@@ -128,32 +134,23 @@ fn main() {
         send_messages,
     ));
 
-    let settings =  handle_err_or_return(
-        load_settings(
-            args.settings_file_path.as_deref(),
-            &settings_json
-        ),
+    let settings = handle_err_or_return(
+        load_settings(args.settings_file_path.as_deref(), &settings_json),
         send_messages,
     );
-
 
     let models = handle_err_or_return(
-        crate::input::load_models(
-            Some(args.input),
-            &settings,
-            args.simple_input
-        ),
+        crate::input::load_models(Some(args.input), &settings, args.simple_input),
         send_messages,
     );
-    if args.print_settings{
-        for line in gladius_shared::settings::SettingsPrint::to_strings(&settings){
-            println!("{}",line);
+    if args.print_settings {
+        for line in gladius_shared::settings::SettingsPrint::to_strings(&settings) {
+            println!("{}", line);
         }
-        std::process::exit(0);        
-    }
-    else if log::log_enabled!(log::Level::Trace){
-        for line in gladius_shared::settings::SettingsPrint::to_strings(&settings){
-            log::trace!("{}",line);
+        std::process::exit(0);
+    } else if log::log_enabled!(log::Level::Trace) {
+        for line in gladius_shared::settings::SettingsPrint::to_strings(&settings) {
+            log::trace!("{}", line);
         }
     }
 

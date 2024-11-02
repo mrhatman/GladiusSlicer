@@ -148,9 +148,9 @@ pub enum SolidInfillTypes {
 }
 impl Display for SolidInfillTypes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self{
-            SolidInfillTypes::Rectilinear => write!(f,"Rectilinear")?,
-            SolidInfillTypes::RectilinearCustom(a) => write!(f,"Rectilinear({})",a)?,
+        match self {
+            SolidInfillTypes::Rectilinear => write!(f, "Rectilinear")?,
+            SolidInfillTypes::RectilinearCustom(a) => write!(f, "Rectilinear({})", a)?,
         }
         Ok(())
     }
@@ -177,12 +177,12 @@ pub enum PartialInfillTypes {
 
 impl Display for PartialInfillTypes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self{
-            PartialInfillTypes::Linear => write!(f,"Linear")?,
-            PartialInfillTypes::Rectilinear => write!(f,"Rectilinear")?,
-            PartialInfillTypes::Triangle => write!(f,"Triangle")?,
-            PartialInfillTypes::Cubic => write!(f,"Cubic")?,
-            PartialInfillTypes::Lightning => write!(f,"Lightning")?,
+        match self {
+            PartialInfillTypes::Linear => write!(f, "Linear")?,
+            PartialInfillTypes::Rectilinear => write!(f, "Rectilinear")?,
+            PartialInfillTypes::Triangle => write!(f, "Triangle")?,
+            PartialInfillTypes::Cubic => write!(f, "Cubic")?,
+            PartialInfillTypes::Lightning => write!(f, "Lightning")?,
         }
         Ok(())
     }
@@ -205,9 +205,18 @@ pub struct Vertex {
 impl Vertex {
     /// mul with transform in place
     pub fn mul_transform(&mut self, transform: &Transform) {
-        self.x = transform.0[0][0] * self.x + transform.0[0][1] * self.y + transform.0[0][2] * self.z + transform.0[0][3];
-        self.y = transform.0[1][0] * self.x + transform.0[1][1] * self.y + transform.0[1][2] * self.z + transform.0[1][3];
-        self.z = transform.0[2][0] * self.x + transform.0[2][1] * self.y + transform.0[2][2] * self.z + transform.0[2][3];
+        self.x = transform.0[0][0] * self.x
+            + transform.0[0][1] * self.y
+            + transform.0[0][2] * self.z
+            + transform.0[0][3];
+        self.y = transform.0[1][0] * self.x
+            + transform.0[1][1] * self.y
+            + transform.0[1][2] * self.z
+            + transform.0[1][3];
+        self.z = transform.0[2][0] * self.x
+            + transform.0[2][1] * self.y
+            + transform.0[2][2] * self.z
+            + transform.0[2][3];
     }
 }
 
