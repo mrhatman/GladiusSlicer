@@ -25,14 +25,13 @@
     },
     "bed_exclude_areas": {
       "description": "Areas of the bed that can't have parts on it",
-      "anyOf": [
-        {
-          "$ref": "#/$defs/MultiPolygon"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/$defs/Polygon"
+      }
     },
     "before_layer_change_instructions": {
       "description": "The instructions to append before layer changes",
@@ -603,12 +602,6 @@
         "bridge",
         "support"
       ]
-    },
-    "MultiPolygon": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/Polygon"
-      }
     },
     "PartialInfillTypes": {
       "description": "Types of partial infill",
