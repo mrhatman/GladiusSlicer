@@ -25,13 +25,14 @@
     },
     "bed_exclude_areas": {
       "description": "Areas of the bed that can't have parts on it",
-      "type": [
-        "array",
-        "null"
-      ],
-      "items": {
-        "$ref": "#/$defs/Polygon"
-      }
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MultiPolygon"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "before_layer_change_instructions": {
       "description": "The instructions to append before layer changes",
@@ -362,7 +363,21 @@
   ],
   "$defs": {
     "Coord": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "format": "double"
+        },
+        "y": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ]
     },
     "FanSettings": {
       "description": "Settings for the fans",
@@ -588,6 +603,12 @@
         "bridge",
         "support"
       ]
+    },
+    "MultiPolygon": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Polygon"
+      }
     },
     "PartialInfillTypes": {
       "description": "Types of partial infill",
