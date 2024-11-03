@@ -24,6 +24,11 @@ impl StateContext{
         self.last_time = time;
         elapsed
     }
+
+    pub fn get_total_elapsed_time(&self) -> Duration{
+        let elapsed = SystemTime::now().duration_since(self.start_time).expect("Time can only go forward");
+        elapsed
+    }
 }
 
 pub enum DisplayType{

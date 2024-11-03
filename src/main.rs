@@ -273,6 +273,12 @@ fn main() {
         }
 
     };
+
+    if let DisplayType::StdOut = state_context.display_type {
+        info!("Total slice time {} msec", state_context.get_total_elapsed_time().as_millis());
+    }
+
+    
 }
 
 fn generate_moves(
