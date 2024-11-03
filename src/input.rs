@@ -131,13 +131,13 @@ pub fn load_settings(
             filepath: filepath.unwrap_or("Command Line Argument").to_string(),
         })?;
     let current_path = std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
-    let path= if let Some(fp) = filepath {
+    let path = if let Some(fp) = filepath {
         let mut path = PathBuf::from_str(&fp).map_err(|_| SlicerErrors::SettingsFileNotFound {
             filepath: fp.to_string(),
         })?;
         path.pop();
         path
-    }else{
+    } else {
         current_path
     };
 

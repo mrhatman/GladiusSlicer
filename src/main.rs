@@ -125,14 +125,16 @@ fn main() {
 
     display_state_update("Loading Inputs", send_messages);
 
-    let settings_json = args.settings_json.unwrap_or_else(|| handle_err_or_return(
-        input::load_settings_json(
-            args.settings_file_path
-                .as_deref()
-                .expect("CLAP should handle requring a settings option to be Some"),
-        ),
-        send_messages,
-    ));
+    let settings_json = args.settings_json.unwrap_or_else(|| {
+        handle_err_or_return(
+            input::load_settings_json(
+                args.settings_file_path
+                    .as_deref()
+                    .expect("CLAP should handle requring a settings option to be Some"),
+            ),
+            send_messages,
+        )
+    });
 
     let settings = handle_err_or_return(
         load_settings(args.settings_file_path.as_deref(), &settings_json),
