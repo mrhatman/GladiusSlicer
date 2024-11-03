@@ -155,7 +155,7 @@ pub fn state_optomizer(cmds: &mut Vec<Command>) {
     }
 }
 
-pub fn arc_optomizer(cmds: &mut Vec<Command>) {
+pub fn arc_optomizer(cmds: &mut [Command]) {
     let mut ranges = vec![];
 
     for (wt, group) in &cmds.iter().enumerate().chunk_by(|cmd| {
@@ -234,15 +234,18 @@ pub fn arc_optomizer(cmds: &mut Vec<Command>) {
         }
     }
 
-    for (center, range, thickness, width) in ranges {
-        let Command::MoveAndExtrude { start, .. } = cmds[*range.start()] else {
-            unreachable!()
+    for (center, mut range, thickness, width) in ranges {
+        // todo fix
+        let start = match cmds[*range.start()] {
+            Command::MoveAndExtrude { start, .. } => start,
+            _ => continue
         };
-        let Command::MoveAndExtrude { end, .. } = cmds[*range.end()] else {
-            unreachable!()
+        let end = match cmds[*range.end()] {
+            Command::MoveAndExtrude { end, .. } => end,
+            _ => continue
         };
 
-        for i in range.clone() {
+        for i in range.by_ref() {
             cmds[i] = Command::NoAction;
         }
 
@@ -406,8 +409,7 @@ mod tests {
             width,
             thickness,
             ..
-        } = commands[0]
-        {
+        } = commands[0] {
             assert_eq!(start, Coord { x: 1.0, y: 0.0 });
             assert_eq!(center, Coord { x: 0.0, y: 0.0 });
             assert_eq!(width, 0.4);
@@ -450,8 +452,7 @@ mod tests {
             width,
             thickness,
             ..
-        } = commands[1]
-        {
+        } = commands[1] {
             assert_eq!(start, Coord { x: 1.0, y: 0.0 });
             assert_eq!(center, Coord { x: 0.0, y: 0.0 });
             assert_eq!(width, 0.4);

@@ -140,7 +140,7 @@ impl TowerRing {
     }
 
     /// Extend the elements of **first** with all but the first element of **second**
-    fn join_rings_in_place(first: &mut TowerRing, second: TowerRing) {
+    fn join_rings_in_place(first: &mut TowerRing, second: &TowerRing) {
         first.elements.extend_from_slice(&second.elements[1..]);
     }
 
@@ -378,7 +378,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
                 let first_r = fragments
                     .get_mut(first_pos)
                     .expect("Index is validated by loop");
-                TowerRing::join_rings_in_place(first_r, second_r);
+                TowerRing::join_rings_in_place(first_r, &second_r);
 
                 // dont progress as the swap makes this position valid again
             } else {
@@ -489,7 +489,7 @@ mod tests {
     use super::*;
 
     fn join_rings(mut first: TowerRing, second: TowerRing) -> TowerRing {
-        TowerRing::join_rings_in_place(&mut first, second);
+        TowerRing::join_rings_in_place(&mut first, &second);
 
         first
     }

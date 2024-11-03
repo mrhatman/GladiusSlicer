@@ -4,6 +4,8 @@ version = "0.4.1"
 authors = ["mrhatman <lucasince@gmail.com>"]
 edition = "2021"
 
+[profile.release]
+lto = true
 
 [workspace]
 members = [ 

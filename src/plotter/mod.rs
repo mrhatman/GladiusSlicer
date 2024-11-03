@@ -119,9 +119,8 @@ impl Plotter for Slice {
         self.remaining_area = MultiPolygon(vec![]);
     }
 
+    /// For each area not in this slice that is in the other polygon, fill solid
     fn fill_solid_subtracted_area(&mut self, other: &MultiPolygon<f64>, layer_count: usize) {
-        // For each area not in this slice that is in the other polygon, fill solid
-
         let solid_area = self
             .remaining_area
             .difference_with(other)
