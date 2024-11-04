@@ -1,6 +1,8 @@
 use crate::SlicerErrors;
 use gladius_shared::types::{IndexedTriangle, Vertex};
+use ordered_float::OrderedFloat;
 use rayon::prelude::*;
+use std::collections::BinaryHeap;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -40,7 +42,7 @@ fn lerp(a: f64, b: f64, f: f64) -> f64 {
 /// A set of triangles and their associated vertices
 pub struct TriangleTower {
     vertices: Vec<Vertex>,
-    tower_vertices: Vec<TowerVertex>,
+    tower_vertices: BinaryHeap<TowerVertex>,
 }
 
 impl TriangleTower {
@@ -78,27 +80,18 @@ impl TriangleTower {
         // for each triangle event, add it to the lowest vertex and
         // create a list of all vertices and there above edges
 
-        let res_tower_vertices: Vec<TowerVertex> = future_tower_vert
-            .into_par_iter()
+        let mut tower_vertices: BinaryHeap<TowerVertex> = future_tower_vert
+            .into_iter()
             .enumerate()
             .map(|(index, events)| {
                 let fragments = join_triangle_event(&events, index);
                 TowerVertex {
                     start_index: index,
                     next_ring_fragments: fragments,
+                    start_vert: vertices.get(index).expect("validated above").clone(),
                 }
             })
             .collect();
-
-        // propagate errors
-        let mut tower_vertices = res_tower_vertices;
-
-        // sort lowest to highest
-        tower_vertices.sort_by(|a, b| {
-            vertices[a.start_index]
-                .partial_cmp(&vertices[b.start_index])
-                .expect("STL ERROR: No Points should have NAN values")
-        });
 
         Ok(Self {
             vertices,
@@ -106,19 +99,41 @@ impl TriangleTower {
         })
     }
 
-    pub fn get_height_of_vertex(&self, index: usize) -> f64 {
-        if index >= self.tower_vertices.len() {
-            f64::INFINITY
-        } else {
-            self.vertices[self.tower_vertices[index].start_index].z
-        }
+    pub fn get_height_of_next_vertex(&self) -> f64 {
+        self.tower_vertices
+            .peek()
+            .map(|vert: &TowerVertex| vert.start_vert.z)
+            .unwrap_or(f64::INFINITY)
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 struct TowerVertex {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
+    pub start_vert: Vertex,
+}
+
+impl PartialOrd for TowerVertex {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for TowerVertex {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.start_vert
+            .partial_cmp(&other.start_vert)
+            .unwrap()
+            .reverse()
+    }
+}
+
+impl Eq for TowerVertex {}
+
+impl PartialEq for TowerVertex {
+    fn eq(&self, other: &Self) -> bool {
+        self.start_vert.eq(&other.start_vert)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -441,16 +456,16 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
     }
 }
 
-pub struct TriangleTowerIterator<'s> {
-    tower: &'s TriangleTower,
+pub struct TriangleTowerIterator {
+    tower: TriangleTower,
     tower_vert_index: usize,
     z_height: f64,
     active_rings: Vec<TowerRing>,
 }
 
-impl<'s> TriangleTowerIterator<'s> {
-    pub fn new(tower: &'s TriangleTower) -> Self {
-        let z_height = tower.get_height_of_vertex(0);
+impl TriangleTowerIterator {
+    pub fn new(tower: TriangleTower) -> Self {
+        let z_height = tower.get_height_of_next_vertex();
         Self {
             z_height,
             tower,
@@ -460,10 +475,8 @@ impl<'s> TriangleTowerIterator<'s> {
     }
 
     pub fn advance_to_height(&mut self, z: f64) -> Result<(), SlicerErrors> {
-        while self.tower.get_height_of_vertex(self.tower_vert_index) < z
-            && self.tower.tower_vertices.len() + 1 != self.tower_vert_index
-        {
-            let pop_tower_vert = &self.tower.tower_vertices[self.tower_vert_index];
+        while self.tower.get_height_of_next_vertex() < z && !self.tower.tower_vertices.is_empty() {
+            let pop_tower_vert = self.tower.tower_vertices.pop().expect("Validated above");
 
             // Create Frags from rings by removing current edges
             self.active_rings = self
@@ -476,8 +489,7 @@ impl<'s> TriangleTowerIterator<'s> {
                 })
                 .collect();
 
-            self.active_rings
-                .extend(pop_tower_vert.next_ring_fragments.clone());
+            self.active_rings.extend(pop_tower_vert.next_ring_fragments);
 
             join_fragments(&mut self.active_rings);
 
@@ -521,7 +533,9 @@ impl<'s> TriangleTowerIterator<'s> {
                     .collect();
 
                 // complete loop
-                points.push(points[0].clone());
+                if points.first() != points.last() {
+                    points.push(points[0].clone());
+                }
 
                 points
             })

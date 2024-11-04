@@ -170,7 +170,7 @@ fn main() {
 
     state_update("Slicing", &mut state_context);
 
-    let objects = handle_err_or_return(slice(&towers, &settings), &state_context);
+    let objects = handle_err_or_return(slice(towers, &settings), &state_context);
 
     state_update("Generating Moves", &mut state_context);
 

@@ -177,7 +177,7 @@ impl SlicePass for TopLayerPass {
 
         for q in 1..slice.len() {
             let (first, second) = slice.split_at_mut(1);
-            first[0].fill_solid_top_layer(&second[0].main_polygon, q-1);
+            first[0].fill_solid_top_layer(&second[0].main_polygon, q - 1);
             slice = second;
         }
 

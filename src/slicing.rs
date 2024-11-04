@@ -2,13 +2,16 @@ use crate::{
     Coord, Object, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator, Vertex,
 };
 use rayon::{
-    iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator},
+    iter::{
+        IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelBridge,
+        ParallelIterator,
+    },
     slice::ParallelSliceMut,
 };
 
-pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object>, SlicerErrors> {
+pub fn slice(towers: Vec<TriangleTower>, settings: &Settings) -> Result<Vec<Object>, SlicerErrors> {
     towers
-        .par_iter()
+        .into_par_iter()
         .map(|tower| {
             let mut tower_iter = TriangleTowerIterator::new(tower);
 
@@ -17,12 +20,7 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
             let slices: Result<Vec<Slice>, SlicerErrors> = (0..u32::MAX)
                 .map(|layer_count| {
                     // Advance to the correct height
-                    let layer_height = settings
-                        .get_layer_settings(
-                            layer_count as u32, // I doute your layer_count will go past 4,294,967,295
-                            layer,
-                        )
-                        .layer_height;
+                    let layer_height = settings.get_layer_settings(layer_count, layer).layer_height;
 
                     let bottom_height = layer;
                     layer += layer_height / 2.0;
