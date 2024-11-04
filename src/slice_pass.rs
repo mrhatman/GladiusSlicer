@@ -7,6 +7,7 @@ use geo::prelude::*;
 use geo::MultiPolygon;
 use gladius_shared::error::SlicerErrors;
 use gladius_shared::types::PartialInfillTypes;
+use itertools::Itertools;
 use rayon::prelude::*;
 
 pub trait ObjectPass {
@@ -150,11 +151,15 @@ impl SlicePass for BridgingPass {
         state_context: &mut StateContext,
     ) -> Result<(), SlicerErrors> {
         state_update("Generating Moves: Bridging", state_context);
-        (1..slices.len()).for_each(|q| {
-            let below = slices[q - 1].main_polygon.clone();
 
-            slices[q].fill_solid_bridge_area(&below);
-        });
+        let mut slice = slices.as_mut_slice();
+
+        for _ in 1..slice.len() {
+            let (first, second) = slice.split_at_mut(1);
+            second[0].fill_solid_bridge_area(&first[0].main_polygon);
+            slice = second;
+        }
+
         Ok(())
     }
 }
@@ -167,11 +172,15 @@ impl SlicePass for TopLayerPass {
         state_context: &mut StateContext,
     ) -> Result<(), SlicerErrors> {
         state_update("Generating Moves: Top Layer", state_context);
-        (0..slices.len() - 1).for_each(|q| {
-            let above = slices[q + 1].main_polygon.clone();
 
-            slices[q].fill_solid_top_layer(&above, q);
-        });
+        let mut slice = slices.as_mut_slice();
+
+        for q in 1..slice.len() {
+            let (first, second) = slice.split_at_mut(1);
+            first[0].fill_solid_top_layer(&second[0].main_polygon, q-1);
+            slice = second;
+        }
+
         Ok(())
     }
 }
