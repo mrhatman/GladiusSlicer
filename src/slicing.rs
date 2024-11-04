@@ -64,8 +64,11 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
                     })
                 })
                 .collect();
+            let mut s = slices?;
 
-            Ok(Object { layers: slices? })
+            s.sort_by(|a,b|  a.get_height().partial_cmp(&b.get_height()).unwrap());
+
+            Ok(Object { layers: s })
         })
         .collect()
 }
