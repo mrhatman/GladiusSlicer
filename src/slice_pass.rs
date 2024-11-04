@@ -187,19 +187,17 @@ impl SlicePass for TopAndBottomLayersPass {
         let top_layers = settings.top_layers;
         let bottom_layers = settings.bottom_layers;
 
-        let slice_count = slices.len();
-
         state_update("Generating Moves: Above and below support", state_context);
 
         let intersections: Vec<Option<MultiPolygon>> = slices
             .par_iter()
             .enumerate()
-            .map(|(q, slice)| {
-                if ((bottom_layers..slices.len() - top_layers).contains(&q)) {
+            .map(|(q, _slice)| {
+                if (bottom_layers..slices.len() - top_layers).contains(&q) {
                     //calculate the intersection of the bottom_layers amount of layers below
                     let below = if bottom_layers != 0 {
                         Some(
-                            slices[(q - bottom_layers + 1)..q].into_iter().fold(
+                            slices[(q - bottom_layers + 1)..q].iter().fold(
                                 slices
                                     .get(q - bottom_layers)
                                     .expect("Bounds Checked above")
