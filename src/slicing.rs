@@ -1,9 +1,10 @@
 use crate::{
     Coord, Object, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator, Vertex,
 };
-use rayon::{iter::{
-    IndexedParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator,
-}, slice::ParallelSliceMut};
+use rayon::{
+    iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator},
+    slice::ParallelSliceMut,
+};
 
 pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object>, SlicerErrors> {
     towers
@@ -67,7 +68,11 @@ pub fn slice(towers: &[TriangleTower], settings: &Settings) -> Result<Vec<Object
             let mut s = slices?;
 
             //sort as parbridge isn't garenteed to return in order
-            s.par_sort_by(|a,b|  a.top_height.partial_cmp(&b.top_height).expect("No NAN are in height"));
+            s.par_sort_by(|a, b| {
+                a.top_height
+                    .partial_cmp(&b.top_height)
+                    .expect("No NAN are in height")
+            });
 
             Ok(Object { layers: s })
         })

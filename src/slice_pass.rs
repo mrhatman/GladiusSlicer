@@ -187,67 +187,79 @@ impl SlicePass for TopAndBottomLayersPass {
         let top_layers = settings.top_layers;
         let bottom_layers = settings.bottom_layers;
 
+        let slice_count = slices.len();
+
         state_update("Generating Moves: Above and below support", state_context);
 
-        // Make sure at least 1 layer will not be solid
-        if slices.len() > bottom_layers + top_layers {
-            (bottom_layers..(slices.len() - top_layers)).for_each(|q| {
-                let below = if bottom_layers != 0 {
-                    Some(
-                        slices[(q - bottom_layers + 1)..q].into_iter().fold(
-                            slices
-                                .get(q - bottom_layers)
-                                .expect("Bounds Checked above")
-                                .main_polygon
-                                .clone(),
-                            |a, b| a.intersection_with(&b.main_polygon),
-                        ),
-                    )
-                } else {
-                    None
-                };
-                let above = if top_layers != 0 {
-                    Some(
-                        slices[(q + 1)..=(q + top_layers)]
-                            .iter()
-                            .map(|m| m.main_polygon.clone())
-                            .fold(
+        let intersections: Vec<Option<MultiPolygon>> = slices
+            .par_iter()
+            .enumerate()
+            .map(|(q, slice)| {
+                if ((bottom_layers..slices.len() - top_layers).contains(&q)) {
+                    //calculate the intersection of the bottom_layers amount of layers below
+                    let below = if bottom_layers != 0 {
+                        Some(
+                            slices[(q - bottom_layers + 1)..q].into_iter().fold(
                                 slices
-                                    .get(q + 1)
+                                    .get(q - bottom_layers)
                                     .expect("Bounds Checked above")
                                     .main_polygon
                                     .clone(),
-                                |a, b| a.intersection_with(&b),
+                                |a, b| a.intersection_with(&b.main_polygon),
                             ),
-                    )
+                        )
+                    } else {
+                        None
+                    };
+                    //calculate the intersection of the top_layers amount of layers above
+                    let above = if top_layers != 0 {
+                        Some(
+                            slices[(q + 1)..=(q + top_layers)]
+                                .iter()
+                                .map(|m| m.main_polygon.clone())
+                                .fold(
+                                    slices
+                                        .get(q + 1)
+                                        .expect("Bounds Checked above")
+                                        .main_polygon
+                                        .clone(),
+                                    |a, b| a.intersection_with(&b),
+                                ),
+                        )
+                    } else {
+                        None
+                    };
+
+                    //merge top and bottom if Nessicary
+                    match (above, below) {
+                        (None, None) => {
+                            //return empty multipolygon
+                            // as a None value would be filled completely
+                            Some(MultiPolygon::new(Vec::new()))
+                        }
+                        (None, Some(poly)) | (Some(poly), None) => Some(poly),
+                        (Some(polya), Some(polyb)) => Some(polya.intersection_with(&polyb)),
+                    }
                 } else {
                     None
-                };
-                if let Some(intersection) = match (above, below) {
-                    (None, None) => None,
-                    (None, Some(poly)) | (Some(poly), None) => Some(poly),
-                    (Some(polya), Some(polyb)) => Some(polya.intersection_with(&polyb)),
-                } {
-                    slices
-                        .get_mut(q)
-                        .expect("Bounds Checked above")
-                        .fill_solid_subtracted_area(&intersection, q);
                 }
-            });
-        }
-
-        let slice_count = slices.len();
+            })
+            .collect();
 
         slices
             .par_iter_mut()
+            .zip(intersections)
             .enumerate()
-            .filter(|(layer_num, _)| {
-                *layer_num < settings.bottom_layers
-                    || settings.top_layers + *layer_num + 1 > slice_count
-            })
-            .for_each(|(layer_num, slice)| {
-                slice.fill_remaining_area(true, layer_num);
+            .for_each(|(layer, (slice, option_poly))| {
+                if let Some(poly) = option_poly {
+                    // fill the areas the are not part of the union of above and below layers
+                    slice.fill_solid_subtracted_area(&poly, layer);
+                } else {
+                    //Completely fill all areas at top and bottom
+                    slice.fill_remaining_area(true, layer);
+                }
             });
+
         Ok(())
     }
 }
