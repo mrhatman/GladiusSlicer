@@ -27,8 +27,8 @@ use crate::plotter::polygon_operations::PolygonOperations;
 use crate::slice_pass::*;
 use crate::slicing::slice;
 use crate::utils::{
-    state_update, send_error_message, send_warning_message, show_error_message,
-    show_warning_message,
+    send_error_message, send_warning_message, show_error_message, show_warning_message,
+    state_update,
 };
 use gladius_shared::error::SlicerErrors;
 use gladius_shared::messages::Message;
@@ -105,14 +105,11 @@ fn main() {
             .expect("Only call to build global");
     }
 
-    let mut state_context =  StateContext::new(
-        if args.message{
-            DisplayType::Message
-        }
-        else{
-            DisplayType::StdOut
-        }
-    );
+    let mut state_context = StateContext::new(if args.message {
+        DisplayType::Message
+    } else {
+        DisplayType::StdOut
+    });
 
     if !args.message {
         // Vary the output based on how many times the user used the "verbose" flag
@@ -206,7 +203,7 @@ fn main() {
             let message = Message::CalculatedValues(cv);
             bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
                 .expect("Write Limit should not be hit");
-        },
+        }
         DisplayType::StdOut => {
             let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
 
@@ -228,7 +225,7 @@ fn main() {
                 (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
                     * settings.filament.cost
             );
-        },
+        }
     }
 
     state_update("Outputting G-code", &mut state_context);
@@ -251,34 +248,34 @@ fn main() {
             &state_context,
         );
     } else {
-
-        match state_context.display_type{
+        match state_context.display_type {
             DisplayType::Message => {
                 // Output as message
                 let mut gcode: Vec<u8> = Vec::new();
                 handle_err_or_return(convert(&moves, &settings, &mut gcode), &state_context);
                 let message = Message::GCode(
-                    String::from_utf8(gcode).expect("All write occur from write macro so should be utf8"),
+                    String::from_utf8(gcode)
+                        .expect("All write occur from write macro so should be utf8"),
                 );
                 bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
                     .expect("Write Limit should not be hit");
-            },
+            }
             DisplayType::StdOut => {
                 // Output to stdout
                 let stdout = std::io::stdout();
                 let mut stdio_lock = stdout.lock();
                 debug!("Converting {} Moves", moves.len());
                 handle_err_or_return(convert(&moves, &settings, &mut stdio_lock), &state_context);
-            },
+            }
         }
-
     };
 
     if let DisplayType::StdOut = state_context.display_type {
-        info!("Total slice time {} msec", state_context.get_total_elapsed_time().as_millis());
+        info!(
+            "Total slice time {} msec",
+            state_context.get_total_elapsed_time().as_millis()
+        );
     }
-
-    
 }
 
 fn generate_moves(
@@ -338,8 +335,7 @@ fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, state_context: &StateCo
     match res {
         Ok(data) => data,
         Err(slicer_error) => {
-
-            match state_context.display_type{
+            match state_context.display_type {
                 DisplayType::Message => send_error_message(slicer_error),
                 DisplayType::StdOut => show_error_message(slicer_error),
             }
@@ -352,14 +348,12 @@ fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, state_context: &StateCo
 fn handle_setting_validation(res: SettingsValidationResult, state_context: &StateContext) {
     match res {
         SettingsValidationResult::NoIssue => {}
-        SettingsValidationResult::Warning(slicer_warning) => {
-            match state_context.display_type{
-                DisplayType::Message => send_warning_message(slicer_warning),
-                DisplayType::StdOut => show_warning_message(slicer_warning),
-            }
-        }
+        SettingsValidationResult::Warning(slicer_warning) => match state_context.display_type {
+            DisplayType::Message => send_warning_message(slicer_warning),
+            DisplayType::StdOut => show_warning_message(slicer_warning),
+        },
         SettingsValidationResult::Error(slicer_error) => {
-            match state_context.display_type{
+            match state_context.display_type {
                 DisplayType::Message => send_error_message(slicer_error),
                 DisplayType::StdOut => show_error_message(slicer_error),
             }

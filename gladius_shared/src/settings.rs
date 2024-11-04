@@ -9,7 +9,7 @@ use crate::warning::SlicerWarnings;
 use geo::{Contains, LinesIter, MultiPolygon};
 use geo_validity_check::Valid;
 use gladius_proc_macros::Settings;
-use log::info;
+use log::{info, trace};
 use nalgebra::Point2;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -854,12 +854,12 @@ impl PartialSettingsFile {
 
         //set the directory of the current directory
         std::env::set_current_dir(&path).expect("Path checked before");
-        info!("Setting path to {:?}", path);
+        trace!("Setting path to {:?}", path);
 
         self.combine_with_other_files()?;
 
         // reset path
-        info!("Setting path to {:?}", current_path);
+        trace!("Setting path to {:?}", current_path);
         std::env::set_current_dir(current_path).expect("Path checked before");
 
         Settings::try_from(self.partial_settings).map_err(|err| {
@@ -891,21 +891,21 @@ impl PartialSettingsFile {
                 PathBuf::from_str(file).map_err(|_| SlicerErrors::SettingsFileNotFound {
                     filepath: file.to_string(),
                 })?;
-            info!("Setting path to {:?}", path);
+            trace!("Setting path to {:?}", path);
             path.pop();
 
             let current_path =
                 std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
             //set the directory of the current directory
             if path.exists() {
-                info!("Setting path to {:?}", path);
+                trace!("Setting path to {:?}", path);
                 std::env::set_current_dir(&path).expect("Path checked before");
             }
 
             ps.combine_with_other_files()?;
 
             // reset path
-            info!("Setting path to {:?}", current_path);
+            trace!("Setting path to {:?}", current_path);
             std::env::set_current_dir(current_path).expect("Path checked before");
 
             self.partial_settings.combine(ps.partial_settings);

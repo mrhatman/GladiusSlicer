@@ -16,7 +16,7 @@ pub trait ObjectPass {
 pub struct BrimPass {}
 
 impl ObjectPass for BrimPass {
-    fn pass(objects: &mut Vec<Object>, settings: &Settings, state_context: &mut StateContext){
+    fn pass(objects: &mut Vec<Object>, settings: &Settings, state_context: &mut StateContext) {
         if let Some(width) = &settings.brim_width {
             state_update("Generating Moves: Brim", state_context);
             // Add to first object
@@ -187,11 +187,11 @@ impl SlicePass for TopAndBottomLayersPass {
         let top_layers = settings.top_layers;
         let bottom_layers = settings.bottom_layers;
 
+        state_update("Generating Moves: Above and below support", state_context);
+
         // Make sure at least 1 layer will not be solid
         if slices.len() > bottom_layers + top_layers {
-            state_update("Generating Moves: Above and below support", state_context);
-
-            (bottom_layers..slices.len() - top_layers).for_each(|q| {
+            (bottom_layers..(slices.len() - top_layers)).for_each(|q| {
                 let below = if bottom_layers != 0 {
                     Some(
                         slices[(q - bottom_layers + 1)..q].into_iter().fold(
@@ -275,7 +275,7 @@ impl SlicePass for FillAreaPass {
     fn pass(
         slices: &mut Vec<Slice>,
         _settings: &Settings,
-        state_context: &mut StateContext
+        state_context: &mut StateContext,
     ) -> Result<(), SlicerErrors> {
         state_update("Generating Moves: Fill Areas", state_context);
 
