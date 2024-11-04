@@ -121,7 +121,7 @@ struct TowerVertex {
     pub start_index: usize,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct TowerRing {
     elements: Vec<TowerRingElement>,
 }
@@ -183,6 +183,18 @@ impl Display for TowerRing {
     }
 }
 
+impl Ord for TowerRing {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.elements.first().cmp(&other.elements.first())
+    }
+}
+
+impl PartialOrd for TowerRing {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 #[derive(Clone, Debug, Eq)]
 enum TowerRingElement {
     Face {
@@ -204,6 +216,51 @@ impl Display for TowerRingElement {
                 write!(f, "E{end_index} ")
             }
         }
+    }
+}
+
+impl Ord for TowerRingElement {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match (self, other) {
+            (
+                TowerRingElement::Face {
+                    triangle_index: s_triangle_index,
+                },
+                TowerRingElement::Face {
+                    triangle_index: o_triangle_index,
+                },
+            ) => s_triangle_index.cmp(o_triangle_index),
+            (
+                TowerRingElement::Face { triangle_index },
+                TowerRingElement::Edge {
+                    start_index,
+                    end_index,
+                },
+            ) => std::cmp::Ordering::Greater,
+            (
+                TowerRingElement::Edge {
+                    start_index,
+                    end_index,
+                },
+                TowerRingElement::Face { triangle_index },
+            ) => std::cmp::Ordering::Less,
+            (
+                TowerRingElement::Edge {
+                    start_index: ssi,
+                    end_index: sei,
+                },
+                TowerRingElement::Edge {
+                    start_index: osi,
+                    end_index: oei,
+                },
+            ) => ssi.cmp(osi).then(sei.cmp(oei)),
+        }
+    }
+}
+
+impl PartialOrd for TowerRingElement {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -335,46 +392,51 @@ fn join_triangle_event(events: &[TriangleEvent], starting_point: usize) -> Vec<T
     element_list
 }
 
+// Join fragmented rings together to for new rings
+// A ring can be joined if its last element matches another rings first element
 fn join_fragments(fragments: &mut Vec<TowerRing>) {
-    /*
+    //early return for empty fragments
+    if fragments.len() == 0 {
+        return;
+    }
 
-        for frag in &*fragments{
-            println!("fragment {}",frag);
-        }
-    */
-
-    for first_pos in 0..fragments.len() {
-        let mut second_pos = first_pos + 1;
-        while second_pos < fragments.len() {
-            let swap;
-            let res = {
-                let first = fragments
-                    .get(first_pos)
-                    .expect("Index is validated by loop");
-                let second = fragments
-                    .get(second_pos)
-                    .expect("Index is validated by loop");
-
-                swap = second.elements.last() == first.elements.first();
-                first.elements.last() == second.elements.first() || swap
-            };
-            if res {
-                if swap {
-                    fragments.swap(second_pos, first_pos);
+    //Sort elements for binary search
+    // sorted by the first element in the tower
+    fragments.sort();
+    let mut first_pos = fragments.len() - 1;
+    while first_pos > 0 {
+        //binary search for a matching first element to the current pos last element
+        if let Ok(index) = fragments.binary_search_by_key(
+            &fragments[first_pos]
+                .elements
+                .last()
+                .expect("Tower rings must contain elements "),
+            |a| {
+                a.elements
+                    .first()
+                    .expect("Tower rings must contain elements ")
+            },
+        ) {
+            //Test if this is a complete ring. ie the rings first element and last are indentical
+            if index != first_pos {
+                // if the removed element is less that the current element the currenly element will be moved by the remove command
+                if index < first_pos {
+                    first_pos -= 1;
                 }
-                let second_r = fragments.swap_remove(second_pos);
+
+                //remove the ring and join to the current ring
+                let removed = fragments.remove(index);
                 let first_r = fragments
                     .get_mut(first_pos)
-                    .expect("Index is validated by loop");
-                TowerRing::join_rings_in_place(first_r, second_r);
-
-                // dont progress as the swap makes this position valid again
+                    .expect("Index is validated by loop ");
+                TowerRing::join_rings_in_place(first_r, removed);
             } else {
-                second_pos += 1;
+                // skip already complete elements
+                first_pos -= 1;
             }
-            if swap {
-                second_pos = first_pos + 1;
-            }
+        } else {
+            //if no match is found, move to next element
+            first_pos -= 1;
         }
     }
 }
