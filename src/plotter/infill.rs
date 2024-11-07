@@ -15,7 +15,7 @@ pub fn linear_fill_polygon(
 ) -> Vec<MoveChain> {
     let rotate_poly = poly.rotate_around_point(angle, Point(Coord::zero()));
 
-    let mut new_moves: Vec<MoveChain> = rotate_poly
+    let new_moves: Vec<MoveChain> = rotate_poly
         .offset_from(
             ((-settings.extrusion_width.interior_inner_perimeter / 2.0)
                 * (1.0 - settings.infill_perimeter_overlap_percentage))
@@ -33,11 +33,11 @@ pub fn linear_fill_polygon(
                 0.0,
             )
         })
+        .map(|mut chain| {
+            chain.rotate(-angle.to_radians());
+            chain
+        })
         .collect();
-
-    for chain in &mut new_moves {
-        chain.rotate(-angle.to_radians());
-    }
 
     new_moves
 }
@@ -79,15 +79,15 @@ pub fn support_linear_fill_polygon(
 ) -> Vec<MoveChain> {
     let rotate_poly = poly.rotate_around_point(angle, Point(Coord::zero()));
 
-    let mut new_moves: Vec<MoveChain> = rotate_poly
+    let new_moves: Vec<MoveChain> = rotate_poly
         .offset_from(-settings.extrusion_width.interior_surface_perimeter / 2.0)
         .iter()
         .flat_map(|polygon| spaced_fill_polygon(polygon, settings, &fill_type, spacing, offset))
+        .map(|mut chain| {
+            chain.rotate(-angle.to_radians());
+            chain
+        })
         .collect();
-
-    for chain in &mut new_moves {
-        chain.rotate(-angle.to_radians());
-    }
 
     new_moves
 }
@@ -288,7 +288,7 @@ pub fn spaced_fill_polygon(
                             },
                             width: settings
                                 .extrusion_width
-                                .get_value_for_movement_type(&fill_type),
+                                .get_value_for_movement_type(fill_type),
                         });
 
                         y = Some(point.y);
@@ -309,7 +309,7 @@ pub fn spaced_fill_polygon(
                         move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
-                            .get_value_for_movement_type(&fill_type),
+                            .get_value_for_movement_type(fill_type),
                     });
 
                     moves.push(Move {
@@ -320,7 +320,7 @@ pub fn spaced_fill_polygon(
                         move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
-                            .get_value_for_movement_type(&fill_type),
+                            .get_value_for_movement_type(fill_type),
                     });
                 } else {
                     moves.push(Move {
@@ -331,7 +331,7 @@ pub fn spaced_fill_polygon(
                         move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
-                            .get_value_for_movement_type(&fill_type),
+                            .get_value_for_movement_type(fill_type),
                     });
 
                     moves.push(Move {
@@ -342,7 +342,7 @@ pub fn spaced_fill_polygon(
                         move_type: fill_type.clone(),
                         width: settings
                             .extrusion_width
-                            .get_value_for_movement_type(&fill_type),
+                            .get_value_for_movement_type(fill_type),
                     });
                 }
 
@@ -357,6 +357,4 @@ pub fn spaced_fill_polygon(
             })
         })
         .collect::<Vec<_>>()
-        .into_iter()
-        .collect()
 }

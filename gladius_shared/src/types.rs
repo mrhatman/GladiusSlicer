@@ -8,6 +8,8 @@ use geo::{
 };
 use itertools::Itertools;
 use nalgebra::Point3;
+#[cfg(feature = "json_schema_gen")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -63,8 +65,8 @@ impl Slice {
             remaining_area: MultiPolygon(vec![polygon]),
             support_interface: None,
             support_tower: None,
-            fixed_chains: vec![],
-            chains: vec![],
+            fixed_chains: Vec::new(),
+            chains: Vec::new(),
             bottom_height,
             top_height,
             layer_settings,
@@ -96,11 +98,11 @@ impl Slice {
 
         lines_and_area
             .sort_by(|(_l1, a1), (_l2, a2)| a2.partial_cmp(a1).expect("Areas should not be NAN"));
-        let mut polygons = vec![];
+        let mut polygons = Vec::new();
 
         for (line, area) in lines_and_area {
             if area > 0.0 {
-                polygons.push(Polygon::new(line, vec![]));
+                polygons.push(Polygon::new(line, Vec::new()));
             } else {
                 // counter clockwise interior polygon
                 let smallest_polygon = polygons
@@ -137,6 +139,7 @@ impl Slice {
 }
 
 /// Types of solid infill
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum SolidInfillTypes {
     /// Back and forth lines to fill polygons, Rotating 120 degree each layer
@@ -147,6 +150,7 @@ pub enum SolidInfillTypes {
 }
 
 /// Types of partial infill
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum PartialInfillTypes {
     /// Back and forth spaced lines to fill polygons
@@ -183,7 +187,9 @@ impl Vertex {
     /// mul with transform in place
     pub fn mul_transform(&mut self, transform: &Transform) {
         self.x = transform.0[0][0] * self.x + transform.0[0][1] * self.y + transform.0[0][2] * self.z + transform.0[0][3];
+
         self.y = transform.0[1][0] * self.x + transform.0[1][1] * self.y + transform.0[1][2] * self.z + transform.0[1][3];
+
         self.z = transform.0[2][0] * self.x + transform.0[2][1] * self.y + transform.0[2][2] * self.z + transform.0[2][3];
     }
 }
@@ -543,7 +549,7 @@ impl StateChange {
 impl MoveChain {
     /// Convert a move chain into a list of commands
     pub fn create_commands(self, settings: &LayerSettings, thickness: f64) -> Vec<Command> {
-        let mut cmds = vec![];
+        let mut cmds = Vec::new();
         let mut current_type: Option<MoveType> = None;
         let mut current_loc = self.start_point;
 

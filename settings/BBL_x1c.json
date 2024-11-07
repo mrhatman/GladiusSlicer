@@ -1,11 +1,13 @@
 // Bambu Lab x1 Carbin
 {
+  "$schema": "./schema.json",
+
   "nozzle_diameter": 0.4,
   "has_aux_fan": true,
 
   "bed_exclude_areas": [
-    {"exterior": [{"x":0.0,"y":0.0},{"x":0.0,"y":26.5},{"x":17.5,"y":26.5},{"x":17.5,"y":0.0}], "interiors": []},
-    {"exterior": [{"x":17.0,"y":4.0},{"x":222.0,"y":4.0},{"x":222.0,"y":7.0},{"x":17.0,"y":7.0}], "interiors": []}
+    {"exterior": [{"x":0.0,"y":0.0},{"x":0.0,"y":26.5},{"x":17.5,"y":26.5},{"x":17.5,"y":0.0},{"x":0.0,"y":0.0}], "interiors": []},
+    {"exterior": [{"x":17.0,"y":4.0},{"x":17.0,"y":7.0},{"x":222.0,"y":7.0},{"x":222.0,"y":4.0},{"x":17.0,"y":4.0}], "interiors": []}
   ],
 
   "retract_length": 0.8,

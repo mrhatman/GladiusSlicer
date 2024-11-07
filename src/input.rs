@@ -24,7 +24,7 @@ pub fn files_input(settings_path: Option<&str>, input: Option<Vec<String>>) -> F
     let converted_inputs: Vec<(Vec<Vertex>, Vec<IndexedTriangle>)> = input
         .ok_or(SlicerErrors::NoInputProvided)?
         .into_iter()
-        .try_fold(vec![], |mut vec, value| {
+        .try_fold(Vec::new(), |mut vec, value| {
             let model_path = Path::new(&value);
 
             debug!("Using input file: {:?}", model_path);
@@ -50,7 +50,7 @@ pub fn files_input(settings_path: Option<&str>, input: Option<Vec<String>>) -> F
             {
                 Ok(v) => v,
                 Err(err) => {
-                    show_error_message(err);
+                    show_error_message(&err);
                     std::process::exit(-1);
                 }
             };

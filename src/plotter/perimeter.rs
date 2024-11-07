@@ -24,8 +24,8 @@ pub fn inset_polygon_recursive(
 
     for raw_polygon in &inset_poly.0 {
         let polygon = raw_polygon.simplify(&0.01);
-        let mut outer_chains = vec![];
-        let mut inner_chains = vec![];
+        let mut outer_chains = Vec::new();
+        let mut inner_chains = Vec::new();
         let moves = polygon
             .exterior()
             .0
@@ -54,7 +54,7 @@ pub fn inset_polygon_recursive(
         });
 
         for interior in polygon.interiors() {
-            let mut moves = vec![];
+            let mut moves = Vec::new();
             for (&_start, &end) in interior.0.iter().circular_tuple_windows::<(_, _)>() {
                 let move_type = if outer_perimeter {
                     MoveType::InteriorSurfacePerimeter
@@ -106,7 +106,7 @@ pub fn inset_polygon_recursive(
         }
     }
 
-    let mut full_moves = vec![];
+    let mut full_moves = Vec::new();
     move_chains
         .first()
         .map(|mc| mc.start_point)

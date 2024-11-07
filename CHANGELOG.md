@@ -9,6 +9,7 @@
 - `max_temp` setting so printers can specifiy their max hotend temperature
 - Added a profile for the Bambu Lab x1c
 - Added a profile for Bambu Lab PLA
+- Added a json schema
 
 ### Fixes
 

@@ -13,7 +13,7 @@ pub trait ObjectPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool);
 }
 
-pub struct BrimPass {}
+pub struct BrimPass;
 
 impl ObjectPass for BrimPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
@@ -48,7 +48,7 @@ impl ObjectPass for BrimPass {
     }
 }
 
-pub struct SupportTowerPass {}
+pub struct SupportTowerPass;
 
 impl ObjectPass for SupportTowerPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
@@ -70,7 +70,7 @@ impl ObjectPass for SupportTowerPass {
     }
 }
 
-pub struct SkirtPass {}
+pub struct SkirtPass;
 
 impl ObjectPass for SkirtPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, send_messages: bool) {
@@ -109,7 +109,7 @@ pub trait SlicePass {
     ) -> Result<(), SlicerErrors>;
 }
 
-pub struct ShrinkPass {}
+pub struct ShrinkPass;
 
 impl SlicePass for ShrinkPass {
     fn pass(
@@ -125,7 +125,7 @@ impl SlicePass for ShrinkPass {
     }
 }
 
-pub struct PerimeterPass {}
+pub struct PerimeterPass;
 
 impl SlicePass for PerimeterPass {
     fn pass(
@@ -141,7 +141,7 @@ impl SlicePass for PerimeterPass {
     }
 }
 
-pub struct BridgingPass {}
+pub struct BridgingPass;
 
 impl SlicePass for BridgingPass {
     fn pass(
@@ -158,7 +158,7 @@ impl SlicePass for BridgingPass {
         Ok(())
     }
 }
-pub struct TopLayerPass {}
+pub struct TopLayerPass;
 
 impl SlicePass for TopLayerPass {
     fn pass(
@@ -176,7 +176,7 @@ impl SlicePass for TopLayerPass {
     }
 }
 
-pub struct TopAndBottomLayersPass {}
+pub struct TopAndBottomLayersPass;
 
 impl SlicePass for TopAndBottomLayersPass {
     fn pass(
@@ -191,23 +191,23 @@ impl SlicePass for TopAndBottomLayersPass {
         if slices.len() > bottom_layers + top_layers {
             display_state_update("Generating Moves: Above and below support", send_messages);
 
+            // todo par_iter trugh slices, as this is a hot loop
             (bottom_layers..slices.len() - top_layers).for_each(|q| {
                 let below = if bottom_layers != 0 {
                     Some(
-                        slices[(q - bottom_layers + 1)..q]
-                            .into_iter()
-                            .fold(
-                                slices
-                                    .get(q - bottom_layers)
-                                    .expect("Bounds Checked above")
-                                    .main_polygon
-                                    .clone(),
-                                |a, b| a.intersection_with(&b.main_polygon),
-                            ),
+                        slices[(q - bottom_layers + 1)..q].iter().fold(
+                            slices
+                                .get(q - bottom_layers)
+                                .expect("Bounds Checked above")
+                                .main_polygon
+                                .clone(),
+                            |a, b| a.intersection_with(&b.main_polygon),
+                        ),
                     )
                 } else {
                     None
                 };
+
                 let above = if top_layers != 0 {
                     Some(
                         slices[(q + 1)..=(q + top_layers)]
@@ -225,6 +225,7 @@ impl SlicePass for TopAndBottomLayersPass {
                 } else {
                     None
                 };
+
                 if let Some(intersection) = match (above, below) {
                     (None, None) => None,
                     (None, Some(poly)) | (Some(poly), None) => Some(poly),
@@ -254,7 +255,7 @@ impl SlicePass for TopAndBottomLayersPass {
     }
 }
 
-pub struct SupportPass {}
+pub struct SupportPass;
 
 impl SlicePass for SupportPass {
     fn pass(
@@ -271,7 +272,7 @@ impl SlicePass for SupportPass {
     }
 }
 
-pub struct FillAreaPass {}
+pub struct FillAreaPass;
 
 impl SlicePass for FillAreaPass {
     fn pass(
@@ -291,7 +292,7 @@ impl SlicePass for FillAreaPass {
         Ok(())
     }
 }
-pub struct LightningFillPass {}
+pub struct LightningFillPass;
 
 impl SlicePass for LightningFillPass {
     fn pass(
@@ -308,7 +309,7 @@ impl SlicePass for LightningFillPass {
     }
 }
 
-pub struct OrderPass {}
+pub struct OrderPass;
 
 impl SlicePass for OrderPass {
     fn pass(
