@@ -426,7 +426,8 @@ impl<'s> TriangleTowerIterator<'s> {
                 })
                 .collect();
 
-            self.active_rings.extend(pop_tower_vert.next_ring_fragments.clone());
+            self.active_rings
+                .extend(pop_tower_vert.next_ring_fragments.clone());
 
             join_fragments(&mut self.active_rings);
 
@@ -452,7 +453,12 @@ impl<'s> TriangleTowerIterator<'s> {
                     .elements
                     .iter()
                     .filter_map(|e| {
-                        if let TowerRingElement::Edge {start_index, end_index, ..} = e {
+                        if let TowerRingElement::Edge {
+                            start_index,
+                            end_index,
+                            ..
+                        } = e
+                        {
                             Some(line_z_intersection(
                                 self.z_height,
                                 &self.tower.vertices[*start_index],

@@ -195,7 +195,7 @@ impl SlicePass for TopAndBottomLayersPass {
             (bottom_layers..slices.len() - top_layers).for_each(|q| {
                 let below = if bottom_layers != 0 {
                     Some(
-                        slices[(q - bottom_layers + 1)..q].iter().fold(
+                        slices[(q - bottom_layers + 1)..q].into_iter().fold(
                             slices
                                 .get(q - bottom_layers)
                                 .expect("Bounds Checked above")
