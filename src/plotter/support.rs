@@ -74,7 +74,7 @@ impl Supporter for Slice {
             (None, None) => MultiPolygon(Vec::new()),
             (Some(tower), None) => tower.clone(),
             (None, Some(interface)) => interface.clone(),
-            (Some(tower), Some(interface)) => tower.union_with(&interface),
+            (Some(tower), Some(interface)) => tower.union_with(interface),
         }
     }
 }

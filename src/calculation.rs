@@ -65,7 +65,7 @@ pub fn calculate_values(moves: &[Command], settings: &Settings) -> CalculatedVal
 
                 // Divide the chord length by double the radius.
                 let t = cord_length / (2.0 * radius);
-                // println!("{}",t);
+
                 // Find the inverse sine of the result (in radians).
                 // Double the result of the inverse sine to get the central angle in radians.
                 let central = t.asin() * 2.0;

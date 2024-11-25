@@ -280,14 +280,13 @@ pub fn convert(
 
                 // Divide the chord length by double the radius.
                 let t = cord_length / (2.0 * radius);
-                // println!("{}",t);
+
                 // Find the inverse sine of the result (in radians).
                 // Double the result of the inverse sine to get the central angle in radians.
                 let central = t.asin() * 2.0;
                 // Once you have the central angle in radians, multiply it by the radius to get the arc length.
                 let extrusion_length = central * radius;
 
-                // println!("{}",extrusion_length);
                 let extrude = (4.0 * thickness * width * extrusion_length)
                     / (std::f64::consts::PI
                         * settings.filament.diameter

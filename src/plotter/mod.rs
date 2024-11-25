@@ -87,7 +87,7 @@ impl Plotter for Slice {
     }
 
     fn fill_remaining_area(&mut self, solid: bool, layer_count: usize) {
-        // For each region still available fill wih infill
+        // For each region still available fill with infill
         for poly in &self.remaining_area {
             if solid {
                 let new_moves = solid_infill_polygon(
@@ -119,9 +119,8 @@ impl Plotter for Slice {
         self.remaining_area = MultiPolygon(vec![]);
     }
 
+    /// For each area not in this slice that is in the other polygon, fill solid
     fn fill_solid_subtracted_area(&mut self, other: &MultiPolygon<f64>, layer_count: usize) {
-        // For each area not in this slice that is in the other polygon, fill solid
-
         let solid_area = self
             .remaining_area
             .difference_with(other)
@@ -475,8 +474,6 @@ fn get_optimal_bridge_angle(fill_area: &Polygon<f64>, unsupported_area: &MultiPo
                         .map(|(inner_start, inner_end)| {
                             let x_diff = inner_end.x - inner_start.x;
                             let y_diff = inner_end.y - inner_start.y;
-
-                            // println!("vec ({},{})", x_diff, y_diff);
 
                             let inner_vec = (x_diff, y_diff);
 

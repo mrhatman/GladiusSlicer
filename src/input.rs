@@ -53,7 +53,7 @@ pub fn load_models(
             {
                 Ok(v) => v,
                 Err(err) => {
-                    show_error_message(err);
+                    show_error_message(&err);
                     std::process::exit(-1);
                 }
             };

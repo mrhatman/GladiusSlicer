@@ -1,37 +1,39 @@
-use crate::SlicerErrors;
-use gladius_shared::types::{IndexedTriangle, Vertex};
-use rayon::prelude::*;
-use std::fmt::{Display, Formatter};
-use std::hash::{Hash, Hasher};
-
-/*
-
+/*!
     Rough algoritim
 
     build tower
         For each point store all edges and face connected to but above it
 
     progress up tower
+!*/
 
-*/
+use crate::SlicerErrors;
+use gladius_shared::types::{IndexedTriangle, Vertex};
+use rayon::prelude::*;
+use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 
-/// Calculate the vertex the Line from `v_start` to `v_end` where
+/// Calculate the **vertex**, the Line from `v_start` to `v_end` where
 /// it intersects with the plane z
 ///
 /// <div class="warning">If v_start.z == v_end.z then divide by 0</div>
 ///
-/// # Arguments
+/// ## Arguments
 /// * `z` - z height of the resulting point
 /// * `v_start` - Starting point of the line
 /// * `v_end` - Ending point of the line
 #[inline]
 fn line_z_intersection(z: f64, v_start: &Vertex, v_end: &Vertex) -> Vertex {
     let z_normal = (z - v_start.z) / (v_end.z - v_start.z);
+    debug_assert!(z_normal <= 1.0);
+
     let y = lerp(v_start.y, v_end.y, z_normal);
     let x = lerp(v_start.x, v_end.x, z_normal);
     Vertex { x, y, z }
 }
 
+/// ## Linear Interpolate
+/// Compute values between **a** and **b**, with **f** as the interpolated point from 0.0 to 1.0
 #[inline]
 fn lerp(a: f64, b: f64, f: f64) -> f64 {
     a + f * (b - a)
@@ -44,12 +46,13 @@ pub struct TriangleTower {
 }
 
 impl TriangleTower {
+    /// Create a `TriangleTower` from **vertices** as leading or trailing edges and **triangles**
     pub fn from_triangles_and_vertices(
         triangles: &[IndexedTriangle],
         vertices: Vec<Vertex>,
     ) -> Result<Self, SlicerErrors> {
         let mut future_tower_vert: Vec<Vec<TriangleEvent>> =
-            (0..vertices.len()).map(|_| vec![]).collect();
+            (0..vertices.len()).map(|_| Vec::new()).collect();
 
         // for each triangle add it to the tower
 
@@ -115,12 +118,15 @@ impl TriangleTower {
     }
 }
 
+/// A vecter of `TowerRing`s with a start index, made of triangles
 #[derive(Debug, PartialEq)]
 struct TowerVertex {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
 }
 
+/// A list of **faces** and **edges**\
+/// When complete it will have at least 3 `TowerRingElement`s and equal first and last elements
 #[derive(Clone, Debug, PartialEq)]
 struct TowerRing {
     elements: Vec<TowerRingElement>,
@@ -128,23 +134,26 @@ struct TowerRing {
 
 impl TowerRing {
     #[inline]
+    /// Checks that the ring's vec is circuler
     fn is_complete_ring(&self) -> bool {
         self.elements.first() == self.elements.last() && self.elements.len() > 3
     }
 
-    fn join_rings_in_place(first: &mut TowerRing, second: TowerRing) {
+    /// Extend the elements of **first** with all but the first element of **second**
+    fn join_rings_in_place(first: &mut TowerRing, second: &TowerRing) {
         first.elements.extend_from_slice(&second.elements[1..]);
     }
 
+    /// Split the `TowerRing` in to multiple at an edge
     fn split_on_edge(self, edge: usize) -> Vec<Self> {
-        let mut new_ring = vec![];
-        let mut frags = vec![];
+        let mut new_ring = Vec::new();
+        let mut frags = Vec::new();
 
         for e in self.elements {
             if let TowerRingElement::Edge { end_index, .. } = e {
                 if end_index == edge {
                     frags.push(TowerRing { elements: new_ring });
-                    new_ring = vec![];
+                    new_ring = Vec::new();
                 } else {
                     new_ring.push(e);
                 }
@@ -183,6 +192,7 @@ impl Display for TowerRing {
     }
 }
 
+/// Face or Edge of a `TowerRing`
 #[derive(Clone, Debug, Eq)]
 enum TowerRingElement {
     Face {
@@ -258,10 +268,12 @@ pub enum TriangleEvent {
         triangle: usize,
         trailing_edge: usize,
     },
+
     LeadingEdge {
         leading_edge: usize,
         triangle: usize,
     },
+
     TrailingEdge {
         triangle: usize,
         trailing_edge: usize,
@@ -366,7 +378,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
                 let first_r = fragments
                     .get_mut(first_pos)
                     .expect("Index is validated by loop");
-                TowerRing::join_rings_in_place(first_r, second_r);
+                TowerRing::join_rings_in_place(first_r, &second_r);
 
                 // dont progress as the swap makes this position valid again
             } else {
@@ -393,7 +405,7 @@ impl<'s> TriangleTowerIterator<'s> {
             z_height,
             tower,
             tower_vert_index: 0,
-            active_rings: vec![],
+            active_rings: Vec::new(),
         }
     }
 
@@ -483,7 +495,7 @@ mod tests {
     use super::*;
 
     fn join_rings(mut first: TowerRing, second: TowerRing) -> TowerRing {
-        TowerRing::join_rings_in_place(&mut first, second);
+        TowerRing::join_rings_in_place(&mut first, &second);
 
         first
     }
@@ -640,6 +652,7 @@ mod tests {
 
         rings_sliding_equality_assert(frags, expected);
     }
+
     #[test]
     fn assemble_fragment_multiple_test() {
         let mut frags = vec![
@@ -767,6 +780,7 @@ mod tests {
 
         rings_sliding_equality_assert(frags, expected);
     }
+
     #[test]
     fn assemble_fragment_3_fragment_test() {
         let mut frags = vec![

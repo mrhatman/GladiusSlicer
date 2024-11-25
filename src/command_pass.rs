@@ -5,7 +5,7 @@ pub trait CommandPass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings);
 }
 
-pub struct OptimizePass {}
+pub struct OptimizePass;
 
 impl CommandPass for OptimizePass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings) {
@@ -24,7 +24,7 @@ impl CommandPass for OptimizePass {
     }
 }
 
-pub struct SlowDownLayerPass {}
+pub struct SlowDownLayerPass;
 
 impl CommandPass for SlowDownLayerPass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings) {
@@ -102,7 +102,7 @@ impl CommandPass for SlowDownLayerPass {
 
                                     // Divide the chord length by double the radius.
                                     let t = cord_length / (2.0 * radius);
-                                    // println!("{}",t);
+
                                     // Find the inverse sine of the result (in radians).
                                     // Double the result of the inverse sine to get the central angle in radians.
                                     let central = t.asin() * 2.0;
