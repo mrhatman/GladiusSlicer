@@ -47,7 +47,7 @@ pub enum DisplayType {
     StdOut,
 }
 
-pub fn show_error_message(error: SlicerErrors) {
+pub fn show_error_message(error: &SlicerErrors) {
     let (error_code, message) = error.get_code_and_message();
     error!("\n");
     error!("**************************************************");
@@ -66,7 +66,7 @@ pub fn send_error_message(error: SlicerErrors) {
     stdio_lock.flush().expect("Standard Out should be limited");
 }
 
-pub fn show_warning_message(warning: SlicerWarnings) {
+pub fn show_warning_message(warning: &SlicerWarnings) {
     let (error_code, message) = warning.get_code_and_message();
     warn!("\n");
     warn!("**************************************************");
@@ -76,6 +76,7 @@ pub fn show_warning_message(warning: SlicerWarnings) {
     warn!("**************************************************");
     warn!("\n\n\n");
 }
+
 pub fn send_warning_message(warning: SlicerWarnings) {
     let stdout = std::io::stdout();
     let mut stdio_lock = stdout.lock();

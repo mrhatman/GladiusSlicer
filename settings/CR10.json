@@ -1,4 +1,6 @@
 {
+  "$schema": "./schema.json",
+
   "skirt": {
     "layers": 3,
     "distance": 2.0

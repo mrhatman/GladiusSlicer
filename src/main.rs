@@ -66,16 +66,20 @@ struct Args {
         help = "The input files and there translations.\nBy default it takes a list of json strings that represents how the models should be loaded and translated.\nSee simple_input for an alterantive command. "
     )]
     input: Vec<String>,
+
     #[arg(short = 'o', help = "Sets the output dir")]
     output: Option<String>,
+
     #[arg(short = 'v', action = clap::ArgAction::Count, conflicts_with = "message", help = "Sets the level of verbosity")]
     verbose: u8,
+
     #[arg(short = 's', help = "Sets the settings file to use")]
     settings_file_path: Option<String>,
     #[arg(short = 'S', help = "The contents of a json settings file.")]
     settings_json: Option<String>,
     #[arg(short = 'm', help = "Use the Message System (useful for interprocess communication)")]
     message: bool,
+
     #[arg(
         long = "print_settings",
         help = "Print the final combined settings out to Stdout and Terminate. Verbose level 4 will print but continue."
@@ -94,6 +98,10 @@ struct Args {
 }
 
 fn main() {
+    #[cfg(feature = "json_schema_gen")]
+    // export json schema for settings
+    Settings::gen_schema(Path::new("settings/")).expect("The programme should exit if this fails");
+
     // The YAML file is found relative to the current file, similar to how modules are found
     let args: Args = Args::parse();
 
@@ -196,37 +204,8 @@ fn main() {
     }
     state_update("Calculate Values", &mut state_context);
 
-    let cv = calculate_values(&moves, &settings);
-
-    match state_context.display_type {
-        DisplayType::Message => {
-            let message = Message::CalculatedValues(cv);
-            bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
-                .expect("Write Limit should not be hit");
-        }
-        DisplayType::StdOut => {
-            let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
-
-            info!(
-                "Total Time: {} hours {} minutes {:.3} seconds",
-                hour, min, sec
-            );
-            info!(
-                "Total Filament Volume: {:.3} cm^3",
-                cv.plastic_volume / 1000.0
-            );
-            info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
-            info!(
-                "Total Filament Length: {:.3} meters",
-                cv.plastic_length / 1000.0
-            );
-            info!(
-                "Total Filament Cost: ${:.2}",
-                (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
-                    * settings.filament.cost
-            );
-        }
-    }
+    // Display info about the print
+    print_info_message(send_messages, &moves, &settings);
 
     state_update("Outputting G-code", &mut state_context);
 
@@ -274,6 +253,38 @@ fn main() {
         info!(
             "Total slice time {} msec",
             state_context.get_total_elapsed_time().as_millis()
+        );
+    }
+}
+
+/// Display info about the print; time and filament info
+fn print_info_message(send_messages: bool, moves: &[Command], settings: &Settings) {
+    let cv = calculate_values(moves, settings);
+
+    if send_messages {
+        let message = Message::CalculatedValues(cv);
+        bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
+            .expect("Write Limit should not be hit");
+    } else {
+        let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
+
+        info!(
+            "Total Time: {} hours {} minutes {:.3} seconds",
+            hour, min, sec
+        );
+        info!(
+            "Total Filament Volume: {:.3} cm^3",
+            cv.plastic_volume / 1000.0
+        );
+        info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
+        info!(
+            "Total Filament Length: {:.3} meters",
+            cv.plastic_length / 1000.0
+        );
+        info!(
+            "Total Filament Cost: ${:.2}",
+            (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
+                * settings.filament.cost
         );
     }
 }

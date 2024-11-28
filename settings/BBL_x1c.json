@@ -1,5 +1,7 @@
 // Bambu Lab x1 Carbin
 {
+  "$schema": "./schema.json",
+
   "nozzle_diameter": 0.4,
   "has_aux_fan": true,
 

@@ -14,7 +14,7 @@ pub trait ObjectPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, state_context: &mut StateContext);
 }
 
-pub struct BrimPass {}
+pub struct BrimPass;
 
 impl ObjectPass for BrimPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, state_context: &mut StateContext) {
@@ -49,7 +49,7 @@ impl ObjectPass for BrimPass {
     }
 }
 
-pub struct SupportTowerPass {}
+pub struct SupportTowerPass;
 
 impl ObjectPass for SupportTowerPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, state_context: &mut StateContext) {
@@ -71,7 +71,7 @@ impl ObjectPass for SupportTowerPass {
     }
 }
 
-pub struct SkirtPass {}
+pub struct SkirtPass;
 
 impl ObjectPass for SkirtPass {
     fn pass(objects: &mut Vec<Object>, settings: &Settings, state_context: &mut StateContext) {
@@ -110,7 +110,7 @@ pub trait SlicePass {
     ) -> Result<(), SlicerErrors>;
 }
 
-pub struct ShrinkPass {}
+pub struct ShrinkPass;
 
 impl SlicePass for ShrinkPass {
     fn pass(
@@ -126,7 +126,7 @@ impl SlicePass for ShrinkPass {
     }
 }
 
-pub struct PerimeterPass {}
+pub struct PerimeterPass;
 
 impl SlicePass for PerimeterPass {
     fn pass(
@@ -142,7 +142,7 @@ impl SlicePass for PerimeterPass {
     }
 }
 
-pub struct BridgingPass {}
+pub struct BridgingPass;
 
 impl SlicePass for BridgingPass {
     fn pass(
@@ -163,7 +163,7 @@ impl SlicePass for BridgingPass {
         Ok(())
     }
 }
-pub struct TopLayerPass {}
+pub struct TopLayerPass;
 
 impl SlicePass for TopLayerPass {
     fn pass(
@@ -185,7 +185,7 @@ impl SlicePass for TopLayerPass {
     }
 }
 
-pub struct TopAndBottomLayersPass {}
+pub struct TopAndBottomLayersPass;
 
 impl SlicePass for TopAndBottomLayersPass {
     fn pass(
@@ -271,7 +271,7 @@ impl SlicePass for TopAndBottomLayersPass {
     }
 }
 
-pub struct SupportPass {}
+pub struct SupportPass;
 
 impl SlicePass for SupportPass {
     fn pass(
@@ -288,7 +288,7 @@ impl SlicePass for SupportPass {
     }
 }
 
-pub struct FillAreaPass {}
+pub struct FillAreaPass;
 
 impl SlicePass for FillAreaPass {
     fn pass(
@@ -308,7 +308,7 @@ impl SlicePass for FillAreaPass {
         Ok(())
     }
 }
-pub struct LightningFillPass {}
+pub struct LightningFillPass;
 
 impl SlicePass for LightningFillPass {
     fn pass(
@@ -325,7 +325,7 @@ impl SlicePass for LightningFillPass {
     }
 }
 
-pub struct OrderPass {}
+pub struct OrderPass;
 
 impl SlicePass for OrderPass {
     fn pass(

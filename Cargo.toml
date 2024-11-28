@@ -4,12 +4,16 @@ version = "0.4.1"
 authors = ["mrhatman <lucasince@gmail.com>"]
 edition = "2021"
 
+[profile.release]
+lto = true
 
 [workspace]
 members = [ 
     "gladius_shared"
 ]
 
+[features]
+json_schema_gen = ["gladius_shared/json_schema_gen"]
 [lints.clippy]
 allow-unwrap-in-tests = "allow"
 

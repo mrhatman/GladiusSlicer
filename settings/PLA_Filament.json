@@ -1,4 +1,6 @@
 {
+  "$schema": "./schema.json",
+
   "fan": {
     "fan_speed": 100.0,
     "disable_fan_for_layers": 1,

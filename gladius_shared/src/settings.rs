@@ -6,6 +6,12 @@ use std::path::PathBuf;
 use crate::error::SlicerErrors;
 use crate::types::{MoveType, PartialInfillTypes, SolidInfillTypes};
 use crate::warning::SlicerWarnings;
+// for exclude area setting
+use geo::MultiPolygon;
+use gladius_proc_macros::Settings;
+#[cfg(feature = "json_schema_gen")]
+/// json schema gen
+use schemars::{schema_for, JsonSchema};
 use geo::{Contains, LinesIter, MultiPolygon};
 use geo_validity_check::Valid;
 use gladius_proc_macros::Settings;
@@ -67,6 +73,7 @@ macro_rules! option_setting_less_than_zero {
 }
 
 /// A complete settings file for the entire slicer.
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
 #[derive(Settings, Serialize, Deserialize, Debug)]
 pub struct Settings {
     /// The height of the layers
@@ -153,7 +160,7 @@ pub struct Settings {
     pub brim_width: Option<f64>,
 
     #[Optional]
-    /// Inset the layer by the provided amount, if None on inset will be performed
+    /// Inset the layer by the provided amount, if None no inset will be performed
     pub layer_shrink_amount: Option<f64>,
 
     /// The minimum travel distance required to perform a retraction
@@ -243,6 +250,20 @@ pub struct Settings {
 
     /// Tells the slicer if it can use an aux fan
     pub has_aux_fan: bool,
+}
+
+impl Settings {
+    /// Genarate the json schema for `Settings`
+    #[cfg(feature = "json_schema_gen")]
+    pub fn gen_schema(path: &std::path::Path) -> Result<(), std::io::Error> {
+        use std::{fs::File, io::Write};
+
+        let schema = schema_for!(Settings);
+        let mut file = File::create(path.join("schema.json"))?;
+        file.write_all(serde_json::to_string_pretty(&schema)?.as_bytes())?;
+
+        Ok(())
+    }
 }
 
 impl Default for Settings {
@@ -692,6 +713,7 @@ pub struct LayerSettings {
 }
 
 /// A set of values for different movement types
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
 #[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct MovementParameter {
     /// Value for interior (perimeters that are inside the model
@@ -744,6 +766,7 @@ impl MovementParameter {
 }
 
 /// Settings for a filament
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
 #[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct FilamentSettings {
     /// Diameter of this filament in mm
@@ -763,6 +786,7 @@ pub struct FilamentSettings {
 }
 
 /// Settings for the fans
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
 #[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct FanSettings {
     /// The default fan speed
@@ -802,7 +826,8 @@ impl Default for FanSettings {
 }
 
 /// Support settings
-#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SupportSettings {
     /// Angle to start production supports in degrees
     pub max_overhang_angle: f64,
@@ -812,7 +837,8 @@ pub struct SupportSettings {
 }
 
 /// The Settings for Skirt generation
-#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SkirtSettings {
     /// the number of layer to generate the skirt
     pub layers: u32,
@@ -822,7 +848,8 @@ pub struct SkirtSettings {
 }
 
 /// The Settings for Skirt generation
-#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RetractionWipeSettings {
     /// The speed the retract wipe move
     pub speed: f64,
@@ -834,8 +861,9 @@ pub struct RetractionWipeSettings {
     pub distance: f64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
 /// A partial complete settings file
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PartialSettingsFile {
     /// Other files to load
     pub other_files: Option<Vec<String>>,
@@ -916,6 +944,7 @@ impl PartialSettingsFile {
 }
 
 /// The different types of layer ranges supported
+#[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub enum LayerRange {
     /// A single single based on the index

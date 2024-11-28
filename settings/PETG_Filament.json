@@ -1,4 +1,6 @@
 {
+  "$schema": "./schema.json",
+
   "retract_length": 1.2,
   "filament": {
     "diameter": 1.75,
