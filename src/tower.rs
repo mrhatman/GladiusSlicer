@@ -16,12 +16,6 @@ use std::hash::{Hash, Hasher};
     progress up tower
 !*/
 
-use crate::SlicerErrors;
-use gladius_shared::types::{IndexedTriangle, Vertex};
-use rayon::prelude::*;
-use std::fmt::{Display, Formatter};
-use std::hash::{Hash, Hasher};
-
 /// Calculate the **vertex**, the Line from `v_start` to `v_end` where
 /// it intersects with the plane z
 ///
@@ -118,7 +112,7 @@ impl TriangleTower {
 }
 
 /// A vecter of `TowerRing`s with a start index, made of triangles
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 struct TowerVertex {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
@@ -134,7 +128,7 @@ impl Ord for TowerVertex {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.start_vert
             .partial_cmp(&other.start_vert)
-            .unwrap()
+            .expect("NO_NAN")
             .reverse()
     }
 }
@@ -460,7 +454,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
                 let first_r = fragments
                     .get_mut(first_pos)
                     .expect("Index is validated by loop ");
-                TowerRing::join_rings_in_place(first_r, removed);
+                TowerRing::join_rings_in_place(first_r, &removed);
             } else {
                 // skip already complete elements
                 first_pos -= 1;

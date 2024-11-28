@@ -205,7 +205,7 @@ fn main() {
     state_update("Calculate Values", &mut state_context);
 
     // Display info about the print
-    print_info_message(send_messages, &moves, &settings);
+    print_info_message(&state_context, &moves, &settings);
 
     state_update("Outputting G-code", &mut state_context);
 
@@ -258,35 +258,39 @@ fn main() {
 }
 
 /// Display info about the print; time and filament info
-fn print_info_message(send_messages: bool, moves: &[Command], settings: &Settings) {
+fn print_info_message( state_context: &StateContext, moves: &[Command], settings: &Settings) {
     let cv = calculate_values(moves, settings);
 
-    if send_messages {
-        let message = Message::CalculatedValues(cv);
-        bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
-            .expect("Write Limit should not be hit");
-    } else {
-        let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
-
-        info!(
-            "Total Time: {} hours {} minutes {:.3} seconds",
-            hour, min, sec
-        );
-        info!(
-            "Total Filament Volume: {:.3} cm^3",
-            cv.plastic_volume / 1000.0
-        );
-        info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
-        info!(
-            "Total Filament Length: {:.3} meters",
-            cv.plastic_length / 1000.0
-        );
-        info!(
-            "Total Filament Cost: ${:.2}",
-            (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
-                * settings.filament.cost
-        );
+    match state_context.display_type{
+        DisplayType::Message => {
+            let message = Message::CalculatedValues(cv);
+            bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
+                .expect("Write Limit should not be hit");
+        },
+        DisplayType::StdOut => {
+            let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
+    
+            info!(
+                "Total Time: {} hours {} minutes {:.3} seconds",
+                hour, min, sec
+            );
+            info!(
+                "Total Filament Volume: {:.3} cm^3",
+                cv.plastic_volume / 1000.0
+            );
+            info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
+            info!(
+                "Total Filament Length: {:.3} meters",
+                cv.plastic_length / 1000.0
+            );
+            info!(
+                "Total Filament Cost: ${:.2}",
+                (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
+                    * settings.filament.cost
+            );
+        },
     }
+
 }
 
 fn generate_moves(
@@ -348,7 +352,7 @@ fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, state_context: &StateCo
         Err(slicer_error) => {
             match state_context.display_type {
                 DisplayType::Message => send_error_message(slicer_error),
-                DisplayType::StdOut => show_error_message(slicer_error),
+                DisplayType::StdOut => show_error_message(&slicer_error),
             }
             std::process::exit(-1);
         }
@@ -361,12 +365,12 @@ fn handle_setting_validation(res: SettingsValidationResult, state_context: &Stat
         SettingsValidationResult::NoIssue => {}
         SettingsValidationResult::Warning(slicer_warning) => match state_context.display_type {
             DisplayType::Message => send_warning_message(slicer_warning),
-            DisplayType::StdOut => show_warning_message(slicer_warning),
+            DisplayType::StdOut => show_warning_message(&slicer_warning),
         },
         SettingsValidationResult::Error(slicer_error) => {
             match state_context.display_type {
                 DisplayType::Message => send_error_message(slicer_error),
-                DisplayType::StdOut => show_error_message(slicer_error),
+                DisplayType::StdOut => show_error_message(&slicer_error),
             }
             std::process::exit(-1);
         }
