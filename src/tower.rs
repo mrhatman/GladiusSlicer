@@ -1,8 +1,9 @@
 use crate::SlicerErrors;
 use gladius_shared::types::{IndexedTriangle, Vertex};
+use log::trace;
 use ordered_float::OrderedFloat;
 use rayon::prelude::*;
-use std::collections::BinaryHeap;
+use binary_heap_plus::BinaryHeap;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -61,8 +62,11 @@ impl TriangleTower {
 
         for (triangle_index, index_tri) in triangles.iter().enumerate() {
 
-
+            
+            //for each edge of the triangle add a fragment to the lower of the points 
             for i in 0..3{
+                // if the point edge is rising then the order will be triangle then edge
+                // if the edge is falling (or degenerate) it should go edge then triangle
                 if vertices[index_tri.verts[i]] < vertices[index_tri.verts[(i+1)%3]]{
                     let triangle_element = TowerRingElement::Face {
                         triangle_index
@@ -97,7 +101,7 @@ impl TriangleTower {
         // for each triangle event, add it to the lowest vertex and
         // create a list of all vertices and there above edges
 
-        let mut tower_vertices: BinaryHeap<TowerVertex> = future_tower_vert
+        let tower_vertices: BinaryHeap<TowerVertex> = future_tower_vert
             .into_iter()
             .enumerate()
             .map(|(index, mut fragments)| {
@@ -342,25 +346,6 @@ impl Hash for TowerRingElement {
             }
         }
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum TriangleEvent {
-    MiddleVertex {
-        leading_edge: usize,
-        triangle: usize,
-        trailing_edge: usize,
-    },
-
-    LeadingEdge {
-        leading_edge: usize,
-        triangle: usize,
-    },
-
-    TrailingEdge {
-        triangle: usize,
-        trailing_edge: usize,
-    },
 }
 
 // Join fragmented rings together to for new rings
