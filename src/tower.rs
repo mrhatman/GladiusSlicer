@@ -54,30 +54,43 @@ impl TriangleTower {
         triangles: &[IndexedTriangle],
         vertices: Vec<Vertex>,
     ) -> Result<Self, SlicerErrors> {
-        let mut future_tower_vert: Vec<Vec<TriangleEvent>> =
+        let mut future_tower_vert: Vec<Vec<TowerRing>> =
             (0..vertices.len()).map(|_| Vec::new()).collect();
 
         // for each triangle add it to the tower
 
         for (triangle_index, index_tri) in triangles.iter().enumerate() {
-            // index 0 is always lowest
-            future_tower_vert[index_tri.verts[0]].push(TriangleEvent::MiddleVertex {
-                trailing_edge: index_tri.verts[1],
-                leading_edge: index_tri.verts[2],
-                triangle: triangle_index,
-            });
 
-            // depending what is the next vertex is its either leading or trailing
-            if vertices[index_tri.verts[1]] < vertices[index_tri.verts[2]] {
-                future_tower_vert[index_tri.verts[1]].push(TriangleEvent::TrailingEdge {
-                    trailing_edge: index_tri.verts[2],
-                    triangle: triangle_index,
-                });
-            } else {
-                future_tower_vert[index_tri.verts[2]].push(TriangleEvent::LeadingEdge {
-                    leading_edge: index_tri.verts[1],
-                    triangle: triangle_index,
-                });
+
+            for i in 0..3{
+                if vertices[index_tri.verts[i]] < vertices[index_tri.verts[(i+1)%3]]{
+                    let triangle_element = TowerRingElement::Face {
+                        triangle_index
+                    };
+                    let edge_element = TowerRingElement::Edge {
+                        start_index: index_tri.verts[i],
+                        end_index: index_tri.verts[(i+1)%3],
+                    };
+    
+                    future_tower_vert[index_tri.verts[i]].push(TowerRing {
+                        elements: vec![ triangle_element,edge_element],
+                    });
+                }
+                else {
+                    
+                    let edge_element = TowerRingElement::Edge {
+                        start_index: index_tri.verts[(i+1)%3],
+                        end_index:index_tri.verts[i],
+                    };
+    
+                    let triangle_element = TowerRingElement::Face {
+                        triangle_index
+                    };
+    
+                    future_tower_vert[index_tri.verts[(i+1)%3]].push(TowerRing {
+                        elements: vec![edge_element, triangle_element],
+                    });
+                }
             }
         }
 
@@ -87,8 +100,8 @@ impl TriangleTower {
         let mut tower_vertices: BinaryHeap<TowerVertex> = future_tower_vert
             .into_iter()
             .enumerate()
-            .map(|(index, events)| {
-                let fragments = join_triangle_event(&events, index);
+            .map(|(index, mut fragments)| {
+                join_fragments(&mut fragments);
                 TowerVertex {
                     start_index: index,
                     next_ring_fragments: fragments,
@@ -348,73 +361,6 @@ pub enum TriangleEvent {
         triangle: usize,
         trailing_edge: usize,
     },
-}
-
-fn join_triangle_event(events: &[TriangleEvent], starting_point: usize) -> Vec<TowerRing> {
-    // debug!("Tri events = {:?}",events);
-    let mut element_list: Vec<TowerRing> = events
-        .iter()
-        .map(|event| match event {
-            TriangleEvent::LeadingEdge {
-                leading_edge,
-                triangle,
-            } => {
-                let triangle_element = TowerRingElement::Face {
-                    triangle_index: *triangle,
-                };
-                let edge_element = TowerRingElement::Edge {
-                    start_index: starting_point,
-                    end_index: *leading_edge,
-                };
-
-                TowerRing {
-                    elements: vec![edge_element, triangle_element],
-                }
-            }
-            TriangleEvent::TrailingEdge {
-                triangle,
-                trailing_edge,
-            } => {
-                let edge_element = TowerRingElement::Edge {
-                    start_index: starting_point,
-                    end_index: *trailing_edge,
-                };
-
-                let triangle_element = TowerRingElement::Face {
-                    triangle_index: *triangle,
-                };
-                TowerRing {
-                    elements: vec![triangle_element, edge_element],
-                }
-            }
-            TriangleEvent::MiddleVertex {
-                leading_edge,
-                triangle,
-                trailing_edge,
-            } => {
-                let trail_edge_element = TowerRingElement::Edge {
-                    start_index: starting_point,
-                    end_index: *trailing_edge,
-                };
-
-                let triangle_element = TowerRingElement::Face {
-                    triangle_index: *triangle,
-                };
-
-                let lead_edge_element = TowerRingElement::Edge {
-                    start_index: starting_point,
-                    end_index: *leading_edge,
-                };
-                TowerRing {
-                    elements: vec![lead_edge_element, triangle_element, trail_edge_element],
-                }
-            }
-        })
-        .collect();
-
-    join_fragments(&mut element_list);
-
-    element_list
 }
 
 // Join fragmented rings together to for new rings
