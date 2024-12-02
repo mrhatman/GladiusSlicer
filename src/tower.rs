@@ -2,8 +2,9 @@ use crate::SlicerErrors;
 use gladius_shared::types::{IndexedTriangle, Vertex};
 use log::trace;
 use ordered_float::OrderedFloat;
+use rayon::collections::binary_heap;
 use rayon::prelude::*;
-use binary_heap_plus::BinaryHeap;
+use binary_heap_plus::{BinaryHeap, FnComparator};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -44,14 +45,16 @@ fn lerp(a: f64, b: f64, f: f64) -> f64 {
 }
 
 /// A set of triangles and their associated vertices
-pub struct TriangleTower {
+pub struct TriangleTower<F> {
     vertices: Vec<Vertex>,
-    tower_vertices: BinaryHeap<TowerVertex>,
+    tower_vertices: BinaryHeap<TowerVertex,FnComparator<F>>,
 }
 
-impl TriangleTower {
+impl<F> TriangleTower<F> where F: Fn(&TowerVertex, &TowerVertex) -> std::cmp::Ordering
+{
     /// Create a `TriangleTower` from **vertices** as leading or trailing edges and **triangles**
     pub fn from_triangles_and_vertices(
+        cmp: F,
         triangles: &[IndexedTriangle],
         vertices: Vec<Vertex>,
     ) -> Result<Self, SlicerErrors> {
@@ -101,7 +104,7 @@ impl TriangleTower {
         // for each triangle event, add it to the lowest vertex and
         // create a list of all vertices and there above edges
 
-        let tower_vertices: BinaryHeap<TowerVertex> = future_tower_vert
+        let tower_vertices_vec: Vec<TowerVertex> = future_tower_vert
             .into_iter()
             .enumerate()
             .map(|(index, mut fragments)| {
@@ -114,6 +117,9 @@ impl TriangleTower {
             })
             .collect();
 
+        let mut tower_vertices = BinaryHeap::with_capacity_by(tower_vertices_vec.capacity(), cmp);
+
+        tower_vertices.extend(tower_vertices_vec);
         Ok(Self {
             vertices,
             tower_vertices,
@@ -130,7 +136,7 @@ impl TriangleTower {
 
 /// A vecter of `TowerRing`s with a start index, made of triangles
 #[derive(Debug)]
-struct TowerVertex {
+pub struct TowerVertex {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
     pub start_vert: Vertex,
@@ -146,7 +152,6 @@ impl Ord for TowerVertex {
         self.start_vert
             .partial_cmp(&other.start_vert)
             .expect("NO_NAN")
-            .reverse()
     }
 }
 
@@ -397,15 +402,15 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
     }
 }
 
-pub struct TriangleTowerIterator {
-    tower: TriangleTower,
+pub struct TriangleTowerIterator<F> {
+    tower: TriangleTower<F>,
     tower_vert_index: usize,
     z_height: f64,
     active_rings: Vec<TowerRing>,
 }
 
-impl TriangleTowerIterator {
-    pub fn new(tower: TriangleTower) -> Self {
+impl<F> TriangleTowerIterator<F> where F: Fn(&TowerVertex, &TowerVertex) -> std::cmp::Ordering{
+    pub fn new(tower: TriangleTower<F>) -> Self {
         let z_height = tower.get_height_of_next_vertex();
         Self {
             z_height,
@@ -484,13 +489,14 @@ impl TriangleTowerIterator {
     }
 }
 
-pub fn create_towers(
+pub fn create_towers<F> (
+    cmp: F,
     models: &[(Vec<Vertex>, Vec<IndexedTriangle>)],
-) -> Result<Vec<TriangleTower>, SlicerErrors> {
+) -> Result<Vec<TriangleTower<F>>, SlicerErrors> where F: Copy + Fn(&TowerVertex, &TowerVertex) -> std::cmp::Ordering{
     models
         .iter()
         .map(|(vertices, triangles)| {
-            TriangleTower::from_triangles_and_vertices(triangles, vertices.clone())
+            TriangleTower::from_triangles_and_vertices(cmp,triangles, vertices.clone())
         })
         .collect()
 }
