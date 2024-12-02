@@ -1,5 +1,5 @@
 use crate::{
-    tower::TowerVertex, Coord, Object, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator, Vertex
+     tower::TowerVertex, Coord, Object, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator
 };
 use rayon::{
     iter::{
@@ -9,7 +9,7 @@ use rayon::{
     slice::ParallelSliceMut,
 };
 
-pub fn slice<F>(towers: Vec<TriangleTower<F>>, settings: &Settings) -> Result<Vec<Object>, SlicerErrors> where F: Send + Sync+Fn(&TowerVertex, &TowerVertex) -> std::cmp::Ordering{
+pub fn slice<V>(towers: Vec<TriangleTower<V>>, settings: &Settings) -> Result<Vec<Object>, SlicerErrors> where V : Send+ Sync+ Ord +Clone+ TowerVertex{
     towers
         .into_par_iter()
         .map(|tower| {
@@ -50,7 +50,7 @@ pub fn slice<F>(towers: Vec<TriangleTower<F>>, settings: &Settings) -> Result<Ve
                                 .map(|verts| {
                                     verts
                                         .iter()
-                                        .map(|v| Coord { x: v.x, y: v.y })
+                                        .map(|v| Coord { x: v.get_slice_x(), y: v.get_slice_y() })
                                         .collect::<Vec<Coord<f64>>>()
                                 })
                                 .collect(),

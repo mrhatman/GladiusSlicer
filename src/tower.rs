@@ -4,7 +4,7 @@ use log::trace;
 use ordered_float::OrderedFloat;
 use rayon::collections::binary_heap;
 use rayon::prelude::*;
-use binary_heap_plus::{BinaryHeap, FnComparator};
+use binary_heap_plus::{BinaryHeap, FnComparator, MinComparator};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -45,16 +45,15 @@ fn lerp(a: f64, b: f64, f: f64) -> f64 {
 }
 
 /// A set of triangles and their associated vertices
-pub struct TriangleTower<F> {
-    vertices: Vec<Vertex>,
-    tower_vertices: BinaryHeap<TowerVertex,FnComparator<F>>,
+pub struct TriangleTower<V> {
+    vertices: Vec<V>,
+    tower_vertices: BinaryHeap<TowerVertexEvent<V>,MinComparator>,
 }
 
-impl<F> TriangleTower<F> where F: Fn(&TowerVertex, &TowerVertex) -> std::cmp::Ordering
+impl<V> TriangleTower<V> where V : Ord +Clone+ TowerVertex
 {
     /// Create a `TriangleTower` from **vertices** as leading or trailing edges and **triangles**
     pub fn from_triangles_and_vertices(
-        cmp: F,
         triangles: &[IndexedTriangle],
         vertices: Vec<Vertex>,
     ) -> Result<Self, SlicerErrors> {
@@ -63,6 +62,8 @@ impl<F> TriangleTower<F> where F: Fn(&TowerVertex, &TowerVertex) -> std::cmp::Or
 
         // for each triangle add it to the tower
 
+        let converted_vertices :Vec<V>= vertices.into_iter().map(|v| V::from_vertex(v)).collect();
+
         for (triangle_index, index_tri) in triangles.iter().enumerate() {
 
             
@@ -70,7 +71,8 @@ impl<F> TriangleTower<F> where F: Fn(&TowerVertex, &TowerVertex) -> std::cmp::Or
             for i in 0..3{
                 // if the point edge is rising then the order will be triangle then edge
                 // if the edge is falling (or degenerate) it should go edge then triangle
-                if vertices[index_tri.verts[i]] < vertices[index_tri.verts[(i+1)%3]]{
+
+                if  converted_vertices[index_tri.verts[i]] < converted_vertices[index_tri.verts[(i+1)%3]] {
                     let triangle_element = TowerRingElement::Face {
                         triangle_index
                     };
@@ -104,24 +106,24 @@ impl<F> TriangleTower<F> where F: Fn(&TowerVertex, &TowerVertex) -> std::cmp::Or
         // for each triangle event, add it to the lowest vertex and
         // create a list of all vertices and there above edges
 
-        let tower_vertices_vec: Vec<TowerVertex> = future_tower_vert
+        let tower_vertices_vec: Vec<TowerVertexEvent<V>> = future_tower_vert
             .into_iter()
             .enumerate()
             .map(|(index, mut fragments)| {
                 join_fragments(&mut fragments);
-                TowerVertex {
+                TowerVertexEvent {
                     start_index: index,
                     next_ring_fragments: fragments,
-                    start_vert: vertices.get(index).expect("validated above").clone(),
+                    start_vert: converted_vertices.get(index).expect("validated above").clone(),
                 }
             })
             .collect();
 
-        let mut tower_vertices = BinaryHeap::with_capacity_by(tower_vertices_vec.capacity(), cmp);
+        let mut tower_vertices = BinaryHeap::with_capacity_min(tower_vertices_vec.capacity());
 
         tower_vertices.extend(tower_vertices_vec);
         Ok(Self {
-            vertices,
+            vertices: converted_vertices,
             tower_vertices,
         })
     }
@@ -129,25 +131,25 @@ impl<F> TriangleTower<F> where F: Fn(&TowerVertex, &TowerVertex) -> std::cmp::Or
     pub fn get_height_of_next_vertex(&self) -> f64 {
         self.tower_vertices
             .peek()
-            .map(|vert: &TowerVertex| vert.start_vert.z)
+            .map(|vert: &TowerVertexEvent<V>| vert.start_vert.get_height())
             .unwrap_or(f64::INFINITY)
     }
 }
 
 /// A vecter of `TowerRing`s with a start index, made of triangles
 #[derive(Debug)]
-pub struct TowerVertex {
+struct TowerVertexEvent<V> {
     pub next_ring_fragments: Vec<TowerRing>,
     pub start_index: usize,
-    pub start_vert: Vertex,
+    pub start_vert: V,
 }
 
-impl PartialOrd for TowerVertex {
+impl<V> PartialOrd for TowerVertexEvent<V>  where V: Ord{
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
-impl Ord for TowerVertex {
+impl<V> Ord for TowerVertexEvent<V> where V: Ord{
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.start_vert
             .partial_cmp(&other.start_vert)
@@ -155,9 +157,9 @@ impl Ord for TowerVertex {
     }
 }
 
-impl Eq for TowerVertex {}
+impl<V> Eq for TowerVertexEvent<V> where V: Eq{}
 
-impl PartialEq for TowerVertex {
+impl<V> PartialEq for TowerVertexEvent<V>  where V: PartialEq{
     fn eq(&self, other: &Self) -> bool {
         self.start_vert.eq(&other.start_vert)
     }
@@ -409,8 +411,8 @@ pub struct TriangleTowerIterator<F> {
     active_rings: Vec<TowerRing>,
 }
 
-impl<F> TriangleTowerIterator<F> where F: Fn(&TowerVertex, &TowerVertex) -> std::cmp::Ordering{
-    pub fn new(tower: TriangleTower<F>) -> Self {
+impl<V> TriangleTowerIterator<V> where V : Clone+Ord + TowerVertex{
+    pub fn new(tower: TriangleTower<V>) -> Self {
         let z_height = tower.get_height_of_next_vertex();
         Self {
             z_height,
@@ -453,11 +455,11 @@ impl<F> TriangleTowerIterator<F> where F: Fn(&TowerVertex, &TowerVertex) -> std:
         Ok(())
     }
 
-    pub fn get_points(&self) -> Vec<Vec<Vertex>> {
+    pub fn get_points(&self) -> Vec<Vec<V>> {
         self.active_rings
             .iter()
             .map(|ring| {
-                let mut points: Vec<Vertex> = ring
+                let mut points: Vec<V> = ring
                     .elements
                     .iter()
                     .filter_map(|e| {
@@ -467,7 +469,7 @@ impl<F> TriangleTowerIterator<F> where F: Fn(&TowerVertex, &TowerVertex) -> std:
                             ..
                         } = e
                         {
-                            Some(line_z_intersection(
+                            Some(V::line_height_intersection(
                                 self.z_height,
                                 &self.tower.vertices[*start_index],
                                 &self.tower.vertices[*end_index],
@@ -489,16 +491,60 @@ impl<F> TriangleTowerIterator<F> where F: Fn(&TowerVertex, &TowerVertex) -> std:
     }
 }
 
-pub fn create_towers<F> (
-    cmp: F,
+pub fn create_towers<V> (
     models: &[(Vec<Vertex>, Vec<IndexedTriangle>)],
-) -> Result<Vec<TriangleTower<F>>, SlicerErrors> where F: Copy + Fn(&TowerVertex, &TowerVertex) -> std::cmp::Ordering{
+) -> Result<Vec<TriangleTower<V>>, SlicerErrors> where V : Ord + Clone+TowerVertex{
     models
         .iter()
         .map(|(vertices, triangles)| {
-            TriangleTower::from_triangles_and_vertices(cmp,triangles, vertices.clone())
+            TriangleTower::from_triangles_and_vertices(triangles, vertices.clone())
         })
         .collect()
+}
+
+pub trait TowerVertex{
+    //Convert from vertex to this type 
+    fn from_vertex(vertex: Vertex) -> Self;
+
+    //Return the height of this vertex
+    fn get_height(&self) -> f64;
+
+    //gets the x position for slicing purposes 
+    fn get_slice_x(&self) -> f64;
+
+    //gets the y position for slicing purposes 
+    fn get_slice_y(&self) -> f64;
+
+    //gets the vertex at the specified height between start and end
+    fn line_height_intersection(height: f64, v_start: &Self, v_end: &Self) -> Self;
+
+}
+
+impl TowerVertex for Vertex {
+    fn from_vertex(vertex: Vertex) -> Self {
+        //No type convertion needed
+        vertex
+    }
+
+    fn get_height(&self) -> f64 {
+        //height is just Z position
+        self.z
+    }
+
+    fn line_height_intersection(height: f64, v_start: &Vertex, v_end: &Vertex) -> Vertex {
+        //Lerps from start to end given the height
+        line_z_intersection(height, v_start, v_end)
+    }
+    
+    fn get_slice_x(&self) -> f64 {
+        //slice just uses x position
+        self.x
+    }
+    
+    fn get_slice_y(&self) -> f64 {
+        //slice just uses y position
+        self.y
+    }
 }
 
 #[cfg(test)]
