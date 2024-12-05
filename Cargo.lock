@@ -450,6 +450,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "geo"
+version = "0.29.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34f0e6e028c581e82e6822a68869514e94c25e7f8ea669a2d8595bdf7461ccc5"
+dependencies = [
+ "float_next_after",
+ "geo-types",
+ "geographiclib-rs",
+ "i_overlay",
+ "log",
+ "num-traits",
+ "robust 1.1.0",
+ "rstar 0.12.1",
+]
+
+[[package]]
 name = "geo-clipper"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -460,23 +476,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "geo-offset"
-version = "0.3.2"
-source = "git+https://github.com/TimTheBig/geo-offset.git#ef592b7f70ce02bdd153e8c90901f91f679750e1"
-dependencies = [
- "geo-clipper",
- "geo-types",
- "itertools 0.13.0",
- "num-traits",
-]
-
-[[package]]
 name = "geo-svg"
-version = "0.6.3"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcdc28dc851cb3bc87d8aaa380bb9840ba64fd86b79c2ca62d74f78578dfd35d"
+checksum = "ea7476abfcbe12742a9d2da9e67afbe11bd34fdf836ec4cc0707b6bbc507a26c"
 dependencies = [
- "geo 0.28.0",
+ "geo 0.29.3",
  "num-traits",
 ]
 
@@ -531,12 +536,8 @@ name = "gladius_core"
 version = "0.1.0"
 dependencies = [
  "binary-heap-plus",
- "bincode",
- "deser-hjson",
  "evalexpr",
- "geo 0.28.0",
  "geo-clipper",
- "geo-offset",
  "geo-svg",
  "gladius_shared",
  "itertools 0.13.0",
@@ -545,8 +546,6 @@ dependencies = [
  "ordered-float",
  "rand",
  "rayon",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -583,25 +582,12 @@ dependencies = [
 name = "gladius_slicer"
 version = "0.4.1"
 dependencies = [
- "binary-heap-plus",
  "bincode",
  "clap",
- "deser-hjson",
- "evalexpr",
- "geo 0.28.0",
- "geo-clipper",
- "geo-offset",
- "geo-svg",
  "gladius_core",
  "gladius_shared",
- "itertools 0.13.0",
  "log",
- "nalgebra",
- "ordered-float",
- "rand",
  "rayon",
- "serde",
- "serde_json",
  "simple_logger",
 ]
 
@@ -667,6 +653,49 @@ name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[package]]
+name = "i_float"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "775f9961a8d2f879725da8aff789bb20a3ddf297473e0c90af75e69313919490"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "i_key_sort"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "347c253b4748a1a28baf94c9ce133b6b166f08573157e05afe718812bc599fcd"
+
+[[package]]
+name = "i_overlay"
+version = "1.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06740cd31c1f963823e007d8e6edcd2db634b2856f4f613e3df01737fd852482"
+dependencies = [
+ "i_float",
+ "i_key_sort",
+ "i_shape",
+ "i_tree",
+]
+
+[[package]]
+name = "i_shape"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27dbe9e5238d6b9c694c08415bf00fb370b089949bd818ab01f41f8927b8774c"
+dependencies = [
+ "i_float",
+ "serde",
+]
+
+[[package]]
+name = "i_tree"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "155181bc97d770181cf9477da51218a19ee92a8e5be642e796661aee2b601139"
 
 [[package]]
 name = "indexmap"

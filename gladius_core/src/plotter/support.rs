@@ -1,5 +1,5 @@
 use crate::plotter::support_linear_fill_polygon;
-use geo::MultiPolygon;
+use gladius_shared::geo::MultiPolygon;
 use gladius_shared::prelude::*;
 
 use super::polygon_operations::PolygonOperations;

@@ -1,5 +1,5 @@
 
-use geo::Coord;
+use gladius_shared::geo::Coord;
 use gladius_shared::prelude::*;
 use rayon::{
     iter::{

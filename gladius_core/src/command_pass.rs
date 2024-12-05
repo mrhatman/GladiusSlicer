@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use geo::Coord;
+use gladius_shared::geo::Coord;
 use gladius_shared::prelude::*;
 use itertools::Itertools;
 use ordered_float::OrderedFloat;

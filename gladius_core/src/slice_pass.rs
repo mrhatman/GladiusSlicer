@@ -2,8 +2,8 @@ use crate::plotter::lightning_infill::lightning_infill;
 use crate::plotter::polygon_operations::PolygonOperations;
 use crate::plotter::support::Supporter;
 use crate::plotter::Plotter;
-use geo::prelude::*;
-use geo::MultiPolygon;
+use gladius_shared::geo::prelude::*;
+use gladius_shared::geo::MultiPolygon;
 use gladius_shared::prelude::*;
 use rayon::prelude::*;
 

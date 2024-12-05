@@ -1,4 +1,4 @@
-use geo::{Contains, MultiPolygon, Point};
+use gladius_shared::geo::{Contains, MultiPolygon, Point};
 use gladius_shared::prelude::*;
 use itertools::Itertools;
 
@@ -7,7 +7,7 @@ fn check_excluded(
     v_point: Point,
     bed_exclude_areas: &Option<MultiPolygon>,
 ) -> Result<(), SlicerErrors> {
-    for polygon in bed_exclude_areas.as_ref() {
+    if let Some(polygon) = bed_exclude_areas.as_ref() {
         if polygon.contains(&v_point) {
             return Err(SlicerErrors::InExcludeArea(polygon.to_owned()));
         }
@@ -83,7 +83,7 @@ pub fn check_moves_bounds(moves: &[Command], settings: &Settings) -> Result<(), 
 #[cfg(test)]
 mod bounds_check_tests {
     use super::*;
-    use geo::{LineString, Polygon};
+    use gladius_shared::geo::{LineString, Polygon};
 
     #[test]
     fn test_slice_with_model_in_excluded_area() {

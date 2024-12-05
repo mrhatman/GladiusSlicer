@@ -28,3 +28,6 @@ pub mod input;
 
 /// the standard imports for the shared crate
 pub mod prelude;
+
+///Re-Export Geo to make sure versions are consistent
+pub use geo;

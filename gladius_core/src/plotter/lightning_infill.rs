@@ -1,12 +1,12 @@
 
-use geo::coordinate_position::CoordPos;
-use geo::{Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, Line, MultiPolygon, Point};
+use gladius_shared::geo::coordinate_position::CoordPos;
+use gladius_shared::geo::{Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, Line, MultiPolygon, Point};
 use gladius_shared::prelude::*;
 use itertools::Itertools;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 
-use geo::euclidean_distance::EuclideanDistance;
-use geo::line_intersection::{line_intersection, LineIntersection};
+use gladius_shared::geo::euclidean_distance::EuclideanDistance;
+use gladius_shared::geo::line_intersection::{line_intersection, LineIntersection};
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -475,7 +475,7 @@ fn get_closest_intersection_point_on_polygon(
         .flat_map(|poly| {
             std::iter::once(poly.exterior())
                 .chain(poly.interiors())
-                .flat_map(geo::LineString::lines)
+                .flat_map(gladius_shared::geo::LineString::lines)
         })
         .filter_map(|poly_line| {
             line_intersection(poly_line, line).map(|intersection| match intersection {

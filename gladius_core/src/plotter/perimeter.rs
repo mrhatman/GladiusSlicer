@@ -1,6 +1,6 @@
 use gladius_shared::prelude::*;
-use geo::prelude::*;
-use geo::MultiPolygon;
+use gladius_shared::geo::prelude::*;
+use gladius_shared::geo::MultiPolygon;
 
 use itertools::Itertools;
 

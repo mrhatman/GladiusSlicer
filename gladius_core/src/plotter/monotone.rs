@@ -1,5 +1,5 @@
 use gladius_shared::utils::{orientation, Orientation};
-use geo::{Coord, Polygon, SimplifyVwPreserve};
+use gladius_shared::geo::{Coord, Polygon, SimplifyVwPreserve};
 use geo_svg::{Color, ToSvg};
 use itertools::Itertools;
 use std::cmp::Ordering;

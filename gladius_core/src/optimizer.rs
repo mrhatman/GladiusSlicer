@@ -1,6 +1,6 @@
-use geo::algorithm::euclidean_length::EuclideanLength;
-use geo::euclidean_distance::EuclideanDistance;
-use geo::{Coord, Line};
+use gladius_shared::geo::algorithm::euclidean_length::EuclideanLength;
+use gladius_shared::geo::euclidean_distance::EuclideanDistance;
+use gladius_shared::geo::{Coord, Line};
 use gladius_shared::prelude::*;
 use itertools::Itertools;
 

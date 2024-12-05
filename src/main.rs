@@ -10,19 +10,11 @@ use gladius_shared::prelude::*;
 
 use std::fs::File;
 
-use crate::bounds_checking::{check_model_bounds, check_moves_bounds};
-use crate::calculation::calculate_values;
-use crate::converter::convert;
-
-
 
 use log::{debug, info, LevelFilter};
 use simple_logger::SimpleLogger;
 use std::io::BufWriter;
 
-mod bounds_checking;
-mod calculation;
-mod converter;
 mod test;
 
 

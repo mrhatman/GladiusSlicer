@@ -1,10 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use std::default;
 
     use gladius_shared::settings::{PartialSettings, PartialSettingsFile};
-
-    use super::*;
 
     #[test]
     fn files_settings_validation() {

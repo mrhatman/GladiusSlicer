@@ -1,4 +1,3 @@
-use crate::{Command, Settings};
 use evalexpr::{context_map, eval_float_with_context, DefaultNumericTypes, HashMapContext};
 use gladius_shared::prelude::*;
 use std::io::{BufWriter, Write};
