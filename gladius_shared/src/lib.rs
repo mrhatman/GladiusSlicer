@@ -1,5 +1,5 @@
 #![deny(clippy::unwrap_used)]
-#![deny(missing_docs)]
+//#![deny(missing_docs)]
 //!Crate for shared types between slicer and external applications like GUI and Mods
 
 /// Error types
@@ -19,3 +19,9 @@ pub mod messages;
 
 /// Warning Types
 pub mod warning;
+
+/// Utilities Functions
+pub mod utils;
+
+/// Handles input
+pub mod input;

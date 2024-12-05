@@ -2,56 +2,36 @@
 #![warn(clippy::all, clippy::perf, clippy::missing_const_for_fn)]
 
 use clap::Parser;
-use gladius_shared::loader::{Loader, STLLoader, ThreeMFLoader};
-use gladius_shared::types::*;
-use input::load_settings;
-use utils::{DisplayType, StateContext};
+use gladius_core::command_pass::{CommandPass, OptimizePass, SlowDownLayerPass};
+use gladius_shared::input::load_settings;
+use gladius_shared::{input, types::*};
 
-use crate::plotter::convert_objects_into_moves;
-use crate::tower::{create_towers, TriangleTower, TriangleTowerIterator};
-use geo::{
-    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat,
-    Line, MultiPolygon, Point,
-};
-use gladius_shared::settings::{PartialSettingsFile, Settings, SettingsValidationResult};
+use gladius_core::plotter::convert_objects_into_moves;
+use gladius_core::tower::{create_towers, TriangleTower};
+
+use gladius_shared::settings::{ Settings, SettingsValidationResult};
+use gladius_shared::utils::{send_error_message, send_warning_message, show_error_message, show_warning_message, state_update, DisplayType, StateContext};
 use std::fs::File;
-
-use std::ffi::OsStr;
-use std::path::Path;
 
 use crate::bounds_checking::{check_model_bounds, check_moves_bounds};
 use crate::calculation::calculate_values;
-use crate::command_pass::{CommandPass, OptimizePass, SlowDownLayerPass};
 use crate::converter::convert;
-use crate::plotter::polygon_operations::PolygonOperations;
-use crate::slice_pass::*;
-use crate::slicing::slice;
-use crate::utils::{
-    send_error_message, send_warning_message, show_error_message, show_warning_message,
-    state_update,
-};
+use gladius_core::slice_pass::*;
+use gladius_core::slicing::slice;
+
 use gladius_shared::error::SlicerErrors;
 use gladius_shared::messages::Message;
-use itertools::Itertools;
 use log::{debug, info, LevelFilter};
-use ordered_float::OrderedFloat;
-use rayon::prelude::*;
 use simple_logger::SimpleLogger;
-use std::collections::HashMap;
 use std::io::BufWriter;
 
 mod bounds_checking;
 mod calculation;
-mod command_pass;
 mod converter;
-mod input;
-mod optimizer;
-mod plotter;
-mod slice_pass;
-mod slicing;
+
+
 mod test;
-mod tower;
-mod utils;
+
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

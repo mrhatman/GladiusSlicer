@@ -1,11 +1,15 @@
-use gladius_shared::settings;
+use log::{debug, info};
+
+use crate::error::SlicerErrors;
+use crate::loader::{Loader, STLLoader, ThreeMFLoader};
+use crate::settings::{PartialSettingsFile, Settings};
 
 use crate::utils::show_error_message;
-use crate::{
-    debug, info, IndexedTriangle, InputObject, Loader, OsStr, PartialSettingsFile, Path, STLLoader,
-    Settings, SlicerErrors, ThreeMFLoader, Transform, Vertex,
+use crate::types::{
+     IndexedTriangle, InputObject, Transform, Vertex,
 };
-use std::path::PathBuf;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 /// The raw triangles and vertices of a model

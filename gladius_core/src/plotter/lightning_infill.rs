@@ -1,16 +1,18 @@
-use crate::{
-    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat,
-    Itertools, Line, Move, MoveChain, MoveType, MultiPolygon, Point, PolygonOperations, Slice,
-};
+
+use geo::coordinate_position::CoordPos;
+use geo::{Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, Line, MultiPolygon, Point};
+use gladius_shared::types::{Move, MoveChain, MoveType, Slice};
+use itertools::Itertools;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 
-use coordinate_position::CoordPos;
 use geo::euclidean_distance::EuclideanDistance;
 use geo::line_intersection::{line_intersection, LineIntersection};
 use gladius_shared::settings::LayerSettings;
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+
+use super::polygon_operations::PolygonOperations;
 
 pub fn lightning_infill(slices: &mut Vec<Slice>) {
     let mut lt = LightningForest { trees: vec![] };

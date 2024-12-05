@@ -1,7 +1,7 @@
 use geo::Coord;
-use gladius_shared::error::SlicerErrors;
-use gladius_shared::messages::Message;
-use gladius_shared::warning::SlicerWarnings;
+use crate::error::SlicerErrors;
+use crate::messages::Message;
+use crate::warning::SlicerWarnings;
 use log::{error, info, warn};
 use nalgebra::Vector2;
 use std::{

@@ -1,6 +1,6 @@
-use crate::{
-     tower::TowerVertex, Coord, Object, Settings, Slice, SlicerErrors, TriangleTower, TriangleTowerIterator
-};
+
+use geo::Coord;
+use gladius_shared::{error::SlicerErrors, settings::Settings, types::{Object, Slice}};
 use rayon::{
     iter::{
         IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelBridge,
@@ -8,6 +8,8 @@ use rayon::{
     },
     slice::ParallelSliceMut,
 };
+
+use crate::tower::{TowerVertex, TriangleTower, TriangleTowerIterator};
 
 pub fn slice<V>(towers: Vec<TriangleTower<V>>, settings: &Settings) -> Result<Vec<Object>, SlicerErrors> where V : Send+ Sync+ Ord +Clone+ TowerVertex{
     towers

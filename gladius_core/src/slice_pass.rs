@@ -1,11 +1,12 @@
 use crate::plotter::lightning_infill::lightning_infill;
+use crate::plotter::polygon_operations::PolygonOperations;
 use crate::plotter::support::Supporter;
 use crate::plotter::Plotter;
-use crate::utils::{state_update, StateContext};
-use crate::{Object, PolygonOperations, Settings, Slice};
 use geo::prelude::*;
 use geo::MultiPolygon;
-use gladius_shared::error::SlicerErrors;
+use gladius_shared::utils::state_update;
+use gladius_shared::utils::StateContext;
+use gladius_shared::{error::SlicerErrors, settings::Settings, types::{Object, Slice}};
 use gladius_shared::types::PartialInfillTypes;
 use itertools::Itertools;
 use rayon::prelude::*;

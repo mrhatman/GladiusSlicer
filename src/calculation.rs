@@ -1,4 +1,6 @@
-use crate::{CalculatedValues, Command, Coord, RetractionType, Settings};
+use geo::Coord;
+
+use crate::{CalculatedValues, Command,  RetractionType, Settings};
 
 pub fn calculate_values(moves: &[Command], settings: &Settings) -> CalculatedValues {
     let mut values = CalculatedValues {

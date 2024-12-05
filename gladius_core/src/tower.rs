@@ -1,10 +1,8 @@
-use crate::SlicerErrors;
+use gladius_shared::error::SlicerErrors;
 use gladius_shared::types::{IndexedTriangle, Vertex};
 use log::trace;
-use ordered_float::OrderedFloat;
-use rayon::collections::binary_heap;
 use rayon::prelude::*;
-use binary_heap_plus::{BinaryHeap, FnComparator, MinComparator};
+use binary_heap_plus::{BinaryHeap,  MinComparator};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -430,6 +428,7 @@ impl<V> TriangleTowerIterator<V> where V : Clone+Ord + TowerVertex{
         while self.tower.get_height_of_next_vertex() < z && !self.tower.tower_vertices.is_empty() {
             let pop_tower_vert = self.tower.tower_vertices.pop().expect("Validated above");
 
+            trace!("Active ring size: {}", self.active_rings.iter().map(|r| r.elements.len()).sum::<usize>());
             // Create Frags from rings by removing current edges
             self.active_rings = self
                 .active_rings

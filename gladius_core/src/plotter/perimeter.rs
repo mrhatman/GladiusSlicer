@@ -4,8 +4,9 @@ use gladius_shared::types::{Move, MoveChain, MoveType};
 use geo::prelude::*;
 use geo::MultiPolygon;
 
-use crate::PolygonOperations;
 use itertools::Itertools;
+
+use super::polygon_operations::PolygonOperations;
 
 pub fn inset_polygon_recursive(
     poly: &MultiPolygon<f64>,
