@@ -1,7 +1,5 @@
-use gladius_shared::error::SlicerErrors;
-use gladius_shared::types::{IndexedTriangle, Vertex};
+use gladius_shared::prelude::*;
 use log::trace;
-use rayon::prelude::*;
 use binary_heap_plus::{BinaryHeap,  MinComparator};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};

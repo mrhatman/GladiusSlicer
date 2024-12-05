@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use geo::Coord;
-use gladius_shared::{settings::Settings, types::{Command, RetractionType}};
+use gladius_shared::prelude::*;
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
 

@@ -1,7 +1,5 @@
 use geo::{Contains, MultiPolygon, Point};
-use gladius_shared::error::SlicerErrors;
-use gladius_shared::settings::Settings;
-use gladius_shared::types::{Command, IndexedTriangle, Vertex};
+use gladius_shared::prelude::*;
 use itertools::Itertools;
 
 /// Check if the point is in an excluded

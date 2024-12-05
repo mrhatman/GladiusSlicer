@@ -2,25 +2,20 @@
 #![warn(clippy::all, clippy::perf, clippy::missing_const_for_fn)]
 
 use clap::Parser;
-use gladius_core::command_pass::{CommandPass, OptimizePass, SlowDownLayerPass};
-use gladius_shared::input::load_settings;
-use gladius_shared::{input, types::*};
 
-use gladius_core::plotter::convert_objects_into_moves;
-use gladius_core::tower::{create_towers, TriangleTower};
+use gladius_core::prelude::*;
+use gladius_shared::prelude::*;
 
-use gladius_shared::settings::{ Settings, SettingsValidationResult};
-use gladius_shared::utils::{send_error_message, send_warning_message, show_error_message, show_warning_message, state_update, DisplayType, StateContext};
+
+
 use std::fs::File;
 
 use crate::bounds_checking::{check_model_bounds, check_moves_bounds};
 use crate::calculation::calculate_values;
 use crate::converter::convert;
-use gladius_core::slice_pass::*;
-use gladius_core::slicing::slice;
 
-use gladius_shared::error::SlicerErrors;
-use gladius_shared::messages::Message;
+
+
 use log::{debug, info, LevelFilter};
 use simple_logger::SimpleLogger;
 use std::io::BufWriter;
@@ -28,8 +23,6 @@ use std::io::BufWriter;
 mod bounds_checking;
 mod calculation;
 mod converter;
-
-
 mod test;
 
 

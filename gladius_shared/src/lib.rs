@@ -25,3 +25,6 @@ pub mod utils;
 
 /// Handles input
 pub mod input;
+
+/// the standard imports for the shared crate
+pub mod prelude;

@@ -1,8 +1,7 @@
 use geo::algorithm::euclidean_length::EuclideanLength;
 use geo::euclidean_distance::EuclideanDistance;
 use geo::{Coord, Line};
-use gladius_shared::settings::Settings;
-use gladius_shared::types::{Command, RetractionType, StateChange};
+use gladius_shared::prelude::*;
 use itertools::Itertools;
 
 /// Remove `Command`s that don't acheve anything

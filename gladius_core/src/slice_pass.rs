@@ -4,11 +4,7 @@ use crate::plotter::support::Supporter;
 use crate::plotter::Plotter;
 use geo::prelude::*;
 use geo::MultiPolygon;
-use gladius_shared::utils::state_update;
-use gladius_shared::utils::StateContext;
-use gladius_shared::{error::SlicerErrors, settings::Settings, types::{Object, Slice}};
-use gladius_shared::types::PartialInfillTypes;
-use itertools::Itertools;
+use gladius_shared::prelude::*;
 use rayon::prelude::*;
 
 pub trait ObjectPass {

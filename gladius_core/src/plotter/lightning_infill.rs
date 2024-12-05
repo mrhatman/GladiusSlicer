@@ -1,13 +1,12 @@
 
 use geo::coordinate_position::CoordPos;
 use geo::{Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, Line, MultiPolygon, Point};
-use gladius_shared::types::{Move, MoveChain, MoveType, Slice};
+use gladius_shared::prelude::*;
 use itertools::Itertools;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 
 use geo::euclidean_distance::EuclideanDistance;
 use geo::line_intersection::{line_intersection, LineIntersection};
-use gladius_shared::settings::LayerSettings;
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;

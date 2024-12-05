@@ -1,9 +1,9 @@
 
 use geo::Coord;
-use gladius_shared::{error::SlicerErrors, settings::Settings, types::{Object, Slice}};
+use gladius_shared::prelude::*;
 use rayon::{
     iter::{
-        IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelBridge,
+         IntoParallelIterator, ParallelBridge,
         ParallelIterator,
     },
     slice::ParallelSliceMut,
