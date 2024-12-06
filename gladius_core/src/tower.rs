@@ -274,18 +274,12 @@ impl Ord for TowerRingElement {
                 },
             ) => s_triangle_index.cmp(o_triangle_index),
             (
-                TowerRingElement::Face { triangle_index },
-                TowerRingElement::Edge {
-                    start_index,
-                    end_index,
-                },
+                TowerRingElement::Face { .. },
+                TowerRingElement::Edge { .. },
             ) => std::cmp::Ordering::Greater,
             (
-                TowerRingElement::Edge {
-                    start_index,
-                    end_index,
-                },
-                TowerRingElement::Face { triangle_index },
+                TowerRingElement::Edge { .. },
+                TowerRingElement::Face { .. },
             ) => std::cmp::Ordering::Less,
             (
                 TowerRingElement::Edge {

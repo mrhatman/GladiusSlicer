@@ -11,10 +11,9 @@ use gladius_proc_macros::Settings;
 #[cfg(feature = "json_schema_gen")]
 /// json schema gen
 use schemars::{schema_for, JsonSchema};
-use geo::{Contains, LinesIter, MultiPolygon};
+use geo::MultiPolygon;
 use geo_validity_check::Valid;
-use log::{info, trace};
-use nalgebra::Point2;
+use log::*;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
