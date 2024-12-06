@@ -11,11 +11,11 @@ struct Relationships {
 #[derive(Deserialize, Debug)]
 struct Relationship {
     #[serde(rename = "Type")]
-    relationship_type: String,
+    _relationship_type: String,
     #[serde(rename = "Target")]
     target: String,
     #[serde(rename = "Id")]
-    id: String,
+    _id: String,
 }
 
 #[derive(Deserialize, Debug)]
