@@ -1,6 +1,6 @@
 use std::{io::Write, time::{Duration, SystemTime}};
 
-use crate::prelude::*;
+use crate::{bounds_checking::{check_model_bounds, check_moves_bounds}, command_pass::{CommandPass, OptimizePass, SlowDownLayerPass}, converter::convert, plotter::convert_objects_into_moves, prelude::*, slice_pass::*, slicing::slice, tower::{create_towers, TriangleTower}};
 use gladius_shared::prelude::*;
 use log::*;
 
