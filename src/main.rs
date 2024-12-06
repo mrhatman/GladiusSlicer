@@ -8,7 +8,7 @@ use gladius_shared::prelude::*;
 
 
 
-use std::{fs::File, io::Write};
+use std::{borrow::BorrowMut, fs::File, io::Write};
 
 
 use log::{debug, info, LevelFilter};
@@ -78,11 +78,6 @@ fn main() {
             .expect("Only call to build global");
     }
 
-    let mut state_context = StateContext::new(if args.message {
-        DisplayType::Message
-    } else {
-        DisplayType::StdOut
-    });
 
     if !args.message {
         // Vary the output based on how many times the user used the "verbose" flag
@@ -100,38 +95,115 @@ fn main() {
             .expect("Only Logger Setup");
     }
 
+
     //state_update("Loading Inputs", &mut state_context);
 
-    let settings_json = args.settings_json.unwrap_or_else(|| {
-        handle_err_or_return(
-            input::load_settings_json(
-                args.settings_file_path
-                    .as_deref()
-                    .expect("CLAP should handle requring a settings option to be Some"),
+
+
+
+
+    // Output the GCode
+    if let Some(file_path) = &args.output {
+        
+        let mut profiling_callbacks = ProfilingCallbacks::new();
+        // Output to file
+        let mut file = handle_err_or_return(
+            File::create(file_path).map_err(|_| SlicerErrors::FileCreateError {
+                filepath: file_path.to_string(),
+            }),
+            &mut profiling_callbacks
+        );
+
+        let ( models,settings) = handle_err_or_return(handle_io(args),&mut profiling_callbacks);
+
+
+        handle_err_or_return( 
+            slicer_pipeline(
+                &models,
+                &settings,
+                &mut profiling_callbacks,
+                &mut file
             ),
-            &state_context,
+            &mut profiling_callbacks
+        
+        );
+    } else {
+        if args.message {
+            // Output as message
+            let mut gcode: Vec<u8> = Vec::new();
+            let mut messaging_callbacks = MessageCallbacks{};
+            let ( models,settings) = handle_err_or_return(handle_io(args),&mut messaging_callbacks);
+
+            handle_err_or_return( 
+                slicer_pipeline(
+                    &models,
+                    &settings,
+                    &mut messaging_callbacks,
+                    &mut gcode
+                    ),
+                &mut messaging_callbacks
+            
+            );
+            let message = Message::GCode(
+                String::from_utf8(gcode)
+                    .expect("All write occur from write macro so should be utf8"),
+            );
+            bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
+                .expect("Write Limit should not be hit");
+
+        }
+        else {
+            // Output to stdout
+            let stdout = std::io::stdout();
+            let mut stdio_lock = stdout.lock();
+            let mut profiling_callbacks = ProfilingCallbacks::new();
+
+            let ( models,settings) = handle_err_or_return(handle_io(args),&mut profiling_callbacks);
+
+
+            handle_err_or_return( 
+                slicer_pipeline(
+                    &models,
+                    &settings,
+                    &mut profiling_callbacks,
+                    &mut stdio_lock
+                    ),
+                    &mut profiling_callbacks
+            
+            );
+            
+        }
+    };
+
+
+}
+
+fn handle_io(args: Args) -> Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>,Settings),SlicerErrors>{
+    let settings_json = args.settings_json.map(|s| Ok(s)).unwrap_or_else(|| {
+        
+        input::load_settings_json(
+            args.settings_file_path
+                .as_deref()
+                .expect("CLAP should handle requring a settings option to be Some"),
         )
-    });
+    })?;
 
-    let settings = handle_err_or_return(
-        load_settings(args.settings_file_path.as_deref(), &settings_json),
-        &state_context,
-    );
+    let settings = 
+        load_settings(args.settings_file_path.as_deref(), &settings_json)?;
 
-    let input_objs :Vec<InputObject> = handle_err_or_return(args.input.iter().map(|value|{
+    let input_objs :Result<Vec<InputObject> ,SlicerErrors>= args.input.iter().map(|value|{
         if args.simple_input {
             Ok(InputObject::Auto(value.clone()))
         } else {
             deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)
         }
-    }).collect(),&state_context);
+    }).collect();
 
 
 
-    let models = handle_err_or_return(
-        crate::input::load_models( input_objs, &settings),
-        &state_context,
-    );
+    let models = 
+        crate::input::load_models( input_objs?, &settings)?
+    ;
     if args.print_settings {
         for line in gladius_shared::settings::SettingsPrint::to_strings(&settings) {
             println!("{}", line);
@@ -143,154 +215,20 @@ fn main() {
         }
     }
 
-    handle_setting_validation(settings.validate_settings(), &state_context);
-
-    // Output the GCode
-    let cv = if let Some(file_path) = &args.output {
-        // Output to file
-        let mut file = handle_err_or_return(
-            File::create(file_path).map_err(|_| SlicerErrors::FileCreateError {
-                filepath: file_path.to_string(),
-            }),
-            &state_context
-        );
-
-        let mut profiling_callbacks = ProfilingCallbacks::new();
-
-        handle_err_or_return( 
-            slicer_pipeline(
-                &models,
-                &settings,
-                &mut profiling_callbacks,
-                &mut file
-            ),
-            &state_context
-        
-        )
-    } else {
-        match state_context.display_type {
-            DisplayType::Message => {
-                // Output as message
-                let mut gcode: Vec<u8> = Vec::new();
-                let mut messaging_callbacks = MessageCallbacks{};
-
-                let cv =handle_err_or_return( 
-                    slicer_pipeline(
-                        &models,
-                        &settings,
-                        &mut messaging_callbacks,
-                        &mut gcode
-                        ),
-                    &state_context
-                
-                );
-                let message = Message::GCode(
-                    String::from_utf8(gcode)
-                        .expect("All write occur from write macro so should be utf8"),
-                );
-                bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
-                    .expect("Write Limit should not be hit");
-
-                cv
-            }
-            DisplayType::StdOut => {
-                // Output to stdout
-                let stdout = std::io::stdout();
-                let mut stdio_lock = stdout.lock();
-                let mut profiling_callbacks = ProfilingCallbacks::new();
-
-                
-                handle_err_or_return( 
-                    slicer_pipeline(
-                        &models,
-                        &settings,
-                        &mut profiling_callbacks,
-                        &mut stdio_lock
-                        ),
-                    &state_context
-                
-                )
-            }
-        }
-    };
-
-    print_info_message(cv, &settings, &state_context);
-
-
-    if let DisplayType::StdOut = state_context.display_type {
-        info!(
-            "Total slice time {} msec",
-            state_context.get_total_elapsed_time().as_millis()
-        );
-    }
+    Ok((models,settings))
 }
 
-/// Display info about the print; time and filament info
-fn print_info_message( cv: CalculatedValues, settings: &Settings, state_context: &StateContext) {
-
-    match state_context.display_type{
-        DisplayType::Message => {
-            let message = Message::CalculatedValues(cv);
-            bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
-                .expect("Write Limit should not be hit");
-        },
-        DisplayType::StdOut => {
-            let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
-    
-            info!(
-                "Total Time: {} hours {} minutes {:.3} seconds",
-                hour, min, sec
-            );
-            info!(
-                "Total Filament Volume: {:.3} cm^3",
-                cv.plastic_volume / 1000.0
-            );
-            info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
-            info!(
-                "Total Filament Length: {:.3} meters",
-                cv.plastic_length / 1000.0
-            );
-            info!(
-                "Total Filament Cost: ${:.2}",
-                (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
-                    * settings.filament.cost
-            );
-        },
-    }
-
-}
-
-
-fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, state_context: &StateContext) -> T {
+fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, callbacks: &mut impl PipelineCallbacks) -> T {
     match res {
         Ok(data) => data,
         Err(slicer_error) => {
-            match state_context.display_type {
-                DisplayType::Message => send_error_message(slicer_error),
-                DisplayType::StdOut => show_error_message(&slicer_error),
-            }
+            callbacks.handle_settings_error(slicer_error);
             std::process::exit(-1);
         }
     }
 }
 
-/// Sends an apropreate error/warning message for a `SettingsValidationResult`
-fn handle_setting_validation(res: SettingsValidationResult, state_context: &StateContext) {
-    match res {
-        SettingsValidationResult::NoIssue => {}
-        SettingsValidationResult::Warning(slicer_warning) => match state_context.display_type {
-            DisplayType::Message => send_warning_message(slicer_warning),
-            DisplayType::StdOut => show_warning_message(&slicer_warning),
-        },
-        SettingsValidationResult::Error(slicer_error) => {
-            match state_context.display_type {
-                DisplayType::Message => send_error_message(slicer_error),
-                DisplayType::StdOut => show_error_message(&slicer_error),
-            }
-            std::process::exit(-1);
-        }
-    }
-}
+
 
 pub struct MessageCallbacks{
 }
@@ -311,5 +249,29 @@ impl PipelineCallbacks for MessageCallbacks{
         bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
             .expect("Write Limit should not be hit");
     }
+
+    fn handle_settings_error(&mut self, err : SlicerErrors) {
+        let stdout = std::io::stdout();
+        let mut stdio_lock = stdout.lock();
+    
+        let message = Message::Error(err);
+        bincode::serialize_into(&mut stdio_lock, &message).expect("Write Limit should not be hit");
+        stdio_lock.flush().expect("Standard Out should be limited");
+    }
+    
+    fn handle_settings_warning(&mut self, warning : SlicerWarnings) {
+        let stdout = std::io::stdout();
+        let mut stdio_lock = stdout.lock();
+        let message = Message::Warning(warning);
+        bincode::serialize_into(&mut stdio_lock, &message).expect("Write Limit should not be hit");
+        stdio_lock.flush().expect("Standard Out should be limited");
+    }
+    
+    fn handle_calculated_values(&mut self, cv: CalculatedValues, settings: &Settings) {
+        let message = Message::CalculatedValues(cv);
+        bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
+            .expect("Write Limit should not be hit");
+    }
+
 
 }

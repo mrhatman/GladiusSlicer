@@ -2,11 +2,14 @@ use std::{io::Write, time::SystemTime};
 
 use crate::prelude::*;
 use gladius_shared::prelude::*;
-use log::{debug, info};
+use log::*;
 
 pub trait PipelineCallbacks{
     fn handle_state_update(&mut self, state_message: &str);
+    fn handle_settings_error(&mut self, err : SlicerErrors);
+    fn handle_settings_warning(&mut self, warning : SlicerWarnings);
     fn handle_commands(&mut self, _moves: &Vec<Command>) {}
+    fn handle_calculated_values(&mut self, cv: CalculatedValues, settings: &Settings);
 }
 
 
@@ -34,12 +37,59 @@ impl PipelineCallbacks for ProfilingCallbacks{
         self.last_time = time;
         info!("{}\t{}", state_message, elapsed.as_millis());
     }
-
+    
+        
+    fn handle_settings_error(&mut self, warning : SlicerErrors) {
+        let (error_code, message) = warning.get_code_and_message();
+        warn!("\n");
+        warn!("**************************************************");
+        warn!("\tGladius Slicer found a warning");
+        warn!("\tWarning Code: {:#X}", error_code);
+        warn!("\t{}", message);
+        warn!("**************************************************");
+        warn!("\n\n\n");
+    }
+    
+    fn handle_settings_warning(&mut self, err : SlicerWarnings) {
+        let (error_code, message) = err.get_code_and_message();
+        error!("\n");
+        error!("**************************************************");
+        error!("\tGladius Slicer Ran into an error");
+        error!("\tError Code: {:#X}", error_code);
+        error!("\t{}", message);
+        error!("**************************************************");
+        error!("\n\n\n");
+    }
+    
+    fn handle_calculated_values(&mut self, cv: CalculatedValues, settings: &Settings) {
+        let (hour, min, sec, _) = cv.get_hours_minutes_seconds_fract_time();
+    
+        info!(
+            "Total Time: {} hours {} minutes {:.3} seconds",
+            hour, min, sec
+        );
+        info!(
+            "Total Filament Volume: {:.3} cm^3",
+            cv.plastic_volume / 1000.0
+        );
+        info!("Total Filament Mass: {:.3} grams", cv.plastic_weight);
+        info!(
+            "Total Filament Length: {:.3} meters",
+            cv.plastic_length / 1000.0
+        );
+        info!(
+            "Total Filament Cost: ${:.2}",
+            (((cv.plastic_volume / 1000.0) * settings.filament.density) / 1000.0)
+                * settings.filament.cost
+        );
+    }
 
 }
 
 
-pub fn slicer_pipeline(    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], settings: &Settings, callbacks: &mut impl PipelineCallbacks, write: &mut impl Write,) -> Result<CalculatedValues,SlicerErrors>{
+pub fn slicer_pipeline(    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], settings: &Settings, callbacks: &mut impl PipelineCallbacks, write: &mut impl Write,) -> Result<(),SlicerErrors>{
+    handle_setting_validation(settings.validate_settings(), callbacks);
+
     check_model_bounds(&models, &settings)?;
 
     callbacks.handle_state_update("Creating Towers");
@@ -74,7 +124,10 @@ pub fn slicer_pipeline(    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], setti
     convert(&moves, &settings, write)?;
 
     callbacks.handle_state_update("Calculate Values");
-    Ok(calculate_values(&moves, settings))
+    let cv = calculate_values(&moves, settings);
+
+    callbacks.handle_calculated_values(cv, settings);
+    Ok(())
 
 
 }
@@ -130,4 +183,16 @@ fn generate_moves(
     v?;
 
     Ok(convert_objects_into_moves(objects, settings))
+}
+
+/// Sends an apropreate error/warning message for a `SettingsValidationResult`
+fn handle_setting_validation(res: SettingsValidationResult, callbacks: &mut impl PipelineCallbacks) {
+    match res {
+        SettingsValidationResult::NoIssue => {}
+        SettingsValidationResult::Warning(slicer_warning) => callbacks.handle_settings_warning(slicer_warning),
+        SettingsValidationResult::Error(slicer_error) => {
+            callbacks.handle_settings_error(slicer_error);
+            std::process::exit(-1);
+        }
+    }
 }

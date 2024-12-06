@@ -4,7 +4,6 @@ use crate::error::SlicerErrors;
 use crate::loader::{Loader, STLLoader, ThreeMFLoader};
 use crate::settings::{PartialSettingsFile, Settings};
 
-use crate::utils::show_error_message;
 use crate::types::{
      IndexedTriangle, InputObject, Transform, Vertex,
 };
@@ -49,14 +48,7 @@ pub fn load_models(
 
             info!("Loading model from: {}", &object.get_model_path());
 
-            let models = match loader?.load(model_path.to_str().ok_or(SlicerErrors::InputNotUTF8)?)
-            {
-                Ok(v) => v,
-                Err(err) => {
-                    show_error_message(&err);
-                    std::process::exit(-1);
-                }
-            };
+            let models = loader?.load(model_path.to_str().ok_or(SlicerErrors::InputNotUTF8)?)?;
 
             info!("Loading objects");
 

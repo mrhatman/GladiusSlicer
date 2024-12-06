@@ -561,7 +561,6 @@ dependencies = [
 name = "gladius_shared"
 version = "0.5.0"
 dependencies = [
- "bincode",
  "deser-hjson",
  "geo 0.28.0",
  "geo-validity-check",
