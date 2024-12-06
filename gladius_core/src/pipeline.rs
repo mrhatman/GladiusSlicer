@@ -1,4 +1,4 @@
-use std::{io::Write, time::SystemTime};
+use std::{io::Write, time::{Duration, SystemTime}};
 
 use crate::prelude::*;
 use gladius_shared::prelude::*;
@@ -25,6 +25,13 @@ impl ProfilingCallbacks{
             start_time: time,
             last_time: time,
         }
+    }
+    
+    pub fn get_total_elapsed_time(&self) -> Duration {
+        let elapsed = SystemTime::now()
+            .duration_since(self.start_time)
+            .expect("Time can only go forward");
+        elapsed
     }
 }
 

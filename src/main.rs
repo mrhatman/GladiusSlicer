@@ -127,6 +127,13 @@ fn main() {
             &mut profiling_callbacks
         
         );
+
+        
+        info!(
+            "Total slice time {} msec",
+            profiling_callbacks.get_total_elapsed_time().as_millis()
+        );
+    
     } else {
         if args.message {
             // Output as message
@@ -170,6 +177,11 @@ fn main() {
                     ),
                     &mut profiling_callbacks
             
+            );
+
+            info!(
+                "Total slice time {} msec",
+                profiling_callbacks.get_total_elapsed_time().as_millis()
             );
             
         }
