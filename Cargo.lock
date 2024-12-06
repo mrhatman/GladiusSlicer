@@ -584,10 +584,12 @@ version = "0.4.1"
 dependencies = [
  "bincode",
  "clap",
+ "deser-hjson",
  "gladius_core",
  "gladius_shared",
  "log",
  "rayon",
+ "serde_json",
  "simple_logger",
 ]
 

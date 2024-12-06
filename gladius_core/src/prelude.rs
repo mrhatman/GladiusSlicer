@@ -6,3 +6,4 @@ pub use crate::slicing::slice;
 pub use crate::bounds_checking::{check_model_bounds, check_moves_bounds};
 pub use crate::calculation::calculate_values;
 pub use crate::converter::convert;
+pub use crate::pipeline::*;

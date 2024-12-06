@@ -7,4 +7,5 @@ pub mod command_pass;
 pub mod bounds_checking;
 pub mod calculation;
 pub mod converter;
+pub mod pipeline;
 pub mod prelude;
