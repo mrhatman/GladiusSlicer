@@ -1,13 +1,6 @@
 use geo::Coord;
-use crate::error::SlicerErrors;
-use crate::messages::Message;
-use crate::warning::SlicerWarnings;
-use log::{error, info, warn};
 use nalgebra::Vector2;
-use std::{
-    io::Write,
-    time::{Duration, SystemTime},
-};
+
 
 
 ///Calculate the point between a and b with the given y value

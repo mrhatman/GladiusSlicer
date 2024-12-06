@@ -277,6 +277,7 @@ impl SlicePass for SupportPass {
         callbacks: &mut impl PipelineCallbacks,
     ) -> Result<(), SlicerErrors> {
         if let Some(support) = &settings.support {
+            callbacks.handle_state_update("Generating Moves: Support");
             for slice in slices.iter_mut() {
                 slice.fill_support_polygons(support);
             }

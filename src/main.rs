@@ -8,10 +8,10 @@ use gladius_shared::prelude::*;
 
 
 
-use std::{borrow::BorrowMut, fs::File, io::Write};
+use std::{ fs::File, io::Write};
 
 
-use log::{debug, info, LevelFilter};
+use log::{info, LevelFilter};
 use simple_logger::SimpleLogger;
 use std::io::BufWriter;
 
@@ -279,7 +279,7 @@ impl PipelineCallbacks for MessageCallbacks{
         stdio_lock.flush().expect("Standard Out should be limited");
     }
     
-    fn handle_calculated_values(&mut self, cv: CalculatedValues, settings: &Settings) {
+    fn handle_calculated_values(&mut self, cv: CalculatedValues, _settings: &Settings) {
         let message = Message::CalculatedValues(cv);
         bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
             .expect("Write Limit should not be hit");
