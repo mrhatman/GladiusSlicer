@@ -118,8 +118,18 @@ fn main() {
         &state_context,
     );
 
+    let input_objs :Vec<InputObject> = handle_err_or_return(args.input.iter().map(|value|{
+        if args.simple_input {
+            Ok(InputObject::Auto(value.clone()))
+        } else {
+            deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)
+        }
+    }).collect(),&state_context);
+
+
+
     let models = handle_err_or_return(
-        crate::input::load_models(Some(args.input), &settings, args.simple_input),
+        crate::input::load_models( input_objs, &settings),
         &state_context,
     );
     if args.print_settings {

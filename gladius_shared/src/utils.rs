@@ -9,13 +9,16 @@ use std::{
     time::{Duration, SystemTime},
 };
 
+///Current state information
 pub struct StateContext {
+    ///display type to use
     pub display_type: DisplayType,
     start_time: SystemTime,
     last_time: SystemTime,
 }
 
 impl StateContext {
+    ///Create new State Context with given display type
     pub fn new(display_type: DisplayType) -> StateContext {
         let time = SystemTime::now();
         StateContext {
@@ -25,6 +28,7 @@ impl StateContext {
         }
     }
 
+    ///Get elapsed time since last call to get elapsed time or new
     pub fn get_elapsed_time(&mut self) -> Duration {
         let time = SystemTime::now();
         let elapsed = SystemTime::now()
@@ -34,6 +38,7 @@ impl StateContext {
         elapsed
     }
 
+    ///Get elapsed time since new
     pub fn get_total_elapsed_time(&self) -> Duration {
         let elapsed = SystemTime::now()
             .duration_since(self.start_time)
@@ -42,11 +47,15 @@ impl StateContext {
     }
 }
 
+///Types to display output messages
 pub enum DisplayType {
+    /// Output to log
     Message,
+    /// Output to stdout
     StdOut,
 }
 
+///Logs at error level the given error
 pub fn show_error_message(error: &SlicerErrors) {
     let (error_code, message) = error.get_code_and_message();
     error!("\n");
@@ -57,6 +66,8 @@ pub fn show_error_message(error: &SlicerErrors) {
     error!("**************************************************");
     error!("\n\n\n");
 }
+
+///Outputs the binary serial version of the error to stdout
 pub fn send_error_message(error: SlicerErrors) {
     let stdout = std::io::stdout();
     let mut stdio_lock = stdout.lock();
@@ -66,6 +77,7 @@ pub fn send_error_message(error: SlicerErrors) {
     stdio_lock.flush().expect("Standard Out should be limited");
 }
 
+///Logs at warn level the given warning
 pub fn show_warning_message(warning: &SlicerWarnings) {
     let (error_code, message) = warning.get_code_and_message();
     warn!("\n");
@@ -77,6 +89,7 @@ pub fn show_warning_message(warning: &SlicerWarnings) {
     warn!("\n\n\n");
 }
 
+///Outputs the binary serial version of the warning to stdout
 pub fn send_warning_message(warning: SlicerWarnings) {
     let stdout = std::io::stdout();
     let mut stdio_lock = stdout.lock();
@@ -85,6 +98,8 @@ pub fn send_warning_message(warning: SlicerWarnings) {
     stdio_lock.flush().expect("Standard Out should be limited");
 }
 
+
+///Updates the current state and logs it given outout
 pub fn state_update(state_message: &str, state_context: &mut StateContext) {
     match state_context.display_type {
         DisplayType::Message => {
@@ -102,6 +117,9 @@ pub fn state_update(state_message: &str, state_context: &mut StateContext) {
     }
 }
 
+
+///Calculate the point between a and b with the given y value
+/// y must between a.y and b.y
 #[inline]
 pub fn point_y_lerp(a: &Coord<f64>, b: &Coord<f64>, y: f64) -> Coord<f64> {
     Coord {
@@ -110,6 +128,7 @@ pub fn point_y_lerp(a: &Coord<f64>, b: &Coord<f64>, y: f64) -> Coord<f64> {
     }
 }
 
+///Linear interoplate between points a and b at distance f(0.0-1.0)
 #[inline]
 pub fn point_lerp(a: &Coord<f64>, b: &Coord<f64>, f: f64) -> Coord<f64> {
     Coord {
@@ -118,6 +137,7 @@ pub fn point_lerp(a: &Coord<f64>, b: &Coord<f64>, f: f64) -> Coord<f64> {
     }
 }
 
+///Linear interoplate between a and b at distance f(0.0-1.0)
 #[inline]
 pub fn lerp(a: f64, b: f64, f: f64) -> f64 {
     a + f * (b - a)
@@ -153,13 +173,18 @@ pub fn directional_unit_bisector_left(
     }
 }
 
+///Whether a set of three points curves to the left, right, or is linear
 #[derive(Debug, PartialEq)]
 pub enum Orientation {
+    /// The 3 points are linear
     Linear,
+    /// The points go to the left/are CCW
     Left,
+    /// The points go to the right/are CW
     Right,
 }
 
+///Given a set of 3 points calculate its orientation
 pub fn orientation(p: &Coord<f64>, q: &Coord<f64>, r: &Coord<f64>) -> Orientation {
     let left_val = (q.x - p.x) * (r.y - p.y);
     let right_val = (q.y - p.y) * (r.x - p.x);
