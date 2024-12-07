@@ -11,7 +11,7 @@ use gladius_shared::prelude::*;
 use std::{ fs::File, io::Write};
 
 
-use log::{info, LevelFilter};
+use log::{error, info, LevelFilter};
 use simple_logger::SimpleLogger;
 use std::io::BufWriter;
 
@@ -111,10 +111,9 @@ fn main() {
             File::create(file_path).map_err(|_| SlicerErrors::FileCreateError {
                 filepath: file_path.to_string(),
             }),
-            &mut profiling_callbacks
+            args.message
         );
-
-        let ( models,settings) = handle_err_or_return(handle_io(args),&mut profiling_callbacks);
+        let ( models,settings) = handle_err_or_return(handle_io(&args),args.message);
 
 
         handle_err_or_return( 
@@ -124,8 +123,7 @@ fn main() {
                 &mut profiling_callbacks,
                 &mut file
             ),
-            &mut profiling_callbacks
-        
+            args.message
         );
 
         
@@ -134,64 +132,64 @@ fn main() {
             profiling_callbacks.get_total_elapsed_time().as_millis()
         );
     
-    } else {
-        if args.message {
-            // Output as message
-            let mut gcode: Vec<u8> = Vec::new();
-            let mut messaging_callbacks = MessageCallbacks{};
-            let ( models,settings) = handle_err_or_return(handle_io(args),&mut messaging_callbacks);
+    } else if args.message {
+        // Output as message
+        let mut gcode: Vec<u8> = Vec::new();
+        let mut messaging_callbacks = MessageCallbacks{};
 
-            handle_err_or_return( 
-                slicer_pipeline(
-                    &models,
-                    &settings,
-                    &mut messaging_callbacks,
-                    &mut gcode
-                    ),
-                &mut messaging_callbacks
-            
-            );
-            let message = Message::GCode(
-                String::from_utf8(gcode)
-                    .expect("All write occur from write macro so should be utf8"),
-            );
-            bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
-                .expect("Write Limit should not be hit");
+        let ( models,settings) = handle_err_or_return(handle_io(&args),args.message);
 
-        }
-        else {
-            // Output to stdout
-            let stdout = std::io::stdout();
-            let mut stdio_lock = stdout.lock();
-            let mut profiling_callbacks = ProfilingCallbacks::new();
+        handle_err_or_return( 
+            slicer_pipeline(
+                &models,
+                &settings,
+                &mut messaging_callbacks,
+                &mut gcode
+                ),
+                args.message
+        
+        );
+        let message = Message::GCode(
+            String::from_utf8(gcode)
+                .expect("All write occur from write macro so should be utf8"),
+        );
+        bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
+            .expect("Write Limit should not be hit");
 
-            let ( models,settings) = handle_err_or_return(handle_io(args),&mut profiling_callbacks);
+    }
+    else {
+        // Output to stdout
+        let stdout = std::io::stdout();
+        let mut stdio_lock = stdout.lock();
+        let mut profiling_callbacks = ProfilingCallbacks::new();
+
+        let m = args.message;
+        let ( models,settings) = handle_err_or_return(handle_io(&args), args.message );
 
 
-            handle_err_or_return( 
-                slicer_pipeline(
-                    &models,
-                    &settings,
-                    &mut profiling_callbacks,
-                    &mut stdio_lock
-                    ),
-                    &mut profiling_callbacks
-            
-            );
+        handle_err_or_return( 
+            slicer_pipeline(
+                &models,
+                &settings,
+                &mut profiling_callbacks,
+                &mut stdio_lock
+                ),
+                args.message
+        
+        );
 
-            info!(
-                "Total slice time {} msec",
-                profiling_callbacks.get_total_elapsed_time().as_millis()
-            );
-            
-        }
+        info!(
+            "Total slice time {} msec",
+            profiling_callbacks.get_total_elapsed_time().as_millis()
+        );
+        
     };
 
 
 }
 
-fn handle_io(args: Args) -> Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>,Settings),SlicerErrors>{
-    let settings_json = args.settings_json.map(|s| Ok(s)).unwrap_or_else(|| {
+fn handle_io(args: &Args) -> Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>,Settings),SlicerErrors>{
+    let settings_json = args.settings_json.as_ref().map(|s| Ok(s.clone())).unwrap_or_else(|| {
         
         input::load_settings_json(
             args.settings_file_path
@@ -230,11 +228,31 @@ fn handle_io(args: Args) -> Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>,Set
     Ok((models,settings))
 }
 
-fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, callbacks: &mut impl PipelineCallbacks) -> T {
+fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, message: bool) -> T {
     match res {
         Ok(data) => data,
         Err(slicer_error) => {
-            callbacks.handle_settings_error(slicer_error);
+
+            if message{
+                let stdout = std::io::stdout();
+                let mut stdio_lock = stdout.lock();
+            
+                let message = Message::Error(slicer_error);
+                bincode::serialize_into(&mut stdio_lock, &message).expect("Write Limit should not be hit");
+                stdio_lock.flush().expect("Standard Out should be limited");
+            }
+            else{
+
+                let (error_code, message) = slicer_error.get_code_and_message();
+                error!("\n");
+                error!("**************************************************");
+                error!("\tGladius Slicer Ran into an error");
+                error!("\tError Code: {:#X}", error_code);
+                error!("\t{}", message);
+                error!("**************************************************");
+                error!("\n\n\n");
+
+            }
             std::process::exit(-1);
         }
     }
@@ -262,15 +280,7 @@ impl PipelineCallbacks for MessageCallbacks{
             .expect("Write Limit should not be hit");
     }
 
-    fn handle_settings_error(&mut self, err : SlicerErrors) {
-        let stdout = std::io::stdout();
-        let mut stdio_lock = stdout.lock();
-    
-        let message = Message::Error(err);
-        bincode::serialize_into(&mut stdio_lock, &message).expect("Write Limit should not be hit");
-        stdio_lock.flush().expect("Standard Out should be limited");
-    }
-    
+
     fn handle_settings_warning(&mut self, warning : SlicerWarnings) {
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();

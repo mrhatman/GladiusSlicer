@@ -1,24 +1,38 @@
+#![deny(missing_docs)]
 use std::{io::Write, time::{Duration, SystemTime}};
 
 use crate::{bounds_checking::{check_model_bounds, check_moves_bounds}, command_pass::{CommandPass, OptimizePass, SlowDownLayerPass}, converter::convert, plotter::convert_objects_into_moves, prelude::*, slice_pass::*, slicing::slice, tower::{create_towers, TriangleTower}};
 use gladius_shared::prelude::*;
 use log::*;
 
+///Callbacks for the slicer pipeline to allow calls to control what happens during the process
 pub trait PipelineCallbacks{
+    /// Called whenever the current state changes
+    /// State message refelects the new state of the slicing process
+    /// Useful for telling user what the slicer is working on 
     fn handle_state_update(&mut self, state_message: &str);
-    fn handle_settings_error(&mut self, err : SlicerErrors);
+    
+    /// Handle the case of a warning being found in settings validation
+    /// Warning will not stop the slcing process by default
     fn handle_settings_warning(&mut self, warning : SlicerWarnings);
+
+    /// Callback for the Final commands after optomization
     fn handle_commands(&mut self, _moves: &Vec<Command>) {}
+
+    /// Callback for the calculated values
     fn handle_calculated_values(&mut self, cv: CalculatedValues, settings: &Settings);
 }
 
 
+///A basic set of that logs most messages and profiles based on state callbacks 
 pub struct ProfilingCallbacks{
     start_time: SystemTime,
     last_time: SystemTime,
 }
 
 impl ProfilingCallbacks{
+    /// Create a new Set of callbacks
+    /// Starts the time for total elapsed time 
     pub fn new() -> Self {
         let time = SystemTime::now();
         ProfilingCallbacks {
@@ -26,7 +40,8 @@ impl ProfilingCallbacks{
             last_time: time,
         }
     }
-    
+
+    ///Gets the total system time since the new call   
     pub fn get_total_elapsed_time(&self) -> Duration {
         let elapsed = SystemTime::now()
             .duration_since(self.start_time)
@@ -45,9 +60,10 @@ impl PipelineCallbacks for ProfilingCallbacks{
         info!("{}\t{}", state_message, elapsed.as_millis());
     }
     
-        
-    fn handle_settings_error(&mut self, warning : SlicerErrors) {
-        let (error_code, message) = warning.get_code_and_message();
+    
+    
+    fn handle_settings_warning(&mut self, warn : SlicerWarnings) {
+        let (error_code, message) = warn.get_code_and_message();
         warn!("\n");
         warn!("**************************************************");
         warn!("\tGladius Slicer found a warning");
@@ -55,17 +71,6 @@ impl PipelineCallbacks for ProfilingCallbacks{
         warn!("\t{}", message);
         warn!("**************************************************");
         warn!("\n\n\n");
-    }
-    
-    fn handle_settings_warning(&mut self, err : SlicerWarnings) {
-        let (error_code, message) = err.get_code_and_message();
-        error!("\n");
-        error!("**************************************************");
-        error!("\tGladius Slicer Ran into an error");
-        error!("\tError Code: {:#X}", error_code);
-        error!("\t{}", message);
-        error!("**************************************************");
-        error!("\n\n\n");
     }
     
     fn handle_calculated_values(&mut self, cv: CalculatedValues, settings: &Settings) {
@@ -93,9 +98,9 @@ impl PipelineCallbacks for ProfilingCallbacks{
 
 }
 
-
+/// The primary pipeline for slicing
 pub fn slicer_pipeline(    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], settings: &Settings, callbacks: &mut impl PipelineCallbacks, write: &mut impl Write,) -> Result<(),SlicerErrors>{
-    handle_setting_validation(settings.validate_settings(), callbacks);
+    handle_setting_validation(settings.validate_settings(), callbacks)?;
 
     check_model_bounds(&models, &settings)?;
 
@@ -193,13 +198,17 @@ fn generate_moves(
 }
 
 /// Sends an apropreate error/warning message for a `SettingsValidationResult`
-fn handle_setting_validation(res: SettingsValidationResult, callbacks: &mut impl PipelineCallbacks) {
+fn handle_setting_validation(res: SettingsValidationResult, callbacks: &mut impl PipelineCallbacks) -> Result<(), SlicerErrors> {
     match res {
-        SettingsValidationResult::NoIssue => {}
-        SettingsValidationResult::Warning(slicer_warning) => callbacks.handle_settings_warning(slicer_warning),
+        SettingsValidationResult::NoIssue => {
+            Ok(())
+        }
+        SettingsValidationResult::Warning(slicer_warning) => {
+            callbacks.handle_settings_warning(slicer_warning);
+            Ok(())
+        },
         SettingsValidationResult::Error(slicer_error) => {
-            callbacks.handle_settings_error(slicer_error);
-            std::process::exit(-1);
+            Err(slicer_error)
         }
     }
 }
