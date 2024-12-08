@@ -4,16 +4,13 @@ use crate::error::SlicerErrors;
 use crate::loader::{Loader, STLLoader, ThreeMFLoader};
 use crate::settings::{PartialSettingsFile, Settings};
 
-use crate::types::{
-     IndexedTriangle, InputObject, Transform, Vertex,
-};
+use crate::types::{IndexedTriangle, InputObject, Transform, Vertex};
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 /// The raw triangles and vertices of a model
 type ModelRawData = (Vec<Vertex>, Vec<IndexedTriangle>);
-
 
 ///Load the models from Input object and return the Vertices and Triangles
 pub fn load_models(
@@ -22,11 +19,8 @@ pub fn load_models(
 ) -> Result<Vec<ModelRawData>, SlicerErrors> {
     info!("Loading Input");
 
-    let converted_inputs: Vec<(Vec<Vertex>, Vec<IndexedTriangle>)> = input_objs
-        .into_iter()
-        .try_fold(vec![], |mut vec, object| {
-
-
+    let converted_inputs: Vec<(Vec<Vertex>, Vec<IndexedTriangle>)> =
+        input_objs.into_iter().try_fold(vec![], |mut vec, object| {
             let model_path = Path::new(object.get_model_path());
 
             debug!("Using input file: {:?}", model_path);
@@ -113,7 +107,6 @@ pub fn load_settings_json(filepath: &str) -> Result<String, SlicerErrors> {
         })?,
     )
 }
-
 
 ///Load a settings file from the partial settings json provided at the given filepath
 pub fn load_settings(

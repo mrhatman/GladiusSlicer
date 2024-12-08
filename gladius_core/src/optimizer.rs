@@ -160,7 +160,8 @@ pub fn arc_optomizer(cmds: &mut [Command]) {
     for (wt, group) in &cmds.iter().enumerate().chunk_by(|cmd| {
         if let Command::MoveAndExtrude {
             thickness, width, ..
-        } = cmd.1 {
+        } = cmd.1
+        {
             Some((thickness, width))
         } else {
             None
@@ -189,9 +190,7 @@ pub fn arc_optomizer(cmds: &mut [Command]) {
                     (usize, (&Coord<f64>, &Coord<f64>)),
                     (usize, (&Coord<f64>, &Coord<f64>)),
                 )>()
-                .map(|((pos, l1), (_, l2))| {
-                    (pos, line_bisector(l1.0, l1.1, l2.1))
-                })
+                .map(|((pos, l1), (_, l2))| (pos, line_bisector(l1.0, l1.1, l2.1)))
                 // bisector -> center, radius
                 .tuple_windows::<(
                     (usize, (Coord<f64>, Coord<f64>)),
@@ -237,11 +236,11 @@ pub fn arc_optomizer(cmds: &mut [Command]) {
         // todo fix
         let start = match cmds[*range.start()] {
             Command::MoveAndExtrude { start, .. } => start,
-            _ => continue
+            _ => continue,
         };
         let end = match cmds[*range.end()] {
             Command::MoveAndExtrude { end, .. } => end,
-            _ => continue
+            _ => continue,
         };
 
         for i in range.by_ref() {
@@ -408,7 +407,8 @@ mod tests {
             width,
             thickness,
             ..
-        } = commands[0] {
+        } = commands[0]
+        {
             assert_eq!(start, Coord { x: 1.0, y: 0.0 });
             assert_eq!(center, Coord { x: 0.0, y: 0.0 });
             assert_eq!(width, 0.4);
@@ -451,7 +451,8 @@ mod tests {
             width,
             thickness,
             ..
-        } = commands[1] {
+        } = commands[1]
+        {
             assert_eq!(start, Coord { x: 1.0, y: 0.0 });
             assert_eq!(center, Coord { x: 0.0, y: 0.0 });
             assert_eq!(width, 0.4);

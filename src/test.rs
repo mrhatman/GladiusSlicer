@@ -1,19 +1,18 @@
 #[cfg(test)]
 mod tests {
 
-    use gladius_shared::prelude::*;
     use gladius_core::prelude::*;
-
+    use gladius_shared::prelude::*;
 
     #[test]
-    fn test_full_slice_benchy(){
-        
+    fn test_full_slice_benchy() {
         simple_slice_helper("test.json", "3DBenchy.stl").unwrap()
-
     }
 
-    fn simple_slice_helper(settings_file_name : &str , model_file_name : &str) -> Result<(),SlicerErrors>{
-
+    fn simple_slice_helper(
+        settings_file_name: &str,
+        model_file_name: &str,
+    ) -> Result<(), SlicerErrors> {
         let current_path = std::env::current_dir().unwrap();
 
         let mut settings_path = current_path.clone();
@@ -24,37 +23,19 @@ mod tests {
         model_path.push("test_3D_models");
         model_path.push(model_file_name);
 
+        let mut profiling_callbacks: Box<dyn PipelineCallbacks> =
+            Box::new(ProfilingCallbacks::new());
 
-        let mut profiling_callbacks :Box<dyn PipelineCallbacks> = Box::new(ProfilingCallbacks::new());
+        let settings_json = input::load_settings_json(settings_path.to_str().unwrap())?;
 
+        let settings = load_settings(Some(settings_path.to_str().unwrap()), &settings_json)?;
 
-        let settings_json = 
-        
-            input::load_settings_json(
-                settings_path.to_str().unwrap(),
-            )?;
-
-    
-        let settings = 
-            load_settings( Some(settings_path.to_str().unwrap()), &settings_json)?;
-    
         let input_objs = vec![InputObject::Auto(model_path.to_str().unwrap().to_string())];
-    
-    
-    
-        let models = 
-            crate::input::load_models( input_objs, &settings)?
-        ;
+
+        let models = crate::input::load_models(input_objs, &settings)?;
         let mut gcode: Vec<u8> = Vec::new();
 
-        slicer_pipeline(
-            &models,
-            &settings,
-            &mut profiling_callbacks,
-            &mut gcode
-            )
-            
-        
+        slicer_pipeline(&models, &settings, &mut profiling_callbacks, &mut gcode)
     }
 
     #[test]
@@ -101,6 +82,6 @@ mod tests {
             }
         }
 
-        std::env::set_current_dir(current_path).expect("Must be run in correct enviroment");
+        std::env::set_current_dir(current_path).expect("Must be run in correct environment");
     }
 }

@@ -1,7 +1,6 @@
 use crate::plotter::monotone::get_monotone_sections;
 use gladius_shared::prelude::*;
 
-
 use gladius_shared::geo::prelude::*;
 use gladius_shared::geo::{Coord, Point, Polygon};
 

@@ -1,6 +1,6 @@
+use binary_heap_plus::{BinaryHeap, MinComparator};
 use gladius_shared::prelude::*;
 use log::trace;
-use binary_heap_plus::{BinaryHeap,  MinComparator};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -43,10 +43,12 @@ fn lerp(a: f64, b: f64, f: f64) -> f64 {
 /// A set of triangles and their associated vertices
 pub struct TriangleTower<V> {
     vertices: Vec<V>,
-    tower_vertices: BinaryHeap<TowerVertexEvent<V>,MinComparator>,
+    tower_vertices: BinaryHeap<TowerVertexEvent<V>, MinComparator>,
 }
 
-impl<V> TriangleTower<V> where V : Ord +Clone+ TowerVertex
+impl<V> TriangleTower<V>
+where
+    V: Ord + Clone + TowerVertex,
 {
     /// Create a `TriangleTower` from **vertices** as leading or trailing edges and **triangles**
     pub fn from_triangles_and_vertices(
@@ -58,41 +60,35 @@ impl<V> TriangleTower<V> where V : Ord +Clone+ TowerVertex
 
         // for each triangle add it to the tower
 
-        let converted_vertices :Vec<V>= vertices.into_iter().map(|v| V::from_vertex(v)).collect();
+        let converted_vertices: Vec<V> = vertices.into_iter().map(|v| V::from_vertex(v)).collect();
 
         for (triangle_index, index_tri) in triangles.iter().enumerate() {
-
-            
-            //for each edge of the triangle add a fragment to the lower of the points 
-            for i in 0..3{
+            //for each edge of the triangle add a fragment to the lower of the points
+            for i in 0..3 {
                 // if the point edge is rising then the order will be triangle then edge
                 // if the edge is falling (or degenerate) it should go edge then triangle
 
-                if  converted_vertices[index_tri.verts[i]] < converted_vertices[index_tri.verts[(i+1)%3]] {
-                    let triangle_element = TowerRingElement::Face {
-                        triangle_index
-                    };
+                if converted_vertices[index_tri.verts[i]]
+                    < converted_vertices[index_tri.verts[(i + 1) % 3]]
+                {
+                    let triangle_element = TowerRingElement::Face { triangle_index };
                     let edge_element = TowerRingElement::Edge {
                         start_index: index_tri.verts[i],
-                        end_index: index_tri.verts[(i+1)%3],
+                        end_index: index_tri.verts[(i + 1) % 3],
                     };
-    
+
                     future_tower_vert[index_tri.verts[i]].push(TowerRing {
-                        elements: vec![ triangle_element,edge_element],
+                        elements: vec![triangle_element, edge_element],
                     });
-                }
-                else {
-                    
+                } else {
                     let edge_element = TowerRingElement::Edge {
-                        start_index: index_tri.verts[(i+1)%3],
-                        end_index:index_tri.verts[i],
+                        start_index: index_tri.verts[(i + 1) % 3],
+                        end_index: index_tri.verts[i],
                     };
-    
-                    let triangle_element = TowerRingElement::Face {
-                        triangle_index
-                    };
-    
-                    future_tower_vert[index_tri.verts[(i+1)%3]].push(TowerRing {
+
+                    let triangle_element = TowerRingElement::Face { triangle_index };
+
+                    future_tower_vert[index_tri.verts[(i + 1) % 3]].push(TowerRing {
                         elements: vec![edge_element, triangle_element],
                     });
                 }
@@ -110,7 +106,10 @@ impl<V> TriangleTower<V> where V : Ord +Clone+ TowerVertex
                 TowerVertexEvent {
                     start_index: index,
                     next_ring_fragments: fragments,
-                    start_vert: converted_vertices.get(index).expect("validated above").clone(),
+                    start_vert: converted_vertices
+                        .get(index)
+                        .expect("validated above")
+                        .clone(),
                 }
             })
             .collect();
@@ -140,12 +139,18 @@ struct TowerVertexEvent<V> {
     pub start_vert: V,
 }
 
-impl<V> PartialOrd for TowerVertexEvent<V>  where V: Ord{
+impl<V> PartialOrd for TowerVertexEvent<V>
+where
+    V: Ord,
+{
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
-impl<V> Ord for TowerVertexEvent<V> where V: Ord{
+impl<V> Ord for TowerVertexEvent<V>
+where
+    V: Ord,
+{
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.start_vert
             .partial_cmp(&other.start_vert)
@@ -153,9 +158,12 @@ impl<V> Ord for TowerVertexEvent<V> where V: Ord{
     }
 }
 
-impl<V> Eq for TowerVertexEvent<V> where V: Eq{}
+impl<V> Eq for TowerVertexEvent<V> where V: Eq {}
 
-impl<V> PartialEq for TowerVertexEvent<V>  where V: PartialEq{
+impl<V> PartialEq for TowerVertexEvent<V>
+where
+    V: PartialEq,
+{
     fn eq(&self, other: &Self) -> bool {
         self.start_vert.eq(&other.start_vert)
     }
@@ -273,14 +281,12 @@ impl Ord for TowerRingElement {
                     triangle_index: o_triangle_index,
                 },
             ) => s_triangle_index.cmp(o_triangle_index),
-            (
-                TowerRingElement::Face { .. },
-                TowerRingElement::Edge { .. },
-            ) => std::cmp::Ordering::Greater,
-            (
-                TowerRingElement::Edge { .. },
-                TowerRingElement::Face { .. },
-            ) => std::cmp::Ordering::Less,
+            (TowerRingElement::Face { .. }, TowerRingElement::Edge { .. }) => {
+                std::cmp::Ordering::Greater
+            }
+            (TowerRingElement::Edge { .. }, TowerRingElement::Face { .. }) => {
+                std::cmp::Ordering::Less
+            }
             (
                 TowerRingElement::Edge {
                     start_index: ssi,
@@ -370,9 +376,9 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
                     .expect("Tower rings must contain elements ")
             },
         ) {
-            //Test if this is a complete ring. ie the rings first element and last are indentical
+            //Test if this is a complete ring. ie the rings first element and last are identical
             if index != first_pos {
-                // if the removed element is less that the current element the currenly element will be moved by the remove command
+                // if the removed element is less that the current element the currently element will be moved by the remove command
                 if index < first_pos {
                     first_pos -= 1;
                 }
@@ -401,7 +407,10 @@ pub struct TriangleTowerIterator<F> {
     active_rings: Vec<TowerRing>,
 }
 
-impl<V> TriangleTowerIterator<V> where V : Clone+Ord + TowerVertex{
+impl<V> TriangleTowerIterator<V>
+where
+    V: Clone + Ord + TowerVertex,
+{
     pub fn new(tower: TriangleTower<V>) -> Self {
         let z_height = tower.get_height_of_next_vertex();
         Self {
@@ -420,7 +429,13 @@ impl<V> TriangleTowerIterator<V> where V : Clone+Ord + TowerVertex{
         while self.tower.get_height_of_next_vertex() < z && !self.tower.tower_vertices.is_empty() {
             let pop_tower_vert = self.tower.tower_vertices.pop().expect("Validated above");
 
-            trace!("Active ring size: {}", self.active_rings.iter().map(|r| r.elements.len()).sum::<usize>());
+            trace!(
+                "Active ring size: {}",
+                self.active_rings
+                    .iter()
+                    .map(|r| r.elements.len())
+                    .sum::<usize>()
+            );
             // Create Frags from rings by removing current edges
             self.active_rings = self
                 .active_rings
@@ -486,9 +501,12 @@ impl<V> TriangleTowerIterator<V> where V : Clone+Ord + TowerVertex{
     }
 }
 
-pub fn create_towers<V> (
+pub fn create_towers<V>(
     models: &[(Vec<Vertex>, Vec<IndexedTriangle>)],
-) -> Result<Vec<TriangleTower<V>>, SlicerErrors> where V : Ord + Clone+TowerVertex{
+) -> Result<Vec<TriangleTower<V>>, SlicerErrors>
+where
+    V: Ord + Clone + TowerVertex,
+{
     models
         .iter()
         .map(|(vertices, triangles)| {
@@ -497,27 +515,26 @@ pub fn create_towers<V> (
         .collect()
 }
 
-pub trait TowerVertex{
-    //Convert from vertex to this type 
+pub trait TowerVertex {
+    //Convert from vertex to this type
     fn from_vertex(vertex: Vertex) -> Self;
 
     //Return the height of this vertex
     fn get_height(&self) -> f64;
 
-    //gets the x position for slicing purposes 
+    //gets the x position for slicing purposes
     fn get_slice_x(&self) -> f64;
 
-    //gets the y position for slicing purposes 
+    //gets the y position for slicing purposes
     fn get_slice_y(&self) -> f64;
 
     //gets the vertex at the specified height between start and end
     fn line_height_intersection(height: f64, v_start: &Self, v_end: &Self) -> Self;
-
 }
 
 impl TowerVertex for Vertex {
     fn from_vertex(vertex: Vertex) -> Self {
-        //No type convertion needed
+        //No type conversion needed
         vertex
     }
 
@@ -530,12 +547,12 @@ impl TowerVertex for Vertex {
         //Lerps from start to end given the height
         line_z_intersection(height, v_start, v_end)
     }
-    
+
     fn get_slice_x(&self) -> f64 {
         //slice just uses x position
         self.x
     }
-    
+
     fn get_slice_y(&self) -> f64 {
         //slice just uses y position
         self.y

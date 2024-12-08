@@ -307,8 +307,11 @@ fn transform_fields_into_names_and_types(data_struct: &DataStruct) -> TokenStrea
     match data_struct.fields {
         syn::Fields::Named(ref fields) => {
             let props_ts_iter = fields.named.iter().map(|named_field| {
-                let field_ident = named_field.ident.as_ref()
-                    .expect("This is needed at build time").to_string();
+                let field_ident = named_field
+                    .ident
+                    .as_ref()
+                    .expect("This is needed at build time")
+                    .to_string();
                 let type_ident_original = &named_field.ty.to_token_stream().to_string();
                 quote! {
                    ( #field_ident.to_string(), #type_ident_original.to_string()),

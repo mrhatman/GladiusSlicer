@@ -7,13 +7,13 @@ use crate::error::SlicerErrors;
 use crate::types::{MoveType, PartialInfillTypes, SolidInfillTypes};
 use crate::warning::SlicerWarnings;
 // for exclude area setting
+use geo::MultiPolygon;
+use geo_validity_check::Valid;
 use gladius_proc_macros::Settings;
+use log::*;
 #[cfg(feature = "json_schema_gen")]
 /// json schema gen
 use schemars::{schema_for, JsonSchema};
-use geo::MultiPolygon;
-use geo_validity_check::Valid;
-use log::*;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -250,7 +250,7 @@ pub struct Settings {
 }
 
 impl Settings {
-    /// Genarate the json schema for `Settings`
+    /// Generate the json schema for `Settings`
     #[cfg(feature = "json_schema_gen")]
     pub fn gen_schema(path: &std::path::Path) -> Result<(), std::io::Error> {
         use std::{fs::File, io::Write};
@@ -824,7 +824,7 @@ impl Default for FanSettings {
 
 /// Support settings
 #[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
-#[derive(Settings,Serialize, Deserialize, Debug, Clone)]
+#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct SupportSettings {
     /// Angle to start production supports in degrees
     pub max_overhang_angle: f64,
@@ -835,7 +835,7 @@ pub struct SupportSettings {
 
 /// The Settings for Skirt generation
 #[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
-#[derive(Settings,Serialize, Deserialize, Debug, Clone)]
+#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct SkirtSettings {
     /// the number of layer to generate the skirt
     pub layers: u32,
@@ -846,7 +846,7 @@ pub struct SkirtSettings {
 
 /// The Settings for Skirt generation
 #[cfg_attr(feature = "json_schema_gen", derive(JsonSchema))]
-#[derive(Settings,Serialize, Deserialize, Debug, Clone)]
+#[derive(Settings, Serialize, Deserialize, Debug, Clone)]
 pub struct RetractionWipeSettings {
     /// The speed the retract wipe move
     pub speed: f64,
@@ -865,7 +865,7 @@ pub struct PartialSettingsFile {
     /// Other files to load
     pub other_files: Option<Vec<String>>,
 
-    ///The incompete settings that this files comtains that will be prioritized over the contents of the other files
+    ///The incomplete settings that this files contains that will be prioritized over the contents of the other files
     #[serde(flatten)]
     pub partial_settings: PartialSettings,
 }

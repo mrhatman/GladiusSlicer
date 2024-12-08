@@ -6,17 +6,13 @@ use clap::Parser;
 use gladius_core::{pipeline::slicer_pipeline, prelude::*};
 use gladius_shared::prelude::*;
 
-
-
-use std::{ fs::File, io::Write};
-
+use std::{fs::File, io::Write};
 
 use log::{error, info, LevelFilter};
 use simple_logger::SimpleLogger;
 use std::io::BufWriter;
 
 mod test;
-
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -28,7 +24,7 @@ mod test;
 struct Args {
     #[arg(
         required = true,
-        help = "The input files and there translations.\nBy default it takes a list of json strings that represents how the models should be loaded and translated.\nSee simple_input for an alterantive command. "
+        help = "The input files and there translations.\nBy default it takes a list of json strings that represents how the models should be loaded and translated.\nSee simple_input for an alternative command. "
     )]
     input: Vec<String>,
 
@@ -78,7 +74,6 @@ fn main() {
             .expect("Only call to build global");
     }
 
-
     if !args.message {
         // Vary the output based on how many times the user used the "verbose" flag
         // (i.e. 'myprog -v -v -v' or 'myprog -vvv' vs 'myprog -v'
@@ -95,117 +90,93 @@ fn main() {
             .expect("Only Logger Setup");
     }
 
-
     //state_update("Loading Inputs", &mut state_context);
-
-
-
-
 
     // Output the GCode
     if let Some(file_path) = &args.output {
-        
-        let mut profiling_callbacks :Box<dyn PipelineCallbacks>  = Box::new(ProfilingCallbacks::new());
+        let mut profiling_callbacks: Box<dyn PipelineCallbacks> =
+            Box::new(ProfilingCallbacks::new());
         // Output to file
         let mut file = handle_err_or_return(
             File::create(file_path).map_err(|_| SlicerErrors::FileCreateError {
                 filepath: file_path.to_string(),
             }),
-            args.message
+            args.message,
         );
-        let ( models,settings) = handle_err_or_return(handle_io(&args),args.message);
+        let (models, settings) = handle_err_or_return(handle_io(&args), args.message);
 
-
-        handle_err_or_return( 
-            slicer_pipeline(
-                &models,
-                &settings,
-                &mut profiling_callbacks,
-                &mut file
-            ),
-            args.message
+        handle_err_or_return(
+            slicer_pipeline(&models, &settings, &mut profiling_callbacks, &mut file),
+            args.message,
         );
-
-
-    
     } else if args.message {
         // Output as message
         let mut gcode: Vec<u8> = Vec::new();
-        let mut messaging_callbacks :Box<dyn PipelineCallbacks> = Box::new(MessageCallbacks{});
+        let mut messaging_callbacks: Box<dyn PipelineCallbacks> = Box::new(MessageCallbacks {});
 
-        let ( models,settings) = handle_err_or_return(handle_io(&args),args.message);
+        let (models, settings) = handle_err_or_return(handle_io(&args), args.message);
 
-        handle_err_or_return( 
-            slicer_pipeline(
-                &models,
-                &settings,
-                &mut messaging_callbacks,
-                &mut gcode
-                ),
-                args.message
-        
+        handle_err_or_return(
+            slicer_pipeline(&models, &settings, &mut messaging_callbacks, &mut gcode),
+            args.message,
         );
         let message = Message::GCode(
-            String::from_utf8(gcode)
-                .expect("All write occur from write macro so should be utf8"),
+            String::from_utf8(gcode).expect("All write occur from write macro so should be utf8"),
         );
         bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
             .expect("Write Limit should not be hit");
-
-    }
-    else {
+    } else {
         // Output to stdout
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();
-        let mut profiling_callbacks :Box<dyn PipelineCallbacks> = Box::new(ProfilingCallbacks::new());
+        let mut profiling_callbacks: Box<dyn PipelineCallbacks> =
+            Box::new(ProfilingCallbacks::new());
 
         let m = args.message;
-        let ( models,settings) = handle_err_or_return(handle_io(&args), args.message );
+        let (models, settings) = handle_err_or_return(handle_io(&args), args.message);
 
-
-        handle_err_or_return( 
+        handle_err_or_return(
             slicer_pipeline(
                 &models,
                 &settings,
                 &mut profiling_callbacks,
-                &mut stdio_lock
-                ),
-                args.message
-        
+                &mut stdio_lock,
+            ),
+            args.message,
         );
-
-        
     };
-
-
 }
 
-fn handle_io(args: &Args) -> Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>,Settings),SlicerErrors>{
-    let settings_json = args.settings_json.as_ref().map(|s| Ok(s.clone())).unwrap_or_else(|| {
-        
-        input::load_settings_json(
-            args.settings_file_path
-                .as_deref()
-                .expect("CLAP should handle requring a settings option to be Some"),
-        )
-    })?;
+fn handle_io(
+    args: &Args,
+) -> Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>, Settings), SlicerErrors> {
+    let settings_json = args
+        .settings_json
+        .as_ref()
+        .map(|s| Ok(s.clone()))
+        .unwrap_or_else(|| {
+            input::load_settings_json(
+                args.settings_file_path
+                    .as_deref()
+                    .expect("CLAP should handle requiring a settings option to be Some"),
+            )
+        })?;
 
-    let settings = 
-        load_settings(args.settings_file_path.as_deref(), &settings_json)?;
+    let settings = load_settings(args.settings_file_path.as_deref(), &settings_json)?;
 
-    let input_objs :Result<Vec<InputObject> ,SlicerErrors>= args.input.iter().map(|value|{
-        if args.simple_input {
-            Ok(InputObject::Auto(value.clone()))
-        } else {
-            deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)
-        }
-    }).collect();
+    let input_objs: Result<Vec<InputObject>, SlicerErrors> = args
+        .input
+        .iter()
+        .map(|value| {
+            if args.simple_input {
+                Ok(InputObject::Auto(value.clone()))
+            } else {
+                deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)
+            }
+        })
+        .collect();
 
-
-
-    let models = 
-        crate::input::load_models( input_objs?, &settings)?
-    ;
+    let models = crate::input::load_models(input_objs?, &settings)?;
     if args.print_settings {
         for line in gladius_shared::settings::SettingsPrint::to_strings(&settings) {
             println!("{}", line);
@@ -217,24 +188,22 @@ fn handle_io(args: &Args) -> Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>,Se
         }
     }
 
-    Ok((models,settings))
+    Ok((models, settings))
 }
 
 fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, message: bool) -> T {
     match res {
         Ok(data) => data,
         Err(slicer_error) => {
-
-            if message{
+            if message {
                 let stdout = std::io::stdout();
                 let mut stdio_lock = stdout.lock();
-            
-                let message = Message::Error(slicer_error);
-                bincode::serialize_into(&mut stdio_lock, &message).expect("Write Limit should not be hit");
-                stdio_lock.flush().expect("Standard Out should be limited");
-            }
-            else{
 
+                let message = Message::Error(slicer_error);
+                bincode::serialize_into(&mut stdio_lock, &message)
+                    .expect("Write Limit should not be hit");
+                stdio_lock.flush().expect("Standard Out should be limited");
+            } else {
                 let (error_code, message) = slicer_error.get_code_and_message();
                 error!("\n");
                 error!("**************************************************");
@@ -243,52 +212,42 @@ fn handle_err_or_return<T>(res: Result<T, SlicerErrors>, message: bool) -> T {
                 error!("\t{}", message);
                 error!("**************************************************");
                 error!("\n\n\n");
-
             }
             std::process::exit(-1);
         }
     }
 }
 
+pub struct MessageCallbacks {}
 
-
-pub struct MessageCallbacks{
-}
-
-
-impl PipelineCallbacks for MessageCallbacks{
+impl PipelineCallbacks for MessageCallbacks {
     fn handle_state_update(&mut self, state_message: &str) {
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();
         let message = Message::StateUpdate(state_message.to_string());
-        bincode::serialize_into(&mut stdio_lock, &message)
-            .expect("Write Limit should not be hit");
+        bincode::serialize_into(&mut stdio_lock, &message).expect("Write Limit should not be hit");
         stdio_lock.flush().expect("Standard Out should be limited");
     }
-    
+
     fn handle_commands(&mut self, moves: &Vec<Command>) {
         let message = Message::Commands(moves.clone());
         bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
             .expect("Write Limit should not be hit");
     }
 
-
-    fn handle_settings_warning(&mut self, warning : SlicerWarnings) {
+    fn handle_settings_warning(&mut self, warning: SlicerWarnings) {
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();
         let message = Message::Warning(warning);
         bincode::serialize_into(&mut stdio_lock, &message).expect("Write Limit should not be hit");
         stdio_lock.flush().expect("Standard Out should be limited");
     }
-    
+
     fn handle_calculated_values(&mut self, cv: CalculatedValues, _settings: &Settings) {
         let message = Message::CalculatedValues(cv);
         bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
             .expect("Write Limit should not be hit");
     }
-    
-    fn handle_slice_finshed(&mut self) {
-    }
 
-
+    fn handle_slice_finished(&mut self) {}
 }

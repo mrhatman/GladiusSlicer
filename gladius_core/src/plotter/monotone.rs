@@ -1,6 +1,6 @@
-use gladius_shared::utils::{orientation, Orientation};
-use gladius_shared::geo::{Coord, Polygon, SimplifyVwPreserve};
 use geo_svg::{Color, ToSvg};
+use gladius_shared::geo::{Coord, Polygon, SimplifyVwPreserve};
+use gladius_shared::utils::{orientation, Orientation};
 use itertools::Itertools;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;

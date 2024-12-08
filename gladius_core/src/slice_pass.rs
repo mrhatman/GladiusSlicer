@@ -1,22 +1,32 @@
 use std::marker::PhantomData;
 
-use crate::prelude::*;
 use crate::plotter::lightning_infill::lightning_infill;
 use crate::plotter::polygon_operations::PolygonOperations;
 use crate::plotter::support::Supporter;
 use crate::plotter::Plotter;
+use crate::prelude::*;
 use gladius_shared::geo::{ConvexHull, MultiPolygon};
 use gladius_shared::prelude::*;
 use rayon::prelude::*;
 
 pub trait ObjectPass {
-    fn pass(&mut self,objects: &mut Vec<Object>, settings: &Settings,callbacks: &mut Box<dyn PipelineCallbacks>) -> Result<(), SlicerErrors>;
+    fn pass(
+        &mut self,
+        objects: &mut Vec<Object>,
+        settings: &Settings,
+        callbacks: &mut Box<dyn PipelineCallbacks>,
+    ) -> Result<(), SlicerErrors>;
 }
 
 pub struct BrimPass;
 
 impl ObjectPass for BrimPass {
-    fn pass(&mut self,objects: &mut Vec<Object>, settings: &Settings, callbacks: &mut Box<dyn PipelineCallbacks>) -> Result<(), SlicerErrors>{
+    fn pass(
+        &mut self,
+        objects: &mut Vec<Object>,
+        settings: &Settings,
+        callbacks: &mut Box<dyn PipelineCallbacks>,
+    ) -> Result<(), SlicerErrors> {
         if let Some(width) = &settings.brim_width {
             callbacks.handle_state_update("Generating Moves: Brim");
             // Add to first object
@@ -52,7 +62,12 @@ impl ObjectPass for BrimPass {
 pub struct SupportTowerPass;
 
 impl ObjectPass for SupportTowerPass {
-    fn pass(&mut self,objects: &mut Vec<Object>, settings: &Settings, callbacks: &mut Box<dyn PipelineCallbacks>) -> Result<(), SlicerErrors>{
+    fn pass(
+        &mut self,
+        objects: &mut Vec<Object>,
+        settings: &Settings,
+        callbacks: &mut Box<dyn PipelineCallbacks>,
+    ) -> Result<(), SlicerErrors> {
         if let Some(support) = &settings.support {
             callbacks.handle_state_update("Generating Support Towers");
             // Add to first object
@@ -75,7 +90,12 @@ impl ObjectPass for SupportTowerPass {
 pub struct SkirtPass;
 
 impl ObjectPass for SkirtPass {
-    fn pass(&mut self,objects: &mut Vec<Object>, settings: &Settings,  callbacks: &mut Box<dyn PipelineCallbacks>) -> Result<(), SlicerErrors>{
+    fn pass(
+        &mut self,
+        objects: &mut Vec<Object>,
+        settings: &Settings,
+        callbacks: &mut Box<dyn PipelineCallbacks>,
+    ) -> Result<(), SlicerErrors> {
         // Handle Perimeters
         if let Some(skirt) = &settings.skirt {
             callbacks.handle_state_update("Generating Moves: Skirt");
@@ -105,24 +125,27 @@ impl ObjectPass for SkirtPass {
 }
 
 impl ObjectPass for Vec<Box<dyn SlicePass>> {
-    fn pass(&mut self,objects: &mut Vec<Object>, settings: &Settings,callbacks: &mut Box<dyn PipelineCallbacks>) -> Result<(), SlicerErrors>{
+    fn pass(
+        &mut self,
+        objects: &mut Vec<Object>,
+        settings: &Settings,
+        callbacks: &mut Box<dyn PipelineCallbacks>,
+    ) -> Result<(), SlicerErrors> {
         let v: Result<Vec<()>, SlicerErrors> = objects
             .iter_mut()
             .map(|object| {
                 let slices = &mut object.layers;
 
-                for s in self.iter_mut(){
+                for s in self.iter_mut() {
                     s.pass(slices, settings, callbacks)?
                 }
                 Ok(())
-
             })
             .collect();
 
         v?;
         Ok(())
     }
-    
 }
 
 pub trait SlicePass {
@@ -130,22 +153,27 @@ pub trait SlicePass {
         &mut self,
         slices: &mut Vec<Slice>,
         settings: &Settings,
-        callbacks: &mut Box<dyn PipelineCallbacks>
-    ) -> Result<(), SlicerErrors>;    
-    
-    fn chain<B>(self, other: B) -> ChainedPass<Self,B> where Self: std::marker::Sized{
-        ChainedPass{a:self,b:other}
+        callbacks: &mut Box<dyn PipelineCallbacks>,
+    ) -> Result<(), SlicerErrors>;
+
+    fn chain<B>(self, other: B) -> ChainedPass<Self, B>
+    where
+        Self: std::marker::Sized,
+    {
+        ChainedPass { a: self, b: other }
     }
 }
 
-
-
-pub struct ChainedPass<A,B> {
-    a : A,
-    b : B,
+pub struct ChainedPass<A, B> {
+    a: A,
+    b: B,
 }
 
-impl<A,B> SlicePass for ChainedPass<A,B> where A: SlicePass, B: SlicePass{
+impl<A, B> SlicePass for ChainedPass<A, B>
+where
+    A: SlicePass,
+    B: SlicePass,
+{
     fn pass(
         &mut self,
         slices: &mut Vec<Slice>,
@@ -156,7 +184,6 @@ impl<A,B> SlicePass for ChainedPass<A,B> where A: SlicePass, B: SlicePass{
         self.b.pass(slices, settings, callbacks)
     }
 }
-
 
 pub struct ShrinkPass;
 
@@ -199,7 +226,7 @@ impl SlicePass for BridgingPass {
         &mut self,
         slices: &mut Vec<Slice>,
         _settings: &Settings,
-        callbacks: &mut Box<dyn PipelineCallbacks>
+        callbacks: &mut Box<dyn PipelineCallbacks>,
     ) -> Result<(), SlicerErrors> {
         callbacks.handle_state_update("Generating Moves: Bridging");
 
@@ -221,7 +248,7 @@ impl SlicePass for TopLayerPass {
         &mut self,
         slices: &mut Vec<Slice>,
         _settings: &Settings,
-        callbacks: &mut Box<dyn PipelineCallbacks>
+        callbacks: &mut Box<dyn PipelineCallbacks>,
     ) -> Result<(), SlicerErrors> {
         callbacks.handle_state_update("Generating Moves: Top Layer");
 
@@ -244,7 +271,7 @@ impl SlicePass for TopAndBottomLayersPass {
         &mut self,
         slices: &mut Vec<Slice>,
         settings: &Settings,
-        callbacks: &mut Box<dyn PipelineCallbacks>
+        callbacks: &mut Box<dyn PipelineCallbacks>,
     ) -> Result<(), SlicerErrors> {
         let top_layers = settings.top_layers;
         let bottom_layers = settings.bottom_layers;
@@ -331,7 +358,7 @@ impl SlicePass for SupportPass {
         &mut self,
         slices: &mut Vec<Slice>,
         settings: &Settings,
-        callbacks: &mut Box<dyn PipelineCallbacks>
+        callbacks: &mut Box<dyn PipelineCallbacks>,
     ) -> Result<(), SlicerErrors> {
         if let Some(support) = &settings.support {
             callbacks.handle_state_update("Generating Moves: Support");
@@ -350,7 +377,7 @@ impl SlicePass for FillAreaPass {
         &mut self,
         slices: &mut Vec<Slice>,
         _settings: &Settings,
-        callbacks: &mut Box<dyn PipelineCallbacks>
+        callbacks: &mut Box<dyn PipelineCallbacks>,
     ) -> Result<(), SlicerErrors> {
         callbacks.handle_state_update("Generating Moves: Fill Areas");
 
@@ -371,7 +398,7 @@ impl SlicePass for LightningFillPass {
         &mut self,
         slices: &mut Vec<Slice>,
         settings: &Settings,
-        callbacks: &mut Box<dyn PipelineCallbacks>
+        callbacks: &mut Box<dyn PipelineCallbacks>,
     ) -> Result<(), SlicerErrors> {
         if settings.partial_infill_type == PartialInfillTypes::Lightning {
             callbacks.handle_state_update("Generating Moves: Lightning Infill");
@@ -389,7 +416,7 @@ impl SlicePass for OrderPass {
         &mut self,
         slices: &mut Vec<Slice>,
         _settings: &Settings,
-        callbacks: &mut Box<dyn PipelineCallbacks>
+        callbacks: &mut Box<dyn PipelineCallbacks>,
     ) -> Result<(), SlicerErrors> {
         callbacks.handle_state_update("Generating Moves: Order Chains");
 

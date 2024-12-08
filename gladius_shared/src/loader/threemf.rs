@@ -197,7 +197,6 @@ fn handle_mesh(mesh: &ThreeMFMesh) -> Vec<IndexedTriangle> {
             verts: [triangle.v1, triangle.v2, triangle.v3],
         };
         triangles.push(converted_tri);
-
     }
 
     triangles

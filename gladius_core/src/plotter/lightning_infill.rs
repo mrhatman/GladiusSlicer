@@ -1,6 +1,7 @@
-
 use gladius_shared::geo::coordinate_position::CoordPos;
-use gladius_shared::geo::{Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, Line, MultiPolygon, Point};
+use gladius_shared::geo::{
+    Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, Line, MultiPolygon, Point,
+};
 use gladius_shared::prelude::*;
 use itertools::Itertools;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};

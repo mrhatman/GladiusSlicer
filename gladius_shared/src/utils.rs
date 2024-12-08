@@ -1,8 +1,6 @@
 use geo::Coord;
 use nalgebra::Vector2;
 
-
-
 ///Calculate the point between a and b with the given y value
 /// y must between a.y and b.y
 #[inline]
