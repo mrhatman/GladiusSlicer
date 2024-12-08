@@ -105,7 +105,7 @@ fn main() {
     // Output the GCode
     if let Some(file_path) = &args.output {
         
-        let mut profiling_callbacks = ProfilingCallbacks::new();
+        let mut profiling_callbacks :Box<dyn PipelineCallbacks>  = Box::new(ProfilingCallbacks::new());
         // Output to file
         let mut file = handle_err_or_return(
             File::create(file_path).map_err(|_| SlicerErrors::FileCreateError {
@@ -126,16 +126,12 @@ fn main() {
             args.message
         );
 
-        
-        info!(
-            "Total slice time {} msec",
-            profiling_callbacks.get_total_elapsed_time().as_millis()
-        );
+
     
     } else if args.message {
         // Output as message
         let mut gcode: Vec<u8> = Vec::new();
-        let mut messaging_callbacks = MessageCallbacks{};
+        let mut messaging_callbacks :Box<dyn PipelineCallbacks> = Box::new(MessageCallbacks{});
 
         let ( models,settings) = handle_err_or_return(handle_io(&args),args.message);
 
@@ -161,7 +157,7 @@ fn main() {
         // Output to stdout
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();
-        let mut profiling_callbacks = ProfilingCallbacks::new();
+        let mut profiling_callbacks :Box<dyn PipelineCallbacks> = Box::new(ProfilingCallbacks::new());
 
         let m = args.message;
         let ( models,settings) = handle_err_or_return(handle_io(&args), args.message );
@@ -178,10 +174,6 @@ fn main() {
         
         );
 
-        info!(
-            "Total slice time {} msec",
-            profiling_callbacks.get_total_elapsed_time().as_millis()
-        );
         
     };
 
@@ -293,6 +285,9 @@ impl PipelineCallbacks for MessageCallbacks{
         let message = Message::CalculatedValues(cv);
         bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
             .expect("Write Limit should not be hit");
+    }
+    
+    fn handle_slice_finshed(&mut self) {
     }
 
 

@@ -25,7 +25,7 @@ mod tests {
         model_path.push(model_file_name);
 
 
-        let mut profiling_callbacks = ProfilingCallbacks::new();
+        let mut profiling_callbacks :Box<dyn PipelineCallbacks> = Box::new(ProfilingCallbacks::new());
 
 
         let settings_json = 

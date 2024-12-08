@@ -21,6 +21,9 @@ pub trait PipelineCallbacks{
 
     /// Callback for the calculated values
     fn handle_calculated_values(&mut self, cv: CalculatedValues, settings: &Settings);
+
+    /// Callback for the calculated values
+    fn handle_slice_finshed(&mut self);
 }
 
 
@@ -95,11 +98,24 @@ impl PipelineCallbacks for ProfilingCallbacks{
                 * settings.filament.cost
         );
     }
+    
+    fn handle_slice_finshed(&mut self) {
+        info!(
+            "Total slice time {} msec",
+            self.get_total_elapsed_time().as_millis()
+        );
+    }
 
 }
 
 /// The primary pipeline for slicing
-pub fn slicer_pipeline(    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], settings: &Settings, callbacks: &mut impl PipelineCallbacks, write: &mut impl Write,) -> Result<(),SlicerErrors>{
+pub fn slicer_pipeline(    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], settings: &Settings, callbacks: &mut Box<dyn PipelineCallbacks>, write: &mut impl Write,) -> Result<(),SlicerErrors>{
+    custom_slicer_pipeline(&mut DefaultPasses{}, models, settings, callbacks, write)
+}
+
+
+/// The pipeline for slicing that allows for customization
+pub fn custom_slicer_pipeline<O>( obj_pass: &mut  O,  models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], settings: &Settings, callbacks: &mut Box<dyn PipelineCallbacks>, write: &mut impl Write,) -> Result<(),SlicerErrors> where O :ObjectPass{
     handle_setting_validation(settings.validate_settings(), callbacks)?;
 
     check_model_bounds(&models, &settings)?;
@@ -110,11 +126,14 @@ pub fn slicer_pipeline(    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], setti
 
     callbacks.handle_state_update("Slicing");
 
-    let objects = slice(towers, &settings)?;
+    let mut objects = slice(towers, &settings)?;
 
     callbacks.handle_state_update("Generating Moves");
 
-    let mut moves = generate_moves(objects, &settings, callbacks)?;
+    obj_pass.pass(&mut objects, settings, callbacks)?;
+
+
+    let mut moves = convert_objects_into_moves(objects, settings);
 
 
     check_moves_bounds(&moves, &settings)?;
@@ -144,61 +163,58 @@ pub fn slicer_pipeline(    models: &[(Vec<Vertex>, Vec<IndexedTriangle>)], setti
 
 }
 
-fn generate_moves(
-    mut objects: Vec<Object>,
-    settings: &Settings,
-    callbacks: &mut impl PipelineCallbacks, 
-) -> Result<Vec<Command>, SlicerErrors> {
-    // Creates Support Towers
-    SupportTowerPass::pass(&mut objects, settings, callbacks);
+/// The deafult object passes for a normal slice
+pub struct DefaultPasses{}
 
-    // Adds a skirt
-    SkirtPass::pass(&mut objects, settings, callbacks);
+impl ObjectPass for DefaultPasses{
+    fn pass(&mut self,objects: &mut Vec<Object>, settings: &Settings,callbacks: &mut Box<dyn PipelineCallbacks>) -> Result<(), SlicerErrors> {
+        // Creates Support Towers
+        SupportTowerPass{}.pass(objects, settings, callbacks);
 
-    // Adds a brim
-    BrimPass::pass(&mut objects, settings, callbacks);
+        // Adds a skirt
+        SkirtPass{}.pass(objects, settings, callbacks);
 
-    let v: Result<Vec<()>, SlicerErrors> = objects
-        .iter_mut()
-        .map(|object| {
-            let slices = &mut object.layers;
+        // Adds a brim
+        BrimPass{}.pass(objects, settings, callbacks);
 
-            // Shrink layer
-            ShrinkPass::pass(slices, settings, callbacks)?;
 
-            // Handle Perimeters
-            PerimeterPass::pass(slices, settings, callbacks)?;
+        let mut passes : Vec<Box<dyn SlicePass>> = Vec::new();
 
-            // Handle Bridging
-            BridgingPass::pass(slices, settings, callbacks)?;
+        // Shrink layer
+        passes.push(Box::new(ShrinkPass{}));
 
-            // Handle Top Layer
-            TopLayerPass::pass(slices, settings, callbacks)?;
+        // Handle Perimeters
+        passes.push(Box::new(PerimeterPass{}));
+        // Handle Bridging
+        passes.push(Box::new(BridgingPass{}));
 
-            // Handle Top And Bottom Layers
-            TopAndBottomLayersPass::pass(slices, settings, callbacks)?;
+        // Handle Top Layer
+        passes.push(Box::new(TopLayerPass{}));
 
-            // Handle Support
-            SupportPass::pass(slices, settings, callbacks)?;
+        // Handle Top And Bottom Layers
+        passes.push(Box::new(TopAndBottomLayersPass{}));
 
-            // Lightning Infill
-            LightningFillPass::pass(slices, settings, callbacks)?;
+        // Handle Support
+        passes.push(Box::new(SupportPass{}));
 
-            // Fill Remaining areas
-            FillAreaPass::pass(slices, settings, callbacks)?;
+        // Lightning Infill
+        passes.push(Box::new(LightningFillPass{}));
 
-            // Order the move chains
-            OrderPass::pass(slices, settings, callbacks)
-        })
-        .collect();
+        // Fill Remaining areas
+        passes.push(Box::new(FillAreaPass{}));
 
-    v?;
+        // Order the move chains
+        passes.push(Box::new(OrderPass{}));
 
-    Ok(convert_objects_into_moves(objects, settings))
+        passes.pass(objects, settings, callbacks)?;
+
+        Ok(())
+    }
 }
 
+
 /// Sends an apropreate error/warning message for a `SettingsValidationResult`
-fn handle_setting_validation(res: SettingsValidationResult, callbacks: &mut impl PipelineCallbacks) -> Result<(), SlicerErrors> {
+fn handle_setting_validation(res: SettingsValidationResult, callbacks:&mut Box<dyn PipelineCallbacks>) -> Result<(), SlicerErrors> {
     match res {
         SettingsValidationResult::NoIssue => {
             Ok(())
