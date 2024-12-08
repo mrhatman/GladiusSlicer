@@ -45,6 +45,12 @@ pub struct ProfilingCallbacks {
     last_time: SystemTime,
 }
 
+impl Default for ProfilingCallbacks {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProfilingCallbacks {
     /// Create a new Set of callbacks
     /// Starts the time for total elapsed time
