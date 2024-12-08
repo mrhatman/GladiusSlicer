@@ -90,11 +90,18 @@ fn main() {
     }
 
     //state_update("Loading Inputs", &mut state_context);
+    let mut callbacks: Box<dyn PipelineCallbacks> = if let Some(_file_path) = &args.output {
+        Box::new(ProfilingCallbacks::new())
+    } else if args.message {
+        Box::new(MessageCallbacks {})
+    } else {
+        Box::new(ProfilingCallbacks::new())
+    };
+
+    let (models, settings) = handle_err_or_return(handle_io(&args), args.message);
 
     // Output the GCode
     if let Some(file_path) = &args.output {
-        let mut profiling_callbacks: Box<dyn PipelineCallbacks> =
-            Box::new(ProfilingCallbacks::new());
         // Output to file
         let mut file = handle_err_or_return(
             File::create(file_path).map_err(|_| SlicerErrors::FileCreateError {
@@ -102,21 +109,16 @@ fn main() {
             }),
             args.message,
         );
-        let (models, settings) = handle_err_or_return(handle_io(&args), args.message);
 
         handle_err_or_return(
-            slicer_pipeline(&models, &settings, &mut profiling_callbacks, &mut file),
+            slicer_pipeline(&models, &settings, &mut callbacks, &mut file),
             args.message,
         );
     } else if args.message {
         // Output as message
         let mut gcode: Vec<u8> = Vec::new();
-        let mut messaging_callbacks: Box<dyn PipelineCallbacks> = Box::new(MessageCallbacks {});
-
-        let (models, settings) = handle_err_or_return(handle_io(&args), args.message);
-
         handle_err_or_return(
-            slicer_pipeline(&models, &settings, &mut messaging_callbacks, &mut gcode),
+            slicer_pipeline(&models, &settings, &mut callbacks, &mut gcode),
             args.message,
         );
         let message = Message::GCode(
@@ -128,18 +130,9 @@ fn main() {
         // Output to stdout
         let stdout = std::io::stdout();
         let mut stdio_lock = stdout.lock();
-        let mut profiling_callbacks: Box<dyn PipelineCallbacks> =
-            Box::new(ProfilingCallbacks::new());
-
-        let (models, settings) = handle_err_or_return(handle_io(&args), args.message);
 
         handle_err_or_return(
-            slicer_pipeline(
-                &models,
-                &settings,
-                &mut profiling_callbacks,
-                &mut stdio_lock,
-            ),
+            slicer_pipeline(&models, &settings, &mut callbacks, &mut stdio_lock),
             args.message,
         );
     };
@@ -167,7 +160,7 @@ fn handle_io(args: &Args) -> Result<(Vec<ModelRawData>, Settings), SlicerErrors>
             if args.simple_input {
                 Ok(InputObject::Auto(value.clone()))
             } else {
-                deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)
+                deser_hjson::from_str(value).map_err(|_| SlicerErrors::InputMisformat)
             }
         })
         .collect();
