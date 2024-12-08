@@ -11,6 +11,6 @@ pub mod slice_pass;
 pub mod slicing;
 pub mod tower;
 
-///The primary pipeline and functions
+/// The primary pipeline and functions
 pub mod pipeline;
 pub mod prelude;

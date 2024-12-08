@@ -12,11 +12,11 @@ pub fn convert(
     let mut current_object = None;
     let mut write_buf = BufWriter::new(write);
 
-    //output the settings to the gcode file
+    // output the settings to the gcode file
 
     for line in settings.to_strings() {
         writeln!(
-            //lending ; to make comment
+            // lending ; to make comment
             write_buf,
             "; {}",
             line

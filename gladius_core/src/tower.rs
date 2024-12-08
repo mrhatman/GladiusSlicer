@@ -56,7 +56,7 @@ where
         let converted_vertices: Vec<V> = vertices.into_iter().map(|v| V::from_vertex(v)).collect();
 
         for (triangle_index, index_tri) in triangles.iter().enumerate() {
-            //for each edge of the triangle add a fragment to the lower of the points
+            // for each edge of the triangle add a fragment to the lower of the points
             for i in 0..3 {
                 // if the point edge is rising then the order will be triangle then edge
                 // if the edge is falling (or degenerate) it should go edge then triangle
@@ -347,17 +347,17 @@ impl Hash for TowerRingElement {
 // Join fragmented rings together to for new rings
 // A ring can be joined if its last element matches another rings first element
 fn join_fragments(fragments: &mut Vec<TowerRing>) {
-    //early return for empty fragments
+    // early return for empty fragments
     if fragments.is_empty() {
         return;
     }
 
-    //Sort elements for binary search
+    // Sort elements for binary search
     // sorted by the first element in the tower
     fragments.sort();
     let mut first_pos = fragments.len() - 1;
     while first_pos > 0 {
-        //binary search for a matching first element to the current pos last element
+        // binary search for a matching first element to the current pos last element
         if let Ok(index) = fragments.binary_search_by_key(
             &fragments[first_pos]
                 .elements
@@ -369,14 +369,14 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
                     .expect("Tower rings must contain elements ")
             },
         ) {
-            //Test if this is a complete ring. ie the rings first element and last are identical
+            // Test if this is a complete ring. ie the rings first element and last are identical
             if index != first_pos {
                 // if the removed element is less that the current element the currently element will be moved by the remove command
                 if index < first_pos {
                     first_pos -= 1;
                 }
 
-                //remove the ring and join to the current ring
+                // remove the ring and join to the current ring
                 let removed = fragments.remove(index);
                 let first_r = fragments
                     .get_mut(first_pos)
@@ -387,7 +387,7 @@ fn join_fragments(fragments: &mut Vec<TowerRing>) {
                 first_pos -= 1;
             }
         } else {
-            //if no match is found, move to next element
+            // if no match is found, move to next element
             first_pos -= 1;
         }
     }
@@ -509,45 +509,45 @@ where
 }
 
 pub trait TowerVertex {
-    //Convert from vertex to this type
+    // Convert from vertex to this type
     fn from_vertex(vertex: Vertex) -> Self;
 
-    //Return the height of this vertex
+    // Return the height of this vertex
     fn get_height(&self) -> f64;
 
-    //gets the x position for slicing purposes
+    // gets the x position for slicing purposes
     fn get_slice_x(&self) -> f64;
 
-    //gets the y position for slicing purposes
+    // gets the y position for slicing purposes
     fn get_slice_y(&self) -> f64;
 
-    //gets the vertex at the specified height between start and end
+    // gets the vertex at the specified height between start and end
     fn line_height_intersection(height: f64, v_start: &Self, v_end: &Self) -> Self;
 }
 
 impl TowerVertex for Vertex {
     fn from_vertex(vertex: Vertex) -> Self {
-        //No type conversion needed
+        // No type conversion needed
         vertex
     }
 
     fn get_height(&self) -> f64 {
-        //height is just Z position
+        // height is just Z position
         self.z
     }
 
     fn line_height_intersection(height: f64, v_start: &Vertex, v_end: &Vertex) -> Vertex {
-        //Lerps from start to end given the height
+        // Lerps from start to end given the height
         line_z_intersection(height, v_start, v_end)
     }
 
     fn get_slice_x(&self) -> f64 {
-        //slice just uses x position
+        // slice just uses x position
         self.x
     }
 
     fn get_slice_y(&self) -> f64 {
-        //slice just uses y position
+        // slice just uses y position
         self.y
     }
 }

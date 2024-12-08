@@ -77,7 +77,7 @@ where
                 .collect();
             let mut s = slices?;
 
-            //sort as parbridge isn't guaranteed to return in order
+            // sort as parbridge isn't guaranteed to return in order
             s.par_sort_by(|a, b| {
                 a.top_height
                     .partial_cmp(&b.top_height)

@@ -1,7 +1,7 @@
 use geo::Coord;
 use nalgebra::Vector2;
 
-///Calculate the point between a and b with the given y value
+/// Calculate the point between a and b with the given y value
 /// y must between a.y and b.y
 #[inline]
 pub const fn point_y_lerp(a: &Coord<f64>, b: &Coord<f64>, y: f64) -> Coord<f64> {
@@ -11,7 +11,7 @@ pub const fn point_y_lerp(a: &Coord<f64>, b: &Coord<f64>, y: f64) -> Coord<f64> 
     }
 }
 
-///Linear interoplate between points a and b at distance f(0.0-1.0)
+/// Linear interoplate between points a and b at distance f(0.0-1.0)
 #[inline]
 pub const fn point_lerp(a: &Coord<f64>, b: &Coord<f64>, f: f64) -> Coord<f64> {
     Coord {
@@ -20,7 +20,7 @@ pub const fn point_lerp(a: &Coord<f64>, b: &Coord<f64>, f: f64) -> Coord<f64> {
     }
 }
 
-///Linear interoplate between a and b at distance f(0.0-1.0)
+/// Linear interoplate between a and b at distance f(0.0-1.0)
 #[inline]
 pub const fn lerp(a: f64, b: f64, f: f64) -> f64 {
     a + f * (b - a)
@@ -56,7 +56,7 @@ pub fn directional_unit_bisector_left(
     }
 }
 
-///Whether a set of three points curves to the left, right, or is linear
+/// Whether a set of three points curves to the left, right, or is linear
 #[derive(Debug, PartialEq)]
 pub enum Orientation {
     /// The 3 points are linear
@@ -67,7 +67,7 @@ pub enum Orientation {
     Right,
 }
 
-///Given a set of 3 points calculate its orientation
+/// Given a set of 3 points calculate its orientation
 pub const fn orientation(p: &Coord<f64>, q: &Coord<f64>, r: &Coord<f64>) -> Orientation {
     let left_val = (q.x - p.x) * (r.y - p.y);
     let right_val = (q.y - p.y) * (r.x - p.x);

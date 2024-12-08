@@ -18,7 +18,7 @@ use crate::{
 use gladius_shared::prelude::*;
 use log::*;
 
-///Callbacks for the slicer pipeline to allow calls to control what happens during the process
+/// Callbacks for the slicer pipeline to allow calls to control what happens during the process
 pub trait PipelineCallbacks {
     /// Called whenever the current state changes
     /// State message reflects the new state of the slicing process
@@ -39,7 +39,7 @@ pub trait PipelineCallbacks {
     fn handle_slice_finished(&mut self);
 }
 
-///A basic set of that logs most messages and profiles based on state callbacks
+/// A basic set of that logs most messages and profiles based on state callbacks
 pub struct ProfilingCallbacks {
     start_time: SystemTime,
     last_time: SystemTime,
@@ -62,7 +62,7 @@ impl ProfilingCallbacks {
         }
     }
 
-    ///Gets the total system time since the new call   
+    /// Gets the total system time since the new call   
     pub fn get_total_elapsed_time(&self) -> Duration {
         SystemTime::now()
             .duration_since(self.start_time)

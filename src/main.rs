@@ -89,7 +89,7 @@ fn main() {
             .expect("Only Logger Setup");
     }
 
-    //state_update("Loading Inputs", &mut state_context);
+    // state_update("Loading Inputs", &mut state_context);
     let mut callbacks: Box<dyn PipelineCallbacks> = if let Some(_file_path) = &args.output {
         Box::new(ProfilingCallbacks::new())
     } else if args.message {

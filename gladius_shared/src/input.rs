@@ -9,7 +9,7 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-///Load the models from Input object and return the Vertices and Triangles
+/// Load the models from Input object and return the Vertices and Triangles
 pub fn load_models(
     input_objs: Vec<InputObject>,
     settings: &Settings,
@@ -96,14 +96,14 @@ pub fn load_models(
     Ok(converted_inputs)
 }
 
-///Get the contents from a file or convert error
+/// Get the contents from a file or convert error
 pub fn load_settings_json(filepath: &str) -> Result<String, SlicerErrors> {
     std::fs::read_to_string(filepath).map_err(|_| SlicerErrors::SettingsFileNotFound {
         filepath: filepath.to_string(),
     })
 }
 
-///Load a settings file from the partial settings json provided at the given filepath
+/// Load a settings file from the partial settings json provided at the given filepath
 pub fn load_settings(
     filepath: Option<&str>,
     settings_data: &str,

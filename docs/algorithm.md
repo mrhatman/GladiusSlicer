@@ -45,12 +45,12 @@ split_on_edge algorithm
                 else
                     add e to new_ring 
 
-            else //e is face
+            else e is face
                 add e to new_ring 
 
         Append new_ring to the start of finished_fragment[0] if it exists otherwise add new_ring to finished_fragments  
 
-        Remove any fragments from finished_fragments that are 1 length faces //these are faces that ended there
+        Remove any fragments from finished_fragments that are 1 length faces // these are faces that ended there
 
         return finished_fragments
 
@@ -70,7 +70,7 @@ split_on_edge algorithm
 
 join_fragments algorithm
 
-    //Optomizations exist like sorting the fragments
+    // Optomizations exist like sorting the fragments
 
     parameter (fragments)
 
