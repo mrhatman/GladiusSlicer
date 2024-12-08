@@ -14,7 +14,9 @@ members = [ "gladius_core",
 
 [features]
 json_schema_gen = ["gladius_shared/json_schema_gen"]
-[lints.clippy]
+
+
+[workspace.lints.clippy]
 allow-unwrap-in-tests = "allow"
 
 [dependencies]

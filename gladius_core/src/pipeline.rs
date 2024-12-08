@@ -1,4 +1,5 @@
 #![deny(missing_docs)]
+
 use std::{
     io::Write,
     time::{Duration, SystemTime},
@@ -29,7 +30,7 @@ pub trait PipelineCallbacks {
     fn handle_settings_warning(&mut self, warning: SlicerWarnings);
 
     /// Callback for the Final commands after optomization
-    fn handle_commands(&mut self, _moves: &Vec<Command>) {}
+    fn handle_commands(&mut self, _moves: &[Command]) {}
 
     /// Callback for the calculated values
     fn handle_calculated_values(&mut self, cv: CalculatedValues, settings: &Settings);
@@ -57,10 +58,9 @@ impl ProfilingCallbacks {
 
     ///Gets the total system time since the new call   
     pub fn get_total_elapsed_time(&self) -> Duration {
-        let elapsed = SystemTime::now()
+        SystemTime::now()
             .duration_since(self.start_time)
-            .expect("Time can only go forward");
-        elapsed
+            .expect("Time can only go forward")
     }
 }
 
@@ -139,15 +139,15 @@ where
 {
     handle_setting_validation(settings.validate_settings(), callbacks)?;
 
-    check_model_bounds(&models, &settings)?;
+    check_model_bounds(models, settings)?;
 
     callbacks.handle_state_update("Creating Towers");
 
-    let towers: Vec<TriangleTower<_>> = create_towers::<Vertex>(&models)?;
+    let towers: Vec<TriangleTower<_>> = create_towers::<Vertex>(models)?;
 
     callbacks.handle_state_update("Slicing");
 
-    let mut objects = slice(towers, &settings)?;
+    let mut objects = slice(towers, settings)?;
 
     callbacks.handle_state_update("Generating Moves");
 
@@ -155,15 +155,15 @@ where
 
     let mut moves = convert_objects_into_moves(objects, settings);
 
-    check_moves_bounds(&moves, &settings)?;
+    check_moves_bounds(&moves, settings)?;
 
     callbacks.handle_state_update("Optimizing");
     debug!("Optimizing {} Moves", moves.len());
 
-    OptimizePass::pass(&mut moves, &settings);
+    OptimizePass::pass(&mut moves, settings);
     callbacks.handle_state_update("Slowing Layer Down");
 
-    SlowDownLayerPass::pass(&mut moves, &settings);
+    SlowDownLayerPass::pass(&mut moves, settings);
 
     callbacks.handle_commands(&moves);
 
@@ -171,7 +171,7 @@ where
 
     debug!("Converting {} Moves", moves.len());
 
-    convert(&moves, &settings, write)?;
+    convert(&moves, settings, write)?;
 
     callbacks.handle_state_update("Calculate Values");
     let cv = calculate_values(&moves, settings);
@@ -191,13 +191,13 @@ impl ObjectPass for DefaultPasses {
         callbacks: &mut Box<dyn PipelineCallbacks>,
     ) -> Result<(), SlicerErrors> {
         // Creates Support Towers
-        SupportTowerPass {}.pass(objects, settings, callbacks);
+        SupportTowerPass {}.pass(objects, settings, callbacks)?;
 
         // Adds a skirt
-        SkirtPass {}.pass(objects, settings, callbacks);
+        SkirtPass {}.pass(objects, settings, callbacks)?;
 
         // Adds a brim
-        BrimPass {}.pass(objects, settings, callbacks);
+        BrimPass {}.pass(objects, settings, callbacks)?;
 
         let mut passes: Vec<Box<dyn SlicePass>> = Vec::new();
 

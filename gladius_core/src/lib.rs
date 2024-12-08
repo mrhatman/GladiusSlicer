@@ -1,3 +1,6 @@
+#![deny(clippy::unwrap_used)]
+#![warn(clippy::all, clippy::perf, clippy::missing_const_for_fn)]
+
 pub mod bounds_checking;
 pub mod calculation;
 pub mod command_pass;

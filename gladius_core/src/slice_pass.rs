@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use crate::plotter::lightning_infill::lightning_infill;
 use crate::plotter::polygon_operations::PolygonOperations;
 use crate::plotter::support::Supporter;

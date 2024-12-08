@@ -1,6 +1,5 @@
 #![deny(clippy::unwrap_used)]
 #![warn(clippy::all, clippy::perf, clippy::missing_const_for_fn)]
-
 use clap::Parser;
 
 use gladius_core::{pipeline::slicer_pipeline, prelude::*};
@@ -8,7 +7,7 @@ use gladius_shared::prelude::*;
 
 use std::{fs::File, io::Write};
 
-use log::{error, info, LevelFilter};
+use log::{error, LevelFilter};
 use simple_logger::SimpleLogger;
 use std::io::BufWriter;
 
@@ -132,7 +131,6 @@ fn main() {
         let mut profiling_callbacks: Box<dyn PipelineCallbacks> =
             Box::new(ProfilingCallbacks::new());
 
-        let m = args.message;
         let (models, settings) = handle_err_or_return(handle_io(&args), args.message);
 
         handle_err_or_return(
@@ -147,9 +145,7 @@ fn main() {
     };
 }
 
-fn handle_io(
-    args: &Args,
-) -> Result<(Vec<(Vec<Vertex>, Vec<IndexedTriangle>)>, Settings), SlicerErrors> {
+fn handle_io(args: &Args) -> Result<(Vec<ModelRawData>, Settings), SlicerErrors> {
     let settings_json = args
         .settings_json
         .as_ref()
@@ -229,8 +225,8 @@ impl PipelineCallbacks for MessageCallbacks {
         stdio_lock.flush().expect("Standard Out should be limited");
     }
 
-    fn handle_commands(&mut self, moves: &Vec<Command>) {
-        let message = Message::Commands(moves.clone());
+    fn handle_commands(&mut self, moves: &[Command]) {
+        let message = Message::Commands(Vec::from(moves));
         bincode::serialize_into(BufWriter::new(std::io::stdout()), &message)
             .expect("Write Limit should not be hit");
     }

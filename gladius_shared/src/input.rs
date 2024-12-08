@@ -9,14 +9,11 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-/// The raw triangles and vertices of a model
-type ModelRawData = (Vec<Vertex>, Vec<IndexedTriangle>);
-
 ///Load the models from Input object and return the Vertices and Triangles
 pub fn load_models(
     input_objs: Vec<InputObject>,
     settings: &Settings,
-) -> Result<Vec<ModelRawData>, SlicerErrors> {
+) -> Result<Vec<crate::loader::ModelRawData>, SlicerErrors> {
     info!("Loading Input");
 
     let converted_inputs: Vec<(Vec<Vertex>, Vec<IndexedTriangle>)> =
@@ -101,11 +98,9 @@ pub fn load_models(
 
 ///Get the contents from a file or convert error
 pub fn load_settings_json(filepath: &str) -> Result<String, SlicerErrors> {
-    Ok(
-        std::fs::read_to_string(filepath).map_err(|_| SlicerErrors::SettingsFileNotFound {
-            filepath: filepath.to_string(),
-        })?,
-    )
+    std::fs::read_to_string(filepath).map_err(|_| SlicerErrors::SettingsFileNotFound {
+        filepath: filepath.to_string(),
+    })
 }
 
 ///Load a settings file from the partial settings json provided at the given filepath
@@ -114,12 +109,12 @@ pub fn load_settings(
     settings_data: &str,
 ) -> Result<Settings, SlicerErrors> {
     let partial_settings: PartialSettingsFile =
-        deser_hjson::from_str(&settings_data).map_err(|_| SlicerErrors::SettingsFileMisformat {
+        deser_hjson::from_str(settings_data).map_err(|_| SlicerErrors::SettingsFileMisformat {
             filepath: filepath.unwrap_or("Command Line Argument").to_string(),
         })?;
     let current_path = std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
     let path = if let Some(fp) = filepath {
-        let mut path = PathBuf::from_str(&fp).map_err(|_| SlicerErrors::SettingsFileNotFound {
+        let mut path = PathBuf::from_str(fp).map_err(|_| SlicerErrors::SettingsFileNotFound {
             filepath: fp.to_string(),
         })?;
         path.pop();

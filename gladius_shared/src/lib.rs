@@ -1,4 +1,5 @@
 #![deny(clippy::unwrap_used)]
+#![warn(clippy::all, clippy::perf, clippy::missing_const_for_fn)]
 #![deny(missing_docs)]
 //!Crate for shared types between slicer and external applications like GUI and Mods
 

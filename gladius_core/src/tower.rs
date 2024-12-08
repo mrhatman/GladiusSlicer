@@ -348,7 +348,7 @@ impl Hash for TowerRingElement {
 // A ring can be joined if its last element matches another rings first element
 fn join_fragments(fragments: &mut Vec<TowerRing>) {
     //early return for empty fragments
-    if fragments.len() == 0 {
+    if fragments.is_empty() {
         return;
     }
 

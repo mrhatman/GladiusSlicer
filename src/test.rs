@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-
+    #![allow(clippy::unwrap_used)]
     use gladius_core::prelude::*;
     use gladius_shared::prelude::*;
 

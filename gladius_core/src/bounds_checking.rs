@@ -82,6 +82,7 @@ pub fn check_moves_bounds(moves: &[Command], settings: &Settings) -> Result<(), 
 
 #[cfg(test)]
 mod bounds_check_tests {
+    #![allow(clippy::unwrap_used)]
     use super::*;
     use gladius_shared::geo::{LineString, Polygon};
 
