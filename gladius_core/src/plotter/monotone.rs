@@ -124,7 +124,7 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                         let right_bot =
                             section.right_chain.last().expect("Chain must have entries");
 
-                        let right_x = point_lerp(right_top, right_bot, point.pos.y).x;
+                        let right_x = point_y_lerp(right_top, right_bot, point.pos.y).x;
                         point.pos.x < right_x
                     })
                     .unwrap_or(sweep_line_storage.len());
@@ -219,7 +219,7 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                     .last()
                     .expect("Chain must have entries");
 
-                let break_point = point_lerp(break_point_high, &break_point_low, point.pos.y);
+                let break_point = point_y_lerp(break_point_high, &break_point_low, point.pos.y);
 
                 right_section.right_chain.push(break_point);
 
@@ -247,8 +247,8 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                         let right_bot =
                             section.right_chain.last().expect("Chain must have entries");
 
-                        let left_x = point_lerp(left_top, left_bot, point.pos.y).x;
-                        let right_x = point_lerp(right_top, right_bot, point.pos.y).x;
+                        let left_x = point_y_lerp(left_top, left_bot, point.pos.y).x;
+                        let right_x = point_y_lerp(right_top, right_bot, point.pos.y).x;
 
                         point.pos.x > left_x && point.pos.x < right_x
                     })
@@ -268,7 +268,7 @@ pub fn get_monotone_sections(poly: &Polygon<f64>) -> Vec<MonotoneSection> {
                     .last()
                     .expect("Chain must have entries");
 
-                let break_point = point_lerp(break_point_high, &break_point_low, point.pos.y);
+                let break_point = point_y_lerp(break_point_high, &break_point_low, point.pos.y);
 
                 old_section.right_chain.push(break_point);
                 old_section.right_chain.push(point.pos);
