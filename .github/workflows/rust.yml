@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -43,6 +43,8 @@ jobs:
           default: true
       - name: Build project
         run: cargo build --release --all-features --target=${{ matrix.target }}
+      - name: Test Project 
+        run: cargo test --release --all --target=${{ matrix.target }}
 
   style:
 
