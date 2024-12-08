@@ -1,6 +1,6 @@
 use geo_svg::{Color, ToSvg};
 use gladius_shared::geo::{Coord, Polygon, SimplifyVwPreserve};
-use gladius_shared::utils::{orientation, Orientation};
+use gladius_shared::prelude::*;
 use itertools::Itertools;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -291,17 +291,4 @@ fn isabove(a: &Coord<f64>, b: &Coord<f64>) -> bool {
         .map(|cmp| cmp.then(a.x.partial_cmp(&b.x).expect("Coords should not be NAN")))
         .expect("Coords should not be NAN")
         == Ordering::Greater
-}
-
-#[inline]
-fn point_lerp(a: &Coord<f64>, b: &Coord<f64>, y: f64) -> Coord<f64> {
-    Coord {
-        x: lerp(a.x, b.x, (y - a.y) / (b.y - a.y)),
-        y,
-    }
-}
-
-#[inline]
-fn lerp(a: f64, b: f64, f: f64) -> f64 {
-    a + f * (b - a)
 }

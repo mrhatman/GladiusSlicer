@@ -24,20 +24,13 @@ use std::hash::{Hash, Hasher};
 /// * `v_start` - Starting point of the line
 /// * `v_end` - Ending point of the line
 #[inline]
-fn line_z_intersection(z: f64, v_start: &Vertex, v_end: &Vertex) -> Vertex {
+const fn line_z_intersection(z: f64, v_start: &Vertex, v_end: &Vertex) -> Vertex {
     let z_normal = (z - v_start.z) / (v_end.z - v_start.z);
     debug_assert!(z_normal <= 1.0);
 
     let y = lerp(v_start.y, v_end.y, z_normal);
     let x = lerp(v_start.x, v_end.x, z_normal);
     Vertex { x, y, z }
-}
-
-/// ## Linear Interpolate
-/// Compute values between **a** and **b**, with **f** as the interpolated point from 0.0 to 1.0
-#[inline]
-fn lerp(a: f64, b: f64, f: f64) -> f64 {
-    a + f * (b - a)
 }
 
 /// A set of triangles and their associated vertices
