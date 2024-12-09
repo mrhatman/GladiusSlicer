@@ -1,33 +1,23 @@
-use gladius_shared::settings;
+use log::{debug, info};
 
-use crate::utils::show_error_message;
-use crate::{
-    debug, info, IndexedTriangle, InputObject, Loader, OsStr, PartialSettingsFile, Path, STLLoader,
-    Settings, SlicerErrors, ThreeMFLoader, Transform, Vertex,
-};
-use std::path::PathBuf;
+use crate::error::SlicerErrors;
+use crate::loader::{Loader, STLLoader, ThreeMFLoader};
+use crate::settings::{PartialSettingsFile, Settings};
+
+use crate::types::{IndexedTriangle, InputObject, Transform, Vertex};
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-/// The raw triangles and vertices of a model
-type ModelRawData = (Vec<Vertex>, Vec<IndexedTriangle>);
-
+/// Load the models from Input object and return the Vertices and Triangles
 pub fn load_models(
-    input: Option<Vec<String>>,
+    input_objs: Vec<InputObject>,
     settings: &Settings,
-    simple_input: bool,
-) -> Result<Vec<ModelRawData>, SlicerErrors> {
+) -> Result<Vec<crate::loader::ModelRawData>, SlicerErrors> {
     info!("Loading Input");
 
-    let converted_inputs: Vec<(Vec<Vertex>, Vec<IndexedTriangle>)> = input
-        .ok_or(SlicerErrors::NoInputProvided)?
-        .into_iter()
-        .try_fold(vec![], |mut vec, value| {
-            let object: InputObject = if simple_input {
-                InputObject::Auto(value.clone())
-            } else {
-                deser_hjson::from_str(&value).map_err(|_| SlicerErrors::InputMisformat)?
-            };
-
+    let converted_inputs: Vec<(Vec<Vertex>, Vec<IndexedTriangle>)> =
+        input_objs.into_iter().try_fold(vec![], |mut vec, object| {
             let model_path = Path::new(object.get_model_path());
 
             debug!("Using input file: {:?}", model_path);
@@ -47,19 +37,11 @@ pub fn load_models(
                 }),
             };
 
-            info!("Loading model from: {}", &value);
+            info!("Loading model from: {}", &object.get_model_path());
 
-            let models = match loader?.load(model_path.to_str().ok_or(SlicerErrors::InputNotUTF8)?)
-            {
-                Ok(v) => v,
-                Err(err) => {
-                    show_error_message(&err);
-                    std::process::exit(-1);
-                }
-            };
+            let models = loader?.load(model_path.to_str().ok_or(SlicerErrors::InputNotUTF8)?)?;
 
             info!("Loading objects");
-            let object = InputObject::Auto(value);
 
             let (x, y) = match object {
                 InputObject::AutoTranslate(_, x, y) => (x, y),
@@ -114,25 +96,25 @@ pub fn load_models(
     Ok(converted_inputs)
 }
 
+/// Get the contents from a file or convert error
 pub fn load_settings_json(filepath: &str) -> Result<String, SlicerErrors> {
-    Ok(
-        std::fs::read_to_string(filepath).map_err(|_| SlicerErrors::SettingsFileNotFound {
-            filepath: filepath.to_string(),
-        })?,
-    )
+    std::fs::read_to_string(filepath).map_err(|_| SlicerErrors::SettingsFileNotFound {
+        filepath: filepath.to_string(),
+    })
 }
 
+/// Load a settings file from the partial settings json provided at the given filepath
 pub fn load_settings(
     filepath: Option<&str>,
     settings_data: &str,
 ) -> Result<Settings, SlicerErrors> {
     let partial_settings: PartialSettingsFile =
-        deser_hjson::from_str(&settings_data).map_err(|_| SlicerErrors::SettingsFileMisformat {
+        deser_hjson::from_str(settings_data).map_err(|_| SlicerErrors::SettingsFileMisformat {
             filepath: filepath.unwrap_or("Command Line Argument").to_string(),
         })?;
     let current_path = std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
     let path = if let Some(fp) = filepath {
-        let mut path = PathBuf::from_str(&fp).map_err(|_| SlicerErrors::SettingsFileNotFound {
+        let mut path = PathBuf::from_str(fp).map_err(|_| SlicerErrors::SettingsFileNotFound {
             filepath: fp.to_string(),
         })?;
         path.pop();

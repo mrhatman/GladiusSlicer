@@ -26,3 +26,5 @@ schemars = { version = "1.0.0-alpha.15", git = "https://github.com/TimTheBig/sch
 geo-validity-check = "0.1.0"
 
 log = "0.4.22"
+
+ordered-float = "4.3"

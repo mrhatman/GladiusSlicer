@@ -1,11 +1,10 @@
 use crate::plotter::monotone::get_monotone_sections;
-use gladius_shared::settings::LayerSettings;
-use gladius_shared::types::{Move, MoveChain, MoveType, PartialInfillTypes, SolidInfillTypes};
+use gladius_shared::prelude::*;
 
-use crate::utils::point_y_lerp;
-use crate::PolygonOperations;
-use geo::prelude::*;
-use geo::{Coord, Point, Polygon};
+use gladius_shared::geo::prelude::*;
+use gladius_shared::geo::{Coord, Point, Polygon};
+
+use super::polygon_operations::PolygonOperations;
 
 pub fn linear_fill_polygon(
     poly: &Polygon<f64>,

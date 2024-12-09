@@ -1,16 +1,18 @@
-use crate::{
-    coordinate_position, Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat,
-    Itertools, Line, Move, MoveChain, MoveType, MultiPolygon, Point, PolygonOperations, Slice,
+use gladius_shared::geo::coordinate_position::CoordPos;
+use gladius_shared::geo::{
+    Closest, ClosestPoint, Contains, Coord, CoordinatePosition, GeoFloat, Line, MultiPolygon, Point,
 };
+use gladius_shared::prelude::*;
+use itertools::Itertools;
 use rayon::prelude::{IntoParallelRefMutIterator, ParallelIterator};
 
-use coordinate_position::CoordPos;
-use geo::euclidean_distance::EuclideanDistance;
-use geo::line_intersection::{line_intersection, LineIntersection};
-use gladius_shared::settings::LayerSettings;
+use gladius_shared::geo::euclidean_distance::EuclideanDistance;
+use gladius_shared::geo::line_intersection::{line_intersection, LineIntersection};
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+
+use super::polygon_operations::PolygonOperations;
 
 pub fn lightning_infill(slices: &mut Vec<Slice>) {
     let mut lt = LightningForest { trees: vec![] };
@@ -474,7 +476,7 @@ fn get_closest_intersection_point_on_polygon(
         .flat_map(|poly| {
             std::iter::once(poly.exterior())
                 .chain(poly.interiors())
-                .flat_map(geo::LineString::lines)
+                .flat_map(gladius_shared::geo::LineString::lines)
         })
         .filter_map(|poly_line| {
             line_intersection(poly_line, line).map(|intersection| match intersection {

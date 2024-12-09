@@ -1,5 +1,11 @@
+use std::collections::HashMap;
+
+use gladius_shared::geo::Coord;
+use gladius_shared::prelude::*;
+use itertools::Itertools;
+use ordered_float::OrderedFloat;
+
 use crate::optimizer::{binary_optimizer, state_optomizer, unary_optimizer};
-use crate::{Command, Coord, HashMap, Itertools, OrderedFloat, RetractionType, Settings};
 
 pub trait CommandPass {
     fn pass(cmds: &mut Vec<Command>, settings: &Settings);

@@ -1,4 +1,5 @@
-use crate::{CalculatedValues, Command, Coord, RetractionType, Settings};
+use gladius_shared::geo::Coord;
+use gladius_shared::prelude::*;
 
 pub fn calculate_values(moves: &[Command], settings: &Settings) -> CalculatedValues {
     let mut values = CalculatedValues {

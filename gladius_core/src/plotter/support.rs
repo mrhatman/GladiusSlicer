@@ -1,7 +1,8 @@
 use crate::plotter::support_linear_fill_polygon;
-use crate::{MoveType, PolygonOperations, Slice};
-use geo::MultiPolygon;
-use gladius_shared::settings::SupportSettings;
+use gladius_shared::geo::MultiPolygon;
+use gladius_shared::prelude::*;
+
+use super::polygon_operations::PolygonOperations;
 
 pub trait Supporter {
     fn add_support_polygons(&mut self, slice_above: &Slice, support_settings: &SupportSettings);

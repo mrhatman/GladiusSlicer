@@ -1,11 +1,10 @@
-use gladius_shared::settings::LayerSettings;
-use gladius_shared::types::{Move, MoveChain, MoveType};
+use gladius_shared::geo::prelude::*;
+use gladius_shared::geo::MultiPolygon;
+use gladius_shared::prelude::*;
 
-use geo::prelude::*;
-use geo::MultiPolygon;
-
-use crate::PolygonOperations;
 use itertools::Itertools;
+
+use super::polygon_operations::PolygonOperations;
 
 pub fn inset_polygon_recursive(
     poly: &MultiPolygon<f64>,

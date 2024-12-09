@@ -1,6 +1,5 @@
-use crate::{Command, Settings};
 use evalexpr::{context_map, eval_float_with_context, DefaultNumericTypes, HashMapContext};
-use gladius_shared::{error::SlicerErrors, settings::SettingsPrint, types::RetractionType};
+use gladius_shared::prelude::*;
 use std::io::{BufWriter, Write};
 
 pub fn convert(
@@ -13,11 +12,11 @@ pub fn convert(
     let mut current_object = None;
     let mut write_buf = BufWriter::new(write);
 
-    //output the settings to the gcode file
+    // output the settings to the gcode file
 
     for line in settings.to_strings() {
         writeln!(
-            //lending ; to make comment
+            // lending ; to make comment
             write_buf,
             "; {}",
             line
