@@ -59,7 +59,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         }
 
         impl  #struct_name_ident{
-            fn get_names_and_types() -> Vec<(String,String)> {
+            pub fn get_names_and_types() -> Vec<(String,String)> {
                 #names_and_types
             }
         }
