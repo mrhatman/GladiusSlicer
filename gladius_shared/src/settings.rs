@@ -1320,4 +1320,4 @@ where
 /// Error for Partial Conversion to Full Type
 /// String contains missing path
 #[derive(Serialize, Deserialize, Debug)]
-pub struct PartialConvertError(String);
+pub struct PartialConvertError(pub String);
