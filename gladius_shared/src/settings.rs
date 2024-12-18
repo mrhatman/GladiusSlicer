@@ -1219,7 +1219,10 @@ fn check_accelerations(
     SettingsValidationResult::NoIssue
 }
 
-trait Combine {
+///Returns the 2 structures combined that favors self over other
+pub trait Combine {
+
+    ///updates self with data from other
     fn combine(&mut self, other: Self);
 }
 
