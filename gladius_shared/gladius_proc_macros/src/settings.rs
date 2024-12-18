@@ -59,6 +59,7 @@ pub fn derive_proc_macro_impl(input: proc_macro::TokenStream) -> proc_macro::Tok
         }
 
         impl  #struct_name_ident{
+            ///returns a touple of strings with the name and type of the settings
             pub fn get_names_and_types() -> Vec<(String,String)> {
                 #names_and_types
             }

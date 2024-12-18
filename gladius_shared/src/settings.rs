@@ -874,6 +874,18 @@ impl PartialSettingsFile {
     /// Convert a partial settings file into a complete settings file
     /// returns an error if a settings is not present in this or any sub file
     pub fn get_settings(mut self, path: PathBuf) -> Result<Settings, SlicerErrors> {
+        let partial = self.get_partial_settings(path)?;
+
+        Settings::try_from(partial).map_err(|err| {
+            SlicerErrors::SettingsFileMissingSettings {
+                missing_setting: err.0,
+            }
+        })
+    }
+
+    /// Convert a partial settings file into a partial settings file
+    /// returns an error if a settings is not present in this or any sub file
+    pub fn get_partial_settings(mut self, path: PathBuf) -> Result<PartialSettings, SlicerErrors> {
         let current_path =
             std::env::current_dir().map_err(|_| SlicerErrors::SettingsFilePermission)?;
 
@@ -887,11 +899,8 @@ impl PartialSettingsFile {
         trace!("Setting path to {:?}", current_path);
         std::env::set_current_dir(current_path).expect("Path checked before");
 
-        Settings::try_from(self.partial_settings).map_err(|err| {
-            SlicerErrors::SettingsFileMissingSettings {
-                missing_setting: err.0,
-            }
-        })
+        Ok(self.partial_settings)
+
     }
 
     fn combine_with_other_files(&mut self) -> Result<(), SlicerErrors> {
